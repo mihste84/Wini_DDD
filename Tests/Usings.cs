@@ -1,0 +1,13 @@
+global using Xunit;
+global using Domain.Wini.Aggregates;
+global using Domain.Wini.Entities;
+global using Domain.Entities;
+global using Domain.Wini.Values;
+global using Domain.Values;
+global using Domain.Wini.Enums;
+global using Domain.Models;
+global using Domain.Wini.Models;
+global using Domain.Enums;
+global using Domain.Exceptions;
+global using Domain.Wini.ErrorCodes;
+global using Domain.Interfaces;
