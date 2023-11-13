@@ -3,6 +3,8 @@ public class AuthorizerValidator : AbstractValidator<Authorizer>
 {
     public AuthorizerValidator()
     {
-        RuleFor(_ => _.UserId).MaximumLength(8);
+        When(_ => _.HasAuthorized, () =>
+            RuleFor(_ => _.UserId).NotEmpty().WithName("Authorizer").WithMessage("Authorizer needs to be set when row is authorized.")
+        );
     }
 }

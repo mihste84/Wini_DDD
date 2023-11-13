@@ -22,26 +22,38 @@ public class AccountTests
     public void Fail_To_Create_Account_With_Too_Many_Chars()
     {
         const string account = "1234567";
-        var ex = Assert.Throws<TextValidationException>(() => new Account(account, "1234"));
+        var ex = Assert.Throws<DomainValidationException>(() => new Account(account, "1234"));
 
-        Assert.Equal(account, ex.AttemptedValue);
-        Assert.Equal("account", ex.PropertyName);
-        Assert.Equal(ValidationErrorCodes.TextTooLong, ex.ErrorCode);
-        Assert.Equal("Account cannot be longer than 6 characters", ex.Message);
-        Assert.Equal(6, ex.MaxLength);
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal("MaximumLengthValidator", error.ErrorCode);
+        Assert.Equal(account, error.AttemptedValue);
+        Assert.Equal("Value", error.PropertyName);
+        Assert.Equal("The length of 'Account' must be 6 characters or fewer. You entered 7 characters.", error.Message);
     }
 
     [Fact]
     public void Fail_To_Create_Account_With_Subsidiary_With_Too_Many_Chars()
     {
-        const string account = "12345";
+        const string account = "";
         const string subsidiary = "123456789";
-        var ex = Assert.Throws<TextValidationException>(() => new Account(account, subsidiary));
+        var ex = Assert.Throws<DomainValidationException>(() => new Account(account, subsidiary));
 
-        Assert.Equal(subsidiary, ex.AttemptedValue);
-        Assert.Equal("subsidiary", ex.PropertyName);
-        Assert.Equal(ValidationErrorCodes.TextTooLong, ex.ErrorCode);
-        Assert.Equal("Subsidiary cannot be longer than 8 characters", ex.Message);
-        Assert.Equal(8, ex.MaxLength);
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal("MaximumLengthValidator", error.ErrorCode);
+        Assert.Equal(subsidiary, error.AttemptedValue);
+        Assert.Equal("Subsidiary", error.PropertyName);
+        Assert.Equal("The length of 'Subsidiary' must be 8 characters or fewer. You entered 9 characters.", error.Message);
+    }
+
+    [Fact]
+    public void Fail_To_Create_Account_With_Account_And_Subsidiary_With_Too_Many_Chars()
+    {
+        const string account = "1234567";
+        const string subsidiary = "123456789";
+        var ex = Assert.Throws<DomainValidationException>(() => new Account(account, subsidiary));
+
+        Assert.Equal(2, ex.Errors.Count());
     }
 }

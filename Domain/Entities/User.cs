@@ -6,17 +6,21 @@ public class User
 
     public User(string? userId)
     {
-        if (userId?.Length > 8)
-        {
-            throw new TextValidationException(
-                nameof(userId),
-                userId,
-                ValidationErrorCodes.TextTooLong,
-                "User ID cannot be longer than 8 characters"
-            )
-            { MaxLength = 8 };
-        }
-
         UserId = userId;
+
+        var validator = new UserValidator(false);
+        var result = validator.Validate(this);
+        if (!result.IsValid)
+            throw new DomainValidationException(result.Errors);
+    }
+
+    public User(string? userId, bool isRequired, string propertyName)
+    {
+        UserId = userId;
+
+        var validator = new UserValidator(isRequired, propertyName);
+        var result = validator.Validate(this);
+        if (!result.IsValid)
+            throw new DomainValidationException(result.Errors);
     }
 }

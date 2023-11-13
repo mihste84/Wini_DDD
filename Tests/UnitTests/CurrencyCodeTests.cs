@@ -28,11 +28,13 @@ public class CurrencyCodeTests
     public void Fail_To_Create_CurrencyCode_Too_Long_Code()
     {
         const string code = "SEK  ";
-        var ex = Assert.Throws<TextValidationException>(() => new CurrencyCode(code));
+        var ex = Assert.Throws<DomainValidationException>(() => new CurrencyCode(code));
 
-        Assert.Equal(code, ex.AttemptedValue);
-        Assert.Equal("code", ex.PropertyName);
-        Assert.Equal(ValidationErrorCodes.TextTooLong, ex.ErrorCode);
-        Assert.Equal("Currency code cannot be longer than 3 characters", ex.Message);
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal(code, error.AttemptedValue);
+        Assert.Equal("MaximumLengthValidator", error.ErrorCode);
+        Assert.Equal("Code", error.PropertyName);
+        Assert.Equal("The length of 'Currency Code' must be 3 characters or fewer. You entered 5 characters.", error.Message);
     }
 }

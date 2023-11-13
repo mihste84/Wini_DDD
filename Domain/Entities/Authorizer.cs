@@ -3,17 +3,13 @@ namespace Domain.Entities;
 public class Authorizer : User
 {
     public bool HasAuthorized { get; set; }
-    public Authorizer(string User, bool hasAuthorized) : base(User)
+    public Authorizer(string? userId, bool hasAuthorized) : base(userId, false, "Authorizer")
     {
-        if (!string.IsNullOrWhiteSpace(User) && hasAuthorized)
-        {
-            throw new DomainLogicException(
-                nameof(hasAuthorized),
-                ValidationErrorCodes.Required,
-                "Authorizer needs to be set when row is authorized"
-            );
-        }
-
         HasAuthorized = hasAuthorized;
+
+        var validator = new AuthorizerValidator();
+        var result = validator.Validate(this);
+        if (!result.IsValid)
+            throw new DomainValidationException(result.Errors);
     }
 }

@@ -1,10 +1,15 @@
 namespace Domain.Validators;
 public class CurrencyValidator : AbstractValidator<Currency>
 {
-    public CurrencyValidator()
+    public CurrencyValidator(bool isRequired = true)
     {
-        RuleFor(_ => _.Code).SetValidator(new CurrencyCodeValidator());
-        RuleFor(_ => _.Code).NotNull();
-        RuleFor(_ => _.CurrencyRate).NotEmpty();
+        RuleFor(_ => _.Code).SetValidator(new CurrencyCodeValidator(isRequired));
+
+        When(_ => isRequired, () =>
+        {
+            RuleFor(_ => _.Code)
+                .NotEmpty()
+                .WithName("Currency Rate");
+        });
     }
 }

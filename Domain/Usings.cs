@@ -7,3 +7,5 @@ global using Domain.Interfaces;
 global using Domain.ErrorCodes;
 global using Domain.Aggregates;
 global using FluentValidation;
+global using FluentValidation.Results;
+global using Domain.Validators;

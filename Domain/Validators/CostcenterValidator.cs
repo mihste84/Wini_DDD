@@ -1,8 +1,15 @@
 namespace Domain.Validators;
 public class CostcenterValidator : AbstractValidator<Costcenter>
 {
-    public CostcenterValidator()
+    public CostcenterValidator(bool isRequired = true)
     {
-        RuleFor(_ => _.Code).NotEmpty().MaximumLength(5).WithName("Costcenter");
+        RuleFor(_ => _.Code).MaximumLength(5).WithName("Costcenter");
+
+        When(_ => isRequired, () =>
+        {
+            RuleFor(_ => _.Code)
+                .NotEmpty()
+                .WithName("Costcenter");
+        });
     }
 }

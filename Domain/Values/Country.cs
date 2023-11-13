@@ -17,26 +17,24 @@ public record Country
 
     public Country(string code)
     {
-        if (string.IsNullOrWhiteSpace(code))
-        {
-            throw new TextValidationException(
-                nameof(code),
-                code,
-                ValidationErrorCodes.Required,
-                "Country code is required"
-            );
-        }
-
         if (!_allowedCountries.TryGetValue(code, out var name))
         {
-            throw new DomainLogicException(
-                nameof(code),
-                ValidationErrorCodes.IncorrectValue,
-                $"Country code value {code} is not allowed"
+            throw new DomainValidationException(
+                new[] { new ValidationError {
+                    AttemptedValue = code,
+                    ErrorCode = "IncorrectValue",
+                    Message = "Country code value is not allowed.",
+                    PropertyName = "Code"
+                } }
             );
         }
 
         Name = name;
         Code = code;
+
+        var validator = new CountryValidator();
+        var result = validator.Validate(this);
+        if (!result.IsValid)
+            throw new DomainValidationException(result.Errors);
     }
 }

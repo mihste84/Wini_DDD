@@ -15,9 +15,9 @@ public class CostObjectTests
         Assert.Equal("1", CostObject.Type);
         Assert.Equal(2, CostObject.Number);
 
-        CostObject = new CostObject(3, default, default);
+        CostObject = new CostObject(3, default, "1");
         Assert.Equal(default, CostObject.Value);
-        Assert.Equal(default, CostObject.Type);
+        Assert.Equal("1", CostObject.Type);
         Assert.Equal(3, CostObject.Number);
 
         CostObject = new CostObject(4, default, default);
@@ -32,14 +32,15 @@ public class CostObjectTests
         const string costObject = "123456789";
         const string type = "1";
         const int number = 5;
-        var ex = Assert.Throws<NumberValidationException>(() => new CostObject(number, costObject, type));
 
-        Assert.Equal(number, ex.AttemptedValue);
-        Assert.Equal("number", ex.PropertyName);
-        Assert.Equal(ValidationErrorCodes.OutOfRange, ex.ErrorCode);
-        Assert.Equal("Cost object number must be between 1 and 4", ex.Message);
-        Assert.Equal(4, ex.MaxValue);
-        Assert.Equal(1, ex.MinValue);
+        var ex = Assert.Throws<DomainValidationException>(() => new CostObject(number, costObject, type));
+
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal(number, error.AttemptedValue);
+        Assert.Equal("InclusiveBetweenValidator", error.ErrorCode);
+        Assert.Equal("Number", error.PropertyName);
+        Assert.Equal("'Cost Object Number' must be between 1 and 4. You entered 5.", error.Message);
     }
 
     [Fact]
@@ -48,40 +49,46 @@ public class CostObjectTests
         const string costObject = "123456789";
         const string type = "1";
         const int number = 0;
-        var ex = Assert.Throws<NumberValidationException>(() => new CostObject(number, costObject, type));
 
-        Assert.Equal(number, ex.AttemptedValue);
-        Assert.Equal("number", ex.PropertyName);
-        Assert.Equal(ValidationErrorCodes.OutOfRange, ex.ErrorCode);
-        Assert.Equal("Cost object number must be between 1 and 4", ex.Message);
-        Assert.Equal(4, ex.MaxValue);
-        Assert.Equal(1, ex.MinValue);
+        var ex = Assert.Throws<DomainValidationException>(() => new CostObject(number, costObject, type));
+
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal(number, error.AttemptedValue);
+        Assert.Equal("InclusiveBetweenValidator", error.ErrorCode);
+        Assert.Equal("Number", error.PropertyName);
+        Assert.Equal("'Cost Object Number' must be between 1 and 4. You entered 0.", error.Message);
     }
 
     [Fact]
     public void Fail_To_Create_CostObject_With_Too_Many_Chars()
     {
-        const string CostObject = "123456789101112";
-        var ex = Assert.Throws<TextValidationException>(() => new CostObject(1, CostObject, "1234"));
+        const string costObject = "123456789101112";
+        const string type = "1";
+        const int number = 1;
+        var ex = Assert.Throws<DomainValidationException>(() => new CostObject(number, costObject, type));
 
-        Assert.Equal(CostObject, ex.AttemptedValue);
-        Assert.Equal("costObject", ex.PropertyName);
-        Assert.Equal(ValidationErrorCodes.TextTooLong, ex.ErrorCode);
-        Assert.Equal("Cost object cannot be longer than 12 characters", ex.Message);
-        Assert.Equal(12, ex.MaxLength);
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal(costObject, error.AttemptedValue);
+        Assert.Equal("MaximumLengthValidator", error.ErrorCode);
+        Assert.Equal("Value", error.PropertyName);
+        Assert.Equal("The length of 'Cost Object 1' must be 12 characters or fewer. You entered 15 characters.", error.Message);
     }
 
     [Fact]
     public void Fail_To_Create_CostObject_With_Type_With_Too_Many_Chars()
     {
-        const string CostObject = "12345";
+        const string costObject = "12345";
         const string type = "1234567";
-        var ex = Assert.Throws<TextValidationException>(() => new CostObject(1, CostObject, type));
+        const int number = 1;
+        var ex = Assert.Throws<DomainValidationException>(() => new CostObject(number, costObject, type));
 
-        Assert.Equal(type, ex.AttemptedValue);
-        Assert.Equal("type", ex.PropertyName);
-        Assert.Equal(ValidationErrorCodes.TextTooLong, ex.ErrorCode);
-        Assert.Equal("Cost object type cannot be longer than 1 character", ex.Message);
-        Assert.Equal(1, ex.MaxLength);
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal(type, error.AttemptedValue);
+        Assert.Equal("MaximumLengthValidator", error.ErrorCode);
+        Assert.Equal("Type", error.PropertyName);
+        Assert.Equal("The length of 'Cost Object Type 1' must be 1 characters or fewer. You entered 7 characters.", error.Message);
     }
 }

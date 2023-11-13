@@ -1,9 +1,14 @@
 namespace Domain.Validators;
 public class MoneyValidator : AbstractValidator<Money>
 {
-    public MoneyValidator()
+    public MoneyValidator(bool isRequired = true)
     {
-        RuleFor(_ => _.Currency).SetValidator(new CurrencyValidator()!);
-        RuleFor(_ => _.Amount).NotEmpty();
+        RuleFor(_ => _.Currency).SetValidator(new CurrencyValidator(isRequired));
+
+        When(_ => isRequired, () =>
+        {
+            RuleFor(_ => _.Amount)
+                .NotEmpty();
+        });
     }
 }

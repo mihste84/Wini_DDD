@@ -16,12 +16,13 @@ public class CostcenterTests
     [InlineData("N00000")]
     public void Fail_To_Create_Costcenter_With_Invalid_Code(string? code)
     {
-        var ex = Assert.Throws<TextValidationException>(() => new Costcenter(code));
+        var ex = Assert.Throws<DomainValidationException>(() => new Costcenter(code));
 
-        Assert.Equal(code, ex.AttemptedValue);
-        Assert.Equal("costcenter", ex.PropertyName);
-        Assert.Equal(ValidationErrorCodes.TextTooLong, ex.ErrorCode);
-        Assert.Equal("Costcenter cannot be longer than 5 characters", ex.Message);
-        Assert.Equal(5, ex.MaxLength);
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal(code, error.AttemptedValue);
+        Assert.Equal("MaximumLengthValidator", error.ErrorCode);
+        Assert.Equal("Code", error.PropertyName);
+        Assert.Equal("The length of 'Costcenter' must be 5 characters or fewer. You entered 6 characters.", error.Message);
     }
 }

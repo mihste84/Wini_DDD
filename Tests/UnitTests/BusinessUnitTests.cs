@@ -19,27 +19,33 @@ public class BusinessUnitTests
         Assert.Equal(100, bu.CompanyCode.Code);
         Assert.Equal("", bu.Costcenter.Code);
         Assert.Equal("", bu.Product.Code);
+
+        bu = new BusinessUnit("");
+        Assert.Equal(default, bu.CompanyCode.Code);
+        Assert.Equal("", bu.Costcenter.Code);
+        Assert.Equal("", bu.Product.Code);
     }
 
     [Fact]
     public void Fail_To_Create_BusinessUnit_Too_Long_Value()
     {
         const string bu = "100NKTOT12345";
-        var ex = Assert.Throws<TextValidationException>(() => new BusinessUnit(bu));
+        var ex = Assert.Throws<DomainValidationException>(() => new BusinessUnit(bu));
 
-        Assert.Equal(bu, ex.AttemptedValue);
-        Assert.Equal("businessUnit", ex.PropertyName);
-        Assert.Equal(ValidationErrorCodes.TextTooLong, ex.ErrorCode);
-        Assert.Equal("BusinessUnit cannot be longer than 12 characters", ex.Message);
-        Assert.Equal(12, ex.MaxLength);
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal("12345", error.AttemptedValue);
+        Assert.Equal("MaximumLengthValidator", error.ErrorCode);
+        Assert.Equal("Code", error.PropertyName);
+        Assert.Equal("The length of 'Product' must be 4 characters or fewer. You entered 5 characters.", error.Message);
     }
 
     [Theory]
-    [InlineData("XYZNKTOT1234", typeof(TextValidationException), "CompanyCodeString could not be parsed to a numeric value")]
-    [InlineData("1NKTOT1234", typeof(TextValidationException), "CompanyCodeString could not be parsed to a numeric value")]
-    public void Fail_To_Create_Business_Unit_Wrong_Values(string bu, Type typeOfException, string errorMessage)
+    [InlineData("XYZNKTOT1234", "CompanyCodeString could not be parsed to a numeric value")]
+    [InlineData("1NKTOT1234", "CompanyCodeString could not be parsed to a numeric value")]
+    public void Fail_To_Create_Business_Unit_Wrong_Values(string bu, string errorMessage)
     {
-        var ex = Assert.Throws(typeOfException, () => new BusinessUnit(bu));
+        var ex = Assert.Throws<FormatException>(() => new BusinessUnit(bu));
         Assert.Equal(errorMessage, ex.Message);
     }
 }

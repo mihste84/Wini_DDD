@@ -1,14 +1,13 @@
 namespace Domain.Values;
 
-public record Product
+public record CompanyName
 {
-    public string? Code { get; }
-
-    public Product(string? product)
+    public readonly string Name;
+    public CompanyName(string name)
     {
-        Code = product;
+        Name = name;
 
-        var validator = new ProductValidator();
+        var validator = new CompanyNameValidator();
         var result = validator.Validate(this);
         if (!result.IsValid)
             throw new DomainValidationException(result.Errors);

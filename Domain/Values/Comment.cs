@@ -8,19 +8,13 @@ public record Comment
 
     public Comment(string value, IdValue<int> bookingId)
     {
-        if (value.Length > 300)
-        {
-            throw new TextValidationException(
-                nameof(value),
-                value,
-                ValidationErrorCodes.TextTooLong,
-                "Comment cannot be longer than 300 characters"
-            )
-            { MaxLength = 300 };
-        }
-
         Value = value;
         BookingId = bookingId;
         Created = DateTime.UtcNow;
+
+        var validator = new CommentValidator();
+        var result = validator.Validate(this);
+        if (!result.IsValid)
+            throw new DomainValidationException(result.Errors);
     }
 }

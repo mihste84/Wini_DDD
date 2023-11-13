@@ -11,7 +11,7 @@ public class BookingRow
     public CostObject CostObject2 { get; }
     public CostObject CostObject3 { get; }
     public CostObject CostObject4 { get; }
-    public Description Remark { get; }
+    public Remark Remark { get; }
     public Authorizer Authorizer { get; }
     public Money Amount { get; }
 
@@ -25,7 +25,7 @@ public class BookingRow
         CostObject costObject2,
         CostObject costObject3,
         CostObject costObject4,
-        Description remark,
+        Remark remark,
         Authorizer authorizer,
         Money amount)
     {

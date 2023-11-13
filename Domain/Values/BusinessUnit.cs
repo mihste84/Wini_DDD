@@ -8,21 +8,15 @@ public record BusinessUnit
 
     public BusinessUnit(string businessUnit)
     {
-        if (!string.IsNullOrWhiteSpace(businessUnit) && businessUnit.Length > 12)
-        {
-            throw new TextValidationException(
-                nameof(businessUnit),
-                businessUnit,
-                ValidationErrorCodes.TextTooLong,
-                "BusinessUnit cannot be longer than 12 characters"
-            )
-            { MaxLength = 12 };
-        }
-
         businessUnit = businessUnit.Trim();
         CompanyCode = GetCompanyCode(businessUnit);
         Costcenter = GetCostcenter(businessUnit);
         Product = GetProduct(businessUnit);
+
+        var validator = new BusinessUnitValidator();
+        var result = validator.Validate(this);
+        if (!result.IsValid)
+            throw new DomainValidationException(result.Errors);
     }
 
     private static Costcenter GetCostcenter(string businessUnit)
@@ -37,7 +31,7 @@ public record BusinessUnit
 
     private static Product GetProduct(string businessUnit)
         => (businessUnit?.Length >= 12)
-        ? new Product(businessUnit[8..12])
+        ? new Product(businessUnit[8..])
         : new Product("");
 
     public override string ToString() => $"{CompanyCode.Code}{Costcenter.Code}{Product.Code}";

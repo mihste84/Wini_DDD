@@ -16,12 +16,13 @@ public class ProductTests
     [InlineData("123456")]
     public void Fail_To_Create_Product_With_Invalid_Code(string? code)
     {
-        var ex = Assert.Throws<TextValidationException>(() => new Product(code));
+        var ex = Assert.Throws<DomainValidationException>(() => new Product(code));
 
-        Assert.Equal(code, ex.AttemptedValue);
-        Assert.Equal("product", ex.PropertyName);
-        Assert.Equal(ValidationErrorCodes.TextTooLong, ex.ErrorCode);
-        Assert.Equal("Product cannot be longer than 4 characters", ex.Message);
-        Assert.Equal(4, ex.MaxLength);
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal(code, error.AttemptedValue);
+        Assert.Equal("MaximumLengthValidator", error.ErrorCode);
+        Assert.Equal("Code", error.PropertyName);
+        Assert.Equal("The length of 'Product' must be 4 characters or fewer. You entered 6 characters.", error.Message);
     }
 }

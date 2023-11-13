@@ -6,7 +6,7 @@ public class Booking
     public BookingStatus Status { get; }
     public Commissioner Commissioner { get; }
     public BookingDate BookingDate { get; }
-    public Description Description { get; }
+    public TextToE1 Description { get; }
     public bool IsReversed { get; }
     public LedgerType LedgerType { get; }
     public BookingRow[] Rows { get; } = Array.Empty<BookingRow>();
@@ -24,7 +24,7 @@ public class Booking
         Status = new BookingStatus(WiniStatus.Saved, DateTime.UtcNow);
         Commissioner = commissioner;
         BookingDate = new BookingDate(DateTime.UtcNow);
-        Description = new Description("");
+        Description = new TextToE1(default);
         IsReversed = false;
         LedgerType = new LedgerType(Ledgers.AA);
         Created = DateTime.UtcNow;
@@ -35,7 +35,7 @@ public class Booking
         BookingStatus status,
         Commissioner commissioner,
         BookingDate bookingDate,
-        Description description,
+        TextToE1 description,
         bool isReversed,
         LedgerType ledgerType,
         BookingRow[] rows,

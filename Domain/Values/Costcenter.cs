@@ -6,17 +6,11 @@ public record Costcenter
 
     public Costcenter(string? costcenter)
     {
-        if (!string.IsNullOrWhiteSpace(costcenter) && costcenter.Length > 5)
-        {
-            throw new TextValidationException(
-                nameof(costcenter),
-                costcenter,
-                ValidationErrorCodes.TextTooLong,
-                "Costcenter cannot be longer than 5 characters"
-            )
-            { MaxLength = 5 };
-        }
-
         Code = costcenter;
+
+        var validator = new CostcenterValidator(false);
+        var result = validator.Validate(this);
+        if (!result.IsValid)
+            throw new DomainValidationException(result.Errors);
     }
 }

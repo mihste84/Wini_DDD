@@ -1,14 +1,13 @@
 namespace Domain.Values;
 
-public record Product
+public record TextToE1
 {
-    public string? Code { get; }
-
-    public Product(string? product)
+    public string? Text { get; }
+    public TextToE1(string? text)
     {
-        Code = product;
+        Text = text;
 
-        var validator = new ProductValidator();
+        var validator = new TextToE1Validator(false);
         var result = validator.Validate(this);
         if (!result.IsValid)
             throw new DomainValidationException(result.Errors);

@@ -9,16 +9,31 @@ public class CommissionerTests
         Assert.Equal("MIHSTE", cms.UserId);
     }
 
-    [Theory]
-    [InlineData("", "Commissioner cannot be empty", ValidationErrorCodes.Required)]
-    [InlineData(" ", "Commissioner cannot be empty", ValidationErrorCodes.Required)]
-    [InlineData(null, "Commissioner cannot be empty", ValidationErrorCodes.Required)]
-    [InlineData("ASDFGHJKL", "User ID cannot be longer than 8 characters", ValidationErrorCodes.TextTooLong)]
-    public void Fail_To_Create_Commissioner_With_Invalid_Value(string Commissioner, string errorMessage, int errorCode)
+    [Fact]
+    public void Fail_To_Create_Commissioner_With_Empty_Value()
     {
-        var ex = Assert.Throws<TextValidationException>(() => new Commissioner(Commissioner));
+        const string commissioner = "";
+        var ex = Assert.Throws<DomainValidationException>(() => new Commissioner(commissioner));
 
-        Assert.Contains(errorMessage, ex.Message);
-        Assert.Equal(errorCode, ex.ErrorCode);
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal("NotEmptyValidator", error.ErrorCode);
+        Assert.Equal(commissioner, error.AttemptedValue);
+        Assert.Equal("UserId", error.PropertyName);
+        Assert.Equal("'Commissioner' must not be empty.", error.Message);
+    }
+
+    [Fact]
+    public void Fail_To_Create_Commissioner_With_Too_Long_Value()
+    {
+        const string commissioner = "XYZASDFGH";
+        var ex = Assert.Throws<DomainValidationException>(() => new Commissioner(commissioner));
+
+        Assert.Single(ex.Errors);
+        var error = ex.Errors.First();
+        Assert.Equal("MaximumLengthValidator", error.ErrorCode);
+        Assert.Equal(commissioner, error.AttemptedValue);
+        Assert.Equal("UserId", error.PropertyName);
+        Assert.Equal("The length of 'Commissioner' must be 8 characters or fewer. You entered 9 characters.", error.Message);
     }
 }
