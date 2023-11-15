@@ -13,17 +13,17 @@ public class BusinessUnitTests
         bu = new BusinessUnit("100NKTOT");
         Assert.Equal(100, bu.CompanyCode.Code);
         Assert.Equal("NKTOT", bu.Costcenter.Code);
-        Assert.Equal("", bu.Product.Code);
+        Assert.Equal(default, bu.Product.Code);
 
         bu = new BusinessUnit("   100      ");
         Assert.Equal(100, bu.CompanyCode.Code);
-        Assert.Equal("", bu.Costcenter.Code);
-        Assert.Equal("", bu.Product.Code);
+        Assert.Equal(default, bu.Costcenter.Code);
+        Assert.Equal(default, bu.Product.Code);
 
         bu = new BusinessUnit("");
         Assert.Equal(default, bu.CompanyCode.Code);
-        Assert.Equal("", bu.Costcenter.Code);
-        Assert.Equal("", bu.Product.Code);
+        Assert.Equal(default, bu.Costcenter.Code);
+        Assert.Equal(default, bu.Product.Code);
 
         bu = new BusinessUnit();
         Assert.Equal(default, bu.CompanyCode.Code);

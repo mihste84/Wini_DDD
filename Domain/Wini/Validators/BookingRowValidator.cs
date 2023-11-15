@@ -3,8 +3,6 @@ public class BookingRowValidator : AbstractValidator<BookingRow>
 {
     public BookingRowValidator()
     {
-        RuleFor(_ => _.BookingId).SetValidator(new BookingIdValidator());
-        RuleFor(_ => _.RowNumber).SetValidator(new BookingRowNumberValidator());
         RuleFor(_ => _.Account).SetValidator(new AccountValidator());
         RuleFor(_ => _.BusinessUnit).SetValidator(new BusinessUnitValidator());
         RuleFor(_ => _.Subledger).SetValidator(new SubledgerValidator());

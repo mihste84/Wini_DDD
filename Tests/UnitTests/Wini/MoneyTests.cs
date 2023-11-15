@@ -12,6 +12,21 @@ public class MoneyTests
         Assert.Equal("SEK", money.Currency.CurrencyCode.Code);
         Assert.Equal(10, money.Currency.CurrencyRate);
 
+        money = new Money(200, "SEK", default);
+        Assert.Equal(200, money.Amount);
+        Assert.Equal("SEK", money.Currency.CurrencyCode.Code);
+        Assert.Equal(default, money.Currency.CurrencyRate);
+
+        money = new Money(200, "SEK", 10);
+        Assert.Equal(200, money.Amount);
+        Assert.Equal("SEK", money.Currency.CurrencyCode.Code);
+        Assert.Equal(10, money.Currency.CurrencyRate);
+
+        money = new Money(200, default, 10);
+        Assert.Equal(200, money.Amount);
+        Assert.Equal(default, money.Currency.CurrencyCode.Code);
+        Assert.Equal(10, money.Currency.CurrencyRate);
+
         money = new Money();
         Assert.Equal(0, money.Amount);
         Assert.Equal(default, money.Currency.CurrencyCode.Code);

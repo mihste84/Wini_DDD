@@ -1,23 +1,23 @@
-namespace Domain.Wini.Values;
+namespace Domain.Wini.Entities;
 
 public class BookingRow
 {
-    public readonly IdValue<int> BookingId;
-    public readonly BookingRowNumber RowNumber;
-    public BusinessUnit BusinessUnit { get; }
-    public Account Account { get; }
-    public Subledger Subledger { get; }
-    public CostObject CostObject1 { get; }
-    public CostObject CostObject2 { get; }
-    public CostObject CostObject3 { get; }
-    public CostObject CostObject4 { get; }
-    public Remark Remark { get; }
-    public Authorizer Authorizer { get; }
-    public Money Amount { get; }
+    public readonly IdValue<int>? Id;
+    public readonly IdValue<int>? BookingId;
+    public BusinessUnit BusinessUnit { get; set; }
+    public Account Account { get; set; }
+    public Subledger Subledger { get; set; }
+    public CostObject CostObject1 { get; set; }
+    public CostObject CostObject2 { get; set; }
+    public CostObject CostObject3 { get; set; }
+    public CostObject CostObject4 { get; set; }
+    public Remark Remark { get; set; }
+    public Authorizer Authorizer { get; set; }
+    public Money Amount { get; set; }
 
     public BookingRow(
-        IdValue<int> bookingId,
-        BookingRowNumber rowNumber,
+        IdValue<int>? id,
+        IdValue<int>? bookingId,
         BusinessUnit bu,
         Account account,
         Subledger subledger,
@@ -29,8 +29,8 @@ public class BookingRow
         Authorizer authorizer,
         Money amount)
     {
+        Id = id;
         BookingId = bookingId;
-        RowNumber = rowNumber;
         BusinessUnit = bu;
         Account = account;
         Subledger = subledger;
@@ -44,11 +44,11 @@ public class BookingRow
     }
 
     public BookingRow(
-        IdValue<int> bookingId,
-        BookingRowNumber rowNumber)
+        IdValue<int>? id,
+        IdValue<int>? bookingId)
     {
+        Id = id;
         BookingId = bookingId;
-        RowNumber = rowNumber;
         BusinessUnit = new BusinessUnit();
         Account = new Account();
         Subledger = new Subledger();

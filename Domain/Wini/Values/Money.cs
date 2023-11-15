@@ -10,6 +10,14 @@ public record Money
         Amount = 0;
         Currency = new Currency();
     }
+
+    public Money(decimal? amount, string? currencyCodeString, decimal? exchangeRate)
+    {
+        var currencyCode = new CurrencyCode(currencyCodeString);
+        Amount = amount;
+        Currency = new Currency(currencyCode, exchangeRate);
+    }
+
     public Money(decimal? amount, Currency currency)
     {
         Amount = amount;

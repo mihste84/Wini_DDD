@@ -16,7 +16,7 @@ public record CurrencyCode
 
     public CurrencyCode() { }
 
-    public CurrencyCode(string code)
+    public CurrencyCode(string? code)
     {
         Code = code;
 
