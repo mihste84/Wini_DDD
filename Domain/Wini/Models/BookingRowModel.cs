@@ -18,8 +18,7 @@ public record BookingRowModel
     public string? CostObjectType4 { get; set; }
     public string? Remark { get; set; }
     public string? Authorizer { get; set; }
-    public bool HasAuthorized { get; set; }
     public decimal? Amount { get; set; }
     public string? CurrencyCode { get; set; }
-    public decimal? ExchangeRate { get; set; }
+    public decimal? CurrencyRate { get; set; }
 }

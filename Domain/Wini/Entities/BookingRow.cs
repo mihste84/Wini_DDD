@@ -2,7 +2,7 @@ namespace Domain.Wini.Entities;
 
 public class BookingRow
 {
-    public readonly IdValue<int>? Id;
+    public readonly IdValue<int>? RowId;
     public readonly IdValue<int>? BookingId;
     public BusinessUnit BusinessUnit { get; set; }
     public Account Account { get; set; }
@@ -13,7 +13,7 @@ public class BookingRow
     public CostObject CostObject4 { get; set; }
     public Remark Remark { get; set; }
     public Authorizer Authorizer { get; set; }
-    public Money Amount { get; set; }
+    public Money Money { get; set; }
 
     public BookingRow(
         IdValue<int>? id,
@@ -29,7 +29,7 @@ public class BookingRow
         Authorizer authorizer,
         Money amount)
     {
-        Id = id;
+        RowId = id;
         BookingId = bookingId;
         BusinessUnit = bu;
         Account = account;
@@ -40,14 +40,14 @@ public class BookingRow
         CostObject4 = costObject4;
         Remark = remark;
         Authorizer = authorizer;
-        Amount = amount;
+        Money = amount;
     }
 
     public BookingRow(
         IdValue<int>? id,
         IdValue<int>? bookingId)
     {
-        Id = id;
+        RowId = id;
         BookingId = bookingId;
         BusinessUnit = new BusinessUnit();
         Account = new Account();
@@ -58,6 +58,6 @@ public class BookingRow
         CostObject4 = new CostObject(4);
         Remark = new Remark();
         Authorizer = new Authorizer();
-        Amount = new Money();
+        Money = new Money();
     }
 }

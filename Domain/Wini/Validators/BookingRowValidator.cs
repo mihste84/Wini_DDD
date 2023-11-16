@@ -12,6 +12,6 @@ public class BookingRowValidator : AbstractValidator<BookingRow>
         RuleFor(_ => _.CostObject4).SetValidator(new CostObjectValidator(4));
         RuleFor(_ => _.Remark).SetValidator(new RemarkValidator());
         RuleFor(_ => _.Authorizer).SetValidator(new AuthorizerValidator());
-        RuleFor(_ => _.Amount).SetValidator(new MoneyValidator());
+        RuleFor(_ => _.Money).SetValidator(new MoneyValidator());
     }
 }
