@@ -1,3 +1,6 @@
+using Domain.Interfaces;
+using Moq;
+
 namespace Tests.UnitTests.Wini;
 
 public class BookingTests
@@ -5,18 +8,18 @@ public class BookingTests
     [Fact]
     public void Create_New_Booking_With_No_Data()
     {
-        var booking = GetNewEmptyBooking();
+        var booking = CommonTestValues.GetNewEmptyBooking();
 
         var today = DateTime.UtcNow.Date;
         Assert.Equal(default, booking.BookingId);
         Assert.Equal(today, booking.Created.Date);
-        Assert.Equal(today, booking.BookingDate.Date);
+        Assert.Equal(today, booking.Header.BookingDate.Date);
         Assert.Equal(WiniStatus.Saved, booking.BookingStatus.Status);
         Assert.Equal(today, booking.BookingStatus.Updated.Date);
         Assert.Equal("MIHSTE", booking.Commissioner.UserId);
-        Assert.False(booking.IsReversed);
-        Assert.Equal(Ledgers.AA, booking.LedgerType.Type);
-        Assert.Equal(default, booking.TextToE1.Text);
+        Assert.False(booking.Header.IsReversed);
+        Assert.Equal(Ledgers.AA, booking.Header.LedgerType.Type);
+        Assert.Equal(default, booking.Header.TextToE1.Text);
         Assert.Empty(booking.Rows);
         Assert.Empty(booking.Attachments);
         Assert.Empty(booking.Comments);
@@ -26,18 +29,17 @@ public class BookingTests
     [Fact]
     public void Create_New_Booking_With_Data()
     {
-        var booking = GetBooking();
+        var booking = CommonTestValues.GetBooking();
 
-        var today = DateTime.UtcNow.Date;
         Assert.Equal(1, booking.BookingId?.Value);
         Assert.Equal(new DateTime(2023, 3, 20, 23, 0, 0), booking.Created);
-        Assert.Equal(new DateTime(2023, 3, 22), booking.BookingDate.Date);
+        Assert.Equal(new DateTime(2023, 3, 22), booking.Header.BookingDate.Date);
         Assert.Equal(WiniStatus.Saved, booking.BookingStatus.Status);
-        Assert.Equal(new DateTime(2023, 3, 24), booking.BookingStatus.Updated);
+        Assert.Equal(new DateTime(2023, 3, 20, 23, 0, 0), booking.BookingStatus.Updated);
         Assert.Equal("XMIHST", booking.Commissioner.UserId);
-        Assert.True(booking.IsReversed);
-        Assert.Equal(Ledgers.GP, booking.LedgerType.Type);
-        Assert.Equal("Test", booking.TextToE1.Text);
+        Assert.True(booking.Header.IsReversed);
+        Assert.Equal(Ledgers.GP, booking.Header.LedgerType.Type);
+        Assert.Equal("Test", booking.Header.TextToE1.Text);
         Assert.Empty(booking.Rows);
         Assert.Empty(booking.Attachments);
         Assert.Empty(booking.Comments);
@@ -45,16 +47,36 @@ public class BookingTests
     }
 
     [Fact]
+    public void Edit_Header_To_Existing_Booking()
+    {
+        var bookingDate = new DateTime(2023, 1, 1);
+        var booking = CommonTestValues.GetBooking();
+        var header = new BookingHeaderModel(
+            bookingDate,
+            "EDIT TEST",
+            true,
+            Ledgers.GP
+        );
+
+        booking.EditBookingHeader(header);
+
+        Assert.True(booking.Header.IsReversed);
+        Assert.Equal(Ledgers.GP, booking.Header.LedgerType.Type);
+        Assert.Equal("EDIT TEST", booking.Header.TextToE1.Text);
+        Assert.Equal(bookingDate, booking.Header.BookingDate.Date);
+    }
+
+    [Fact]
     public void Add_New_Row_To_Empty_Booking()
     {
-        var booking = GetNewEmptyBooking();
+        var booking = CommonTestValues.GetNewEmptyBooking();
         var newRow = GetRowModel();
 
         booking.AddNewRow(newRow);
 
         Assert.Single(booking.Rows);
         var row = booking.Rows.Single();
-        Assert.Equal(default, row.BookingId?.Value);
+        Assert.Equal(1, row.RowNumber);
         Assert.Equal("12345", row.Account.Value);
         Assert.Equal("7894", row.Account.Subsidiary);
         Assert.Equal(100, row.Money.Amount);
@@ -86,14 +108,14 @@ public class BookingTests
     [Fact]
     public void Add_New_Row_To_Existing_Booking()
     {
-        var booking = GetBooking();
+        var booking = CommonTestValues.GetBooking();
         var newRow = GetRowModel();
 
         booking.AddNewRow(newRow);
 
         Assert.Single(booking.Rows);
         var row = booking.Rows.Single();
-        Assert.Equal(1, row.BookingId?.Value);
+        Assert.Equal(1, row.RowNumber);
         Assert.Equal("12345", row.Account.Value);
         Assert.Equal("7894", row.Account.Subsidiary);
         Assert.Equal(100, row.Money.Amount);
@@ -125,7 +147,7 @@ public class BookingTests
     [Fact]
     public void Edit_Row_Of_Existing_Booking()
     {
-        var booking = GetBooking();
+        var booking = CommonTestValues.GetBooking();
         var newRow = GetRowModel(10);
         booking.AddNewRow(newRow);
 
@@ -153,8 +175,7 @@ public class BookingTests
 
         Assert.Single(booking.Rows);
         var row = booking.Rows.Single();
-        Assert.Equal(editRow.Id, row.RowId?.Value);
-        Assert.Equal(1, row.BookingId?.Value);
+        Assert.Equal(editRow.RowNumber, row.RowNumber);
         Assert.Equal(editRow.Account, row.Account.Value);
         Assert.Equal(editRow.Subsidiary, row.Account.Subsidiary);
         Assert.Equal(editRow.Amount, row.Money.Amount);
@@ -186,7 +207,7 @@ public class BookingTests
     [Fact]
     public void Delete_Row_Of_Existing_Booking()
     {
-        var booking = GetBooking();
+        var booking = CommonTestValues.GetBooking();
         var newRow = GetRowModel(10);
         booking.AddNewRow(newRow);
 
@@ -198,7 +219,7 @@ public class BookingTests
     [Fact]
     public void Fail_To_Add_New_Row_Wrong_Status()
     {
-        var booking = GetBooking(status: WiniStatus.Cancelled);
+        var booking = CommonTestValues.GetBooking(status: WiniStatus.Cancelled);
         var newRow = GetRowModel();
 
         var ex = Assert.Throws<DomainLogicException>(() => booking.AddNewRow(newRow));
@@ -207,9 +228,22 @@ public class BookingTests
     }
 
     [Fact]
+    public void Fail_To_Add_New_Row_Duplicate_Row_Number()
+    {
+        var booking = CommonTestValues.GetBooking(status: WiniStatus.Saved);
+        var newRow = GetRowModel(1);
+        booking.AddNewRow(newRow);
+        newRow = GetRowModel(1);
+
+        var ex = Assert.Throws<DomainLogicException>(() => booking.AddNewRow(newRow));
+
+        Assert.Equal("Cannot add new row. Row number 1 already exists.", ex.Message);
+    }
+
+    [Fact]
     public void Fail_To_Edit_Row_Wrong_Status()
     {
-        var booking = GetBooking(status: WiniStatus.Cancelled);
+        var booking = CommonTestValues.GetBooking(status: WiniStatus.Cancelled);
         var newRow = GetRowModel();
 
         var ex = Assert.Throws<DomainLogicException>(() => booking.EditRow(newRow));
@@ -218,20 +252,20 @@ public class BookingTests
     }
 
     [Fact]
-    public void Fail_To_Edit_Row_Wrong_Id()
+    public void Fail_To_Edit_Row_Wrong_Row_Number()
     {
-        var booking = GetBooking();
+        var booking = CommonTestValues.GetBooking();
         var newRow = GetRowModel(10);
         var editRow = GetRowModel(11);
-        var ex = Assert.Throws<DomainLogicException>(() => booking.EditRow(editRow));
+        var ex = Assert.Throws<NotFoundException>(() => booking.EditRow(editRow));
 
-        Assert.Equal("Cannot edit row. Existing row with ID 11 could not be found.", ex.Message);
+        Assert.Equal("Cannot edit row. Existing row with number 11 could not be found.", ex.Message);
     }
 
     [Fact]
     public void Fail_To_Delete_Row_Wrong_Status()
     {
-        var booking = GetBooking(status: WiniStatus.Cancelled);
+        var booking = CommonTestValues.GetBooking(status: WiniStatus.Cancelled);
         var newRow = GetRowModel(10);
 
         var ex = Assert.Throws<DomainLogicException>(() => booking.DeleteRow(10));
@@ -240,43 +274,401 @@ public class BookingTests
     }
 
     [Fact]
-    public void Fail_To_Delete_Row_Wrong_Id()
+    public void Fail_To_Delete_Row_Wrong_Row_Number()
     {
-        var booking = GetBooking();
+        var booking = CommonTestValues.GetBooking();
         var newRow = GetRowModel(10);
-        var ex = Assert.Throws<DomainLogicException>(() => booking.DeleteRow(11));
+        var ex = Assert.Throws<NotFoundException>(() => booking.DeleteRow(11));
 
-        Assert.Equal($"Cannot delete row. Existing row with ID 11 could not be found.", ex.Message);
+        Assert.Equal("Cannot delete row. Existing row with number 11 could not be found.", ex.Message);
     }
 
-    private Booking GetNewEmptyBooking()
-    => new(
-        default,
-        new Commissioner("MIHSTE")
-    );
+    [Fact]
+    public void Set_Booking_Status_Cancelled()
+    {
+        const string commissioner = "MIHSTE";
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
+        var booking = CommonTestValues.GetBooking(commissioner);
 
-    private Booking GetBooking(string commissioner = "XMIHST", WiniStatus status = WiniStatus.Saved)
-    => new(
-        new IdValue<int>(1),
-        new BookingStatus(status, new DateTime(2023, 3, 24)),
-        new Commissioner(commissioner),
-        new BookingDate(new DateTime(2023, 3, 22)),
-        new TextToE1("Test"),
-        true,
-        new LedgerType(Ledgers.GP),
-        new List<BookingRow>(),
-        new List<Comment>(),
-        new List<RecipientMessage>(),
-        new List<Attachment>(),
-        new DateTime(2023, 3, 20, 23, 0, 0)
-    );
+        booking.SetCancelledStatus(authenticationService.Object);
 
-    private BookingRowModel GetRowModel(int? id = default)
+        Assert.Equal(WiniStatus.Cancelled, booking.BookingStatus.Status);
+    }
+
+    [Fact]
+    public void Fail_To_Set_Booking_Status_Cancelled_Not_Commissioner()
+    {
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns("MIHSTE");
+        var booking = CommonTestValues.GetBooking();
+
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetCancelledStatus(authenticationService.Object));
+
+        Assert.Equal("Only commissioners can change status to Cancelled.", ex.Message);
+        Assert.Equal("MIHSTE", ex.AttemptedValue);
+        Assert.Equal("userId", ex.PropertyName);
+    }
+
+    [Fact]
+    public void Fail_To_Set_Booking_Status_Cancelled_Wrong_Status()
+    {
+        const string commissioner = "MIHSTE";
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
+        var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.Cancelled);
+
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetCancelledStatus(authenticationService.Object));
+
+        Assert.Equal("Status cannot be Sent or Cancelled", ex.Message);
+    }
+
+    [Fact]
+    public void Set_Booking_Status_SendError()
+    {
+        const string commissioner = "MIHSTE";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
+        var rows = new List<BookingRow> {
+            new BookingRow(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer("XMIHST", true),
+                new Money(100, "SEK", 0)
+            ),
+            new BookingRow(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            ),
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeSent);
+
+        booking.SetSendErrorStatus(authorizationService.Object);
+
+        Assert.Equal(WiniStatus.SendError, booking.BookingStatus.Status);
+        var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
+        Assert.True(allRowUnauthorized);
+    }
+
+    [Fact]
+    public void Fail_To_Set_Booking_Status_SendError_Not_Admin()
+    {
+        const string commissioner = "MIHSTE";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeSent);
+
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetSendErrorStatus(authorizationService.Object));
+
+        Assert.Equal("Only admins can change status to SendError.", ex.Message);
+        Assert.Null(ex.AttemptedValue);
+        Assert.Null(ex.PropertyName);
+    }
+
+    [Fact]
+    public void Fail_To_Set_Booking_Status_SendError_Wrong_Status()
+    {
+        const string commissioner = "MIHSTE";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
+        var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.Saved);
+
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetSendErrorStatus(authorizationService.Object));
+
+        Assert.Equal("Status cannot be anything other than ToBeSent", ex.Message);
+        Assert.Equal("SendError", ex.AttemptedValue);
+        Assert.Equal("Status", ex.PropertyName);
+    }
+
+    [Fact]
+    public void Set_Booking_Status_NotAuthorizedOnTime()
+    {
+        const string commissioner = "MIHSTE";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
+        var rows = new List<BookingRow> {
+            new BookingRow(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer("XMIHST", false),
+                new Money(100, "SEK", 0)
+            ),
+            new BookingRow(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            ),
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeAuthorized);
+
+        booking.SetNotAuthorizedOnTimeStatus(authorizationService.Object, new DateTime(2023, 3, 23, 23, 1, 0));
+
+        Assert.Equal(WiniStatus.Saved, booking.BookingStatus.Status);
+        var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.NotAuthorizedOnTime);
+        Assert.True(hasHistorySaved);
+    }
+
+    [Fact]
+    public void Fail_To_Set_Booking_Status_NotAuthorizedOnTime_Three_Days_Not_Passed()
+    {
+        const string commissioner = "MIHSTE";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
+        var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeAuthorized);
+
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authorizationService.Object, new DateTime(2023, 3, 23, 22, 59, 0)));
+
+        Assert.Equal("Status cannot be changed to NotAuthorizedOnTime. 72 hours have not passed yet.", ex.Message);
+        Assert.Equal("2023-03-23 22:59:00", ex.AttemptedValue);
+        Assert.Equal("now", ex.PropertyName);
+    }
+
+    [Fact]
+    public void Fail_To_Set_Booking_Status_NotAuthorizedOnTime_Not_Admin()
+    {
+        const string commissioner = "MIHSTE";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeAuthorized);
+
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authorizationService.Object, new DateTime(2023, 3, 23, 23, 59, 0)));
+
+        Assert.Equal("Only admins can change status to NotAuthorizedOnTime.", ex.Message);
+        Assert.Null(ex.AttemptedValue);
+        Assert.Null(ex.PropertyName);
+    }
+
+    [Fact]
+    public void Fail_To_Set_Booking_Status_NotAuthorizedOnTime_Wrong_Status()
+    {
+        const string commissioner = "MIHSTE";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeSent);
+
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authorizationService.Object, new DateTime(2023, 3, 23, 23, 59, 0)));
+
+        Assert.Equal("Status cannot be anything other than ToBeAuthorized", ex.Message);
+        Assert.Equal("NotAuthorizedOnTime", ex.AttemptedValue);
+        Assert.Equal("Status", ex.PropertyName);
+    }
+
+    [Fact]
+    public void Set_Booking_Status_Saved_Commissioner()
+    {
+        const string commissioner = "MIHSTE";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
+        var rows = new List<BookingRow> {
+            new BookingRow(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer("XMIHST", true),
+                new Money(100, "SEK", 0)
+            ),
+            new BookingRow(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            ),
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeSent);
+
+        booking.SetSavedStatus(authenticationService.Object, authorizationService.Object);
+
+        Assert.Equal(WiniStatus.Saved, booking.BookingStatus.Status);
+        var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.ToBeSent);
+        Assert.True(hasHistorySaved);
+        var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
+        Assert.True(allRowUnauthorized);
+    }
+
+    [Fact]
+    public void Set_Booking_Status_Saved_Authorizer()
+    {
+        const string commissioner = "MIHSTE";
+        const string authorizer = "XMIHST";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(authorizer);
+        var rows = new List<BookingRow> {
+            new BookingRow(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer, true),
+                new Money(100, "SEK", 0)
+            ),
+            new BookingRow(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            ),
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeSent);
+
+        booking.SetSavedStatus(authenticationService.Object, authorizationService.Object);
+
+        Assert.Equal(WiniStatus.Saved, booking.BookingStatus.Status);
+        var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.ToBeSent);
+        Assert.True(hasHistorySaved);
+        var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
+        Assert.True(allRowUnauthorized);
+    }
+
+    [Fact]
+    public void Set_Booking_Status_Saved_Admin()
+    {
+        const string commissioner = "MIHSTE";
+        const string authorizer = "XMIHST";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns("ADMIN");
+        var rows = new List<BookingRow> {
+            new BookingRow(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer, true),
+                new Money(100, "SEK", 0)
+            ),
+            new BookingRow(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            ),
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeSent);
+
+        booking.SetSavedStatus(authenticationService.Object, authorizationService.Object);
+
+        Assert.Equal(WiniStatus.Saved, booking.BookingStatus.Status);
+        var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.ToBeSent);
+        Assert.True(hasHistorySaved);
+        var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
+        Assert.True(allRowUnauthorized);
+    }
+
+    [Fact]
+    public void Fail_To_Set_Booking_Status_Saved_Unknown_User()
+    {
+        const string commissioner = "MIHSTE";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns("USERID");
+
+        var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeSent);
+
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetSavedStatus(authenticationService.Object, authorizationService.Object));
+
+        Assert.Equal("Only admins, commissioners or authorizers can change status to Saved.", ex.Message);
+        Assert.Null(ex.AttemptedValue);
+        Assert.Null(ex.PropertyName);
+    }
+
+    [Fact]
+    public void Fail_To_Set_Booking_Status_Saved_Wrong_Status()
+    {
+        const string commissioner = "MIHSTE";
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
+
+        var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.Saved);
+
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetSavedStatus(authenticationService.Object, authorizationService.Object));
+
+        Assert.Equal("Status cannot be Sent, Saved or Cancelled", ex.Message);
+        Assert.Equal("Saved", ex.AttemptedValue);
+        Assert.Equal("Status", ex.PropertyName);
+    }
+
+    private static BookingRowModel GetRowModel(int rowNo = 1, decimal amount = 100)
     => new()
     {
-        Id = id,
+        RowNumber = rowNo,
         Account = "12345",
-        Amount = 100,
+        Amount = amount,
         Authorizer = "MIHSTE",
         BusinessUnit = "100KKTOT8888",
         CostObject1 = "CO1",

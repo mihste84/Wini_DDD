@@ -8,10 +8,4 @@ public record LedgerType
     {
         Type = type;
     }
-
-    public static LedgerType Create(Ledgers type)
-    {
-        // Validate
-        return new LedgerType(type);
-    }
 }

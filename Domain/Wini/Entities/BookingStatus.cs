@@ -4,6 +4,7 @@ public class BookingStatus
 {
     public WiniStatus Status { get; private set; }
     public DateTime Updated { get; private set; }
+    public readonly List<BookingStatus> StatusHistory = new();
 
     public BookingStatus(WiniStatus status, DateTime updated)
     {
@@ -11,48 +12,74 @@ public class BookingStatus
         Updated = updated;
     }
 
-    public void SetStatusSaved()
+    public BookingStatus(WiniStatus status, DateTime updated, List<BookingStatus> statusHistory)
+    {
+        Status = status;
+        Updated = updated;
+        StatusHistory = statusHistory;
+    }
+
+    public void SaveStatusHistory() => StatusHistory.Add(Copy());
+
+    public void CanChangeStatusToSaved()
     {
         if (Status is WiniStatus.Sent or WiniStatus.Saved or WiniStatus.Cancelled)
             throw new DomainLogicException(nameof(Status), WiniStatus.Saved.ToString(), "Status cannot be Sent, Saved or Cancelled");
-
-        Status = WiniStatus.Saved;
-        Updated = DateTime.UtcNow;
     }
-
-    public void SetStatusCancelled()
+    public void CanChangeStatusToSendError()
+    {
+        if (Status is not WiniStatus.ToBeSent)
+            throw new DomainLogicException(nameof(Status), WiniStatus.SendError.ToString(), "Status cannot be anything other than ToBeSent");
+    }
+    public void CanChangeStatusToCancelled()
     {
         if (Status is WiniStatus.Sent or WiniStatus.Cancelled)
             throw new DomainLogicException(nameof(Status), WiniStatus.Cancelled.ToString(), "Status cannot be Sent or Cancelled");
-
-        Status = WiniStatus.Cancelled;
-        Updated = DateTime.UtcNow;
     }
-
-    public void SetStatusToBeSent()
+    public void CanChangeStatusToBeSent()
     {
-        if (Status is not WiniStatus.Saved and not WiniStatus.ToBeAuthorized)
+        if (!(Status is WiniStatus.Saved or WiniStatus.ToBeAuthorized))
             throw new DomainLogicException(nameof(Status), WiniStatus.ToBeSent.ToString(), "Status cannot be anything other than Saved or ToBeAuthorized");
-
-        Status = WiniStatus.ToBeSent;
-        Updated = DateTime.UtcNow;
     }
-
-    public void SetStatusNotAuthorizedOnTime()
+    public void CanChangeStatusToNotAuthorizedOnTime()
     {
         if (Status is not WiniStatus.ToBeAuthorized)
             throw new DomainLogicException(nameof(Status), WiniStatus.NotAuthorizedOnTime.ToString(), "Status cannot be anything other than ToBeAuthorized");
-
-        Status = WiniStatus.NotAuthorizedOnTime;
-        Updated = DateTime.UtcNow;
     }
-
-    public void SetStatusSent()
+    public void CanChangeStatusToBeAuthorized()
+    {
+        if (Status is not WiniStatus.Saved)
+            throw new DomainLogicException(nameof(Status), WiniStatus.ToBeAuthorized.ToString(), "Status cannot be anything other than Saved");
+    }
+    public void CanChangeStatusToSent()
     {
         if (Status is not WiniStatus.ToBeSent)
             throw new DomainLogicException(nameof(Status), WiniStatus.Sent.ToString(), "Status cannot be anything other than ToBeSent");
+    }
 
-        Status = WiniStatus.Sent;
+    public void TryChangeStatus(WiniStatus status)
+    {
+        switch (status)
+        {
+            case WiniStatus.Saved: CanChangeStatusToSaved(); break;
+            case WiniStatus.SendError: CanChangeStatusToSendError(); break;
+            case WiniStatus.Cancelled: CanChangeStatusToCancelled(); break;
+            case WiniStatus.ToBeSent: CanChangeStatusToBeSent(); break;
+            case WiniStatus.NotAuthorizedOnTime: CanChangeStatusToNotAuthorizedOnTime(); break;
+            case WiniStatus.ToBeAuthorized: CanChangeStatusToBeAuthorized(); break;
+            case WiniStatus.Sent: CanChangeStatusToSent(); break;
+            default: throw new ArgumentException("Unknown Wini status", nameof(status));
+        }
+
+        SaveStatusHistory();
+
+        Status = status;
         Updated = DateTime.UtcNow;
     }
+
+    public BookingStatus Copy()
+    => new(
+        Status,
+        new DateTime(Updated.Year, Updated.Month, Updated.Day, Updated.Hour, Updated.Minute, Updated.Second, Updated.Millisecond)
+    );
 }

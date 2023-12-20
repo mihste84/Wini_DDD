@@ -9,8 +9,6 @@ public record BookingDate
         Date = date.Date;
     }
 
-    public static BookingDate ChangeDate(DateTime date) => new(date);
-
     public bool TryCheckIfDateBookClosingDay(IEnumerable<DateTime> bankHolidays, out int? bookClosingDay)
     {
         var bookClosing = new BookClosingDay(Date, bankHolidays);

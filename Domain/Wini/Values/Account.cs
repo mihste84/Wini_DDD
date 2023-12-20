@@ -17,4 +17,6 @@ public record Account
         if (!result.IsValid)
             throw new DomainValidationException(result.Errors);
     }
+
+    public Account Copy() => new(Value, Subsidiary);
 }

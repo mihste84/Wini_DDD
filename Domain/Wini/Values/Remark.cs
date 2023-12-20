@@ -14,4 +14,6 @@ public record Remark
         if (!result.IsValid)
             throw new DomainValidationException(result.Errors);
     }
+
+    public Remark Copy() => new(Text);
 }

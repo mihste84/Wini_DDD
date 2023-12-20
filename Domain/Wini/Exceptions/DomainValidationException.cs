@@ -40,11 +40,5 @@ public class DomainValidationException : Exception
     }
 
     private static IEnumerable<ValidationError> MapFailureToValidationError(IEnumerable<ValidationFailure> errors)
-    => errors.Select(_ => new ValidationError
-    {
-        AttemptedValue = _.AttemptedValue,
-        ErrorCode = _.ErrorCode,
-        Message = _.ErrorMessage,
-        PropertyName = _.PropertyName
-    });
+        => errors.Select(_ => new ValidationError(_));
 }

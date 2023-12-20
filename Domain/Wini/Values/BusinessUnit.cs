@@ -42,4 +42,6 @@ public record BusinessUnit
         : new Product();
 
     public override string ToString() => $"{CompanyCode.Code}{Costcenter.Code}{Product.Code}";
+
+    public BusinessUnit Copy() => new(this.ToString());
 }

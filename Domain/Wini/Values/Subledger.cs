@@ -17,4 +17,6 @@ public record Subledger
         if (!result.IsValid)
             throw new DomainValidationException(result.Errors);
     }
+
+    public Subledger Copy() => new(Value, Type);
 }

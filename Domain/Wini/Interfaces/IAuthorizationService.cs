@@ -8,4 +8,6 @@ public interface IAuthorizationService
     bool IsAccountingUser();
     bool IsControlActuary();
     bool IsSpecificActuary();
+    bool IsBookingAuthorizationNeeded();
+    bool IsUserInRole(string userId, string roleName);
 }

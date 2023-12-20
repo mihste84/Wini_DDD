@@ -1,8 +1,8 @@
 namespace Domain.Wini.Validators;
-public class BookingIdValidator : AbstractValidator<IdValue<int>>
+public class BookingIdValidator : AbstractValidator<IdValue<int>?>
 {
     public BookingIdValidator()
     {
-        RuleFor(_ => _.Value).NotEmpty();
+        When(_ => _ != default, () => RuleFor(_ => _!.Value).NotEmpty());
     }
 }

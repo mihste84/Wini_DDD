@@ -2,7 +2,7 @@ namespace Domain.Wini.Models;
 
 public record BookingRowModel
 {
-    public int? Id { get; set; }
+    public int RowNumber { get; set; }
     public string? BusinessUnit { get; set; }
     public string? Account { get; set; }
     public string? Subsidiary { get; set; }

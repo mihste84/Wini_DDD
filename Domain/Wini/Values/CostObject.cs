@@ -6,7 +6,6 @@ public record CostObject
     public string? Type { get; }
     public readonly int Number;
 
-
     public CostObject(int number)
     {
         Number = number;
@@ -22,4 +21,6 @@ public record CostObject
         if (!result.IsValid)
             throw new DomainValidationException(result.Errors);
     }
+
+    public CostObject Copy() => new(Number, Value, Type);
 }

@@ -24,6 +24,9 @@ public record Money
         Currency = currency;
     }
 
+    public Money Copy() => new(Amount, Currency.CurrencyCode.Code, Currency.CurrencyRate);
+
     public bool IsDebitRow() => Amount >= 0;
     public bool IsCreditRow() => Amount < 0;
+    public bool IsForeignCurrencySet() => !string.IsNullOrWhiteSpace(Currency.CurrencyCode.Code) && Currency.CurrencyRate > 0;
 }

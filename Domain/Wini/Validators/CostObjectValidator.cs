@@ -3,6 +3,9 @@ public class CostObjectValidator : AbstractValidator<CostObject>
 {
     public CostObjectValidator(int number, bool isRequired = true)
     {
+        When(_ => !string.IsNullOrWhiteSpace(_.Type), () => RuleFor(_ => _.Type).Must(_ => _?.Contains(';') == false));
+        When(_ => !string.IsNullOrWhiteSpace(_.Value), () => RuleFor(_ => _.Value).Must(_ => _?.Contains(';') == false));
+
         RuleFor(_ => _.Number).InclusiveBetween(1, 4).Equal(number).WithName("Cost Object Number");
         RuleFor(_ => _.Type).MaximumLength(1).WithName(_ => $"Cost Object Type {_.Number}");
         RuleFor(_ => _.Value).MaximumLength(12).WithName(_ => $"Cost Object {_.Number}");

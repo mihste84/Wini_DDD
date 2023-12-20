@@ -8,9 +8,11 @@ public class Authorizer : User
     {
         HasAuthorized = hasAuthorized;
 
-        var validator = new AuthorizerValidator();
+        var validator = new AuthorizerValidator(false);
         var result = validator.Validate(this);
         if (!result.IsValid)
             throw new DomainValidationException(result.Errors);
     }
+
+    public Authorizer Authorize() => new(UserId, true);
 }
