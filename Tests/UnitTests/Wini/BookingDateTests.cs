@@ -3,15 +3,15 @@ namespace Tests.UnitTests.Wini;
 public class BookingDateTests
 {
     private readonly IReadOnlyList<DateTime> _bankHolidays = new List<DateTime>{
-        new DateTime(2023, 1, 1),
-        new DateTime(2023, 1, 6),
-        new DateTime(2023, 4, 7),
-        new DateTime(2023, 4, 10),
-        new DateTime(2023, 5, 1),
-        new DateTime(2023, 5, 18),
-        new DateTime(2023, 6, 6),
-        new DateTime(2023, 12, 25),
-        new DateTime(2023, 12, 26)
+        new(2023, 1, 1),
+        new(2023, 1, 6),
+        new(2023, 4, 7),
+        new(2023, 4, 10),
+        new(2023, 5, 1),
+        new(2023, 5, 18),
+        new(2023, 6, 6),
+        new(2023, 12, 25),
+        new(2023, 12, 26)
     };
 
     [Fact]

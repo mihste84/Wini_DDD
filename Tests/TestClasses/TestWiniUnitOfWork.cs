@@ -1,9 +1,13 @@
 namespace Tests.TestClasses;
 
-
 public class TestWiniUnitOfWork : IWiniUnitOfWork
 {
-    public ICompanyRepository CompanyRepository => new TestCompanyRepository();
+    public ICompanyRepository CompanyRepository { get; }
+
+    public TestWiniUnitOfWork(ICompanyRepository repo)
+    {
+        CompanyRepository = repo;
+    }
 
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {

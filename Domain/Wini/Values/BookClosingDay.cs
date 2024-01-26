@@ -7,6 +7,7 @@ record BookClosingDay
     public readonly PeriodType MonthType;
     public readonly bool IsTodayBookClosingDay;
     public readonly int? Day;
+    internal static readonly int[] _querteryMonths = new[] { 4, 7, 10 };
 
     public BookClosingDay(DateTime date, IEnumerable<DateTime> bankHolidayDates)
     {
@@ -113,7 +114,7 @@ record BookClosingDay
     {
         var checkMonth = GetCheckMonth(checkDate.Month, bookClosingDay);
         if (checkMonth == 1) return PeriodType.Yearly;
-        if (new[] { 4, 7, 10 }.Any(_ => _ == checkMonth)) return PeriodType.Quarterly;
+        if (_querteryMonths.Any(_ => _ == checkMonth)) return PeriodType.Quarterly;
 
         return PeriodType.Monthly;
     }

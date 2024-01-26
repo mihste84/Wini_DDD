@@ -31,7 +31,7 @@ public static class CommonTestValues
         new DateTime(2023, 3, 20, 23, 0, 0)
     );
 
-    public static Booking GetBooking(List<BookingRow> rows, string commissioner = "XMIHST", WiniStatus status = WiniStatus.Saved)
+    public static Booking GetBooking(List<BookingRow> rows, string commissioner = "XMIHST", WiniStatus status = WiniStatus.Saved, Ledgers ledger = Ledgers.GP)
     => new(
         new IdValue<int>(1),
         new BookingStatus(status, new DateTime(2023, 3, 20, 23, 0, 0)),
@@ -39,7 +39,7 @@ public static class CommonTestValues
         new BookingDate(new DateTime(2023, 3, 22)),
         new TextToE1("Test"),
         true,
-        new LedgerType(Ledgers.GP),
+        new LedgerType(ledger),
         rows,
         new List<Comment>(),
         new List<RecipientMessage>(),

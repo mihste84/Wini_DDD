@@ -13,7 +13,9 @@ public class MoneyValidator : AbstractValidator<Money>
         When(_ => isRequired, () =>
         {
             RuleFor(_ => _.Amount)
-                .NotEmpty();
+                .NotEmpty()
+                .NotEqual(_ => 0)
+                .WithName("Amount");
         });
     }
 }

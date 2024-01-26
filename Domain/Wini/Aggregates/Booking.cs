@@ -10,6 +10,7 @@ public class Booking
     public List<Comment> Comments { get; } = new();
     public List<RecipientMessage> Messages { get; } = new();
     public List<Attachment> Attachments { get; } = new();
+    public List<BaseDomainEvent> DomainEvents { get; } = new();
     public readonly DateTime Created;
 
     public Booking(
@@ -108,7 +109,7 @@ public class Booking
 
         BookingStatus.TryChangeStatus(WiniStatus.ToBeAuthorized);
 
-        // Add event
+        AddStatusEvent(WiniStatus.ToBeAuthorized);
     }
 
     public void SetCancelledStatus(IAuthenticationService authenticationService)
@@ -120,7 +121,8 @@ public class Booking
             throw new DomainLogicException(nameof(userId), userId, $"Only commissioners can change status to {WiniStatus.Cancelled}.");
 
         BookingStatus.TryChangeStatus(WiniStatus.Cancelled);
-        // Add event
+
+        AddStatusEvent(WiniStatus.Cancelled);
     }
 
     public void SetSendErrorStatus(IAuthorizationService authorizationService)
@@ -133,7 +135,7 @@ public class Booking
         RemoveAuthorizationAllRows();
         BookingStatus.TryChangeStatus(WiniStatus.SendError);
 
-        // Add event
+        AddStatusEvent(WiniStatus.SendError);
     }
 
     public void SetNotAuthorizedOnTimeStatus(IAuthorizationService authorizationService, DateTime now)
@@ -149,7 +151,7 @@ public class Booking
         BookingStatus.TryChangeStatus(WiniStatus.NotAuthorizedOnTime);
         BookingStatus.TryChangeStatus(WiniStatus.Saved); // Change directly to Saved. NotAutorizedOnTime is logged in history.
 
-        // Add event
+        AddStatusEvent(WiniStatus.NotAuthorizedOnTime);
     }
 
     public void SetSavedStatus(IAuthenticationService authenticationService, IAuthorizationService authorizationService)
@@ -163,7 +165,8 @@ public class Booking
         RemoveAuthorizationAllRows();
 
         BookingStatus.TryChangeStatus(WiniStatus.Saved);
-        // Add event
+
+        AddStatusEvent(WiniStatus.Saved);
     }
 
     public async Task SetToBeSentStatus(
@@ -188,7 +191,8 @@ public class Booking
         }
 
         BookingStatus.TryChangeStatus(WiniStatus.ToBeSent);
-        // Add event
+
+        AddStatusEvent(WiniStatus.ToBeSent);
     }
 
     public bool AreRowsInSequence()
@@ -200,7 +204,33 @@ public class Booking
     public bool AreAllCompaniesSame()
     {
         var firstCompanyValue = Rows.FirstOrDefault()?.BusinessUnit.CompanyCode.Code;
-        return firstCompanyValue.HasValue && !Rows.All(_ => _.BusinessUnit.CompanyCode.Code != firstCompanyValue);
+        return Rows.All(_ => _.BusinessUnit.CompanyCode.Code == firstCompanyValue);
+    }
+
+    public bool TryValidateExchangeRateDifferencesByCurrency(out IEnumerable<(string? Currency, decimal?[] ExchangeRates)> differences)
+    {
+        var ratesByCurrency = Rows
+            .GroupBy(_ => _.Money.Currency.CurrencyCode.Code)
+            .Select(_ => new { Currency = _.Key, ExchangeRates = _.Select(x => x.Money.Currency.ExchangeRate).Distinct().ToArray() });
+
+        differences = ratesByCurrency
+            .Where(_ => !_.ExchangeRates.All(x => x == _.ExchangeRates[0]))
+            .Select(_ => (_.Currency, _.ExchangeRates));
+
+        return !differences.Any();
+    }
+
+    public bool TryValidateBalanceDifferencesByCurrency(out IEnumerable<(string? Currency, decimal? Balance)> differences)
+    {
+        var amountsPerCurrency = Rows
+            .GroupBy(_ => _.Money.Currency.CurrencyCode.Code)
+            .Select(_ => new { Currency = _.Key, Balance = _.Sum(x => x.Money.Amount) });
+
+        differences = amountsPerCurrency
+            .Where(_ => _.Balance != 0)
+            .Select(_ => (_.Currency, _.Balance));
+
+        return !differences.Any();
     }
 
     public IEnumerable<string?> GetAllAuthorizers() => Rows.Select(_ => _.Authorizer.UserId);
@@ -212,6 +242,8 @@ public class Booking
 
         return (res.IsValid, res.Errors?.Select(_ => new ValidationError(_)));
     }
+
+    private void AddStatusEvent(WiniStatus status) => DomainEvents.Add(new WiniStatusEvent(status, this));
 
     private bool HaveThreeDaysPassed(DateTime now)
     {
@@ -258,6 +290,6 @@ public class Booking
         new CostObject(4, row.CostObject4, row.CostObjectType4),
         new Remark(row.Remark),
         new Authorizer(row.Authorizer, false),
-        new Money(row.Amount, row.CurrencyCode, row.CurrencyRate)
+        new Money(row.Amount, row.CurrencyCode, row.ExchangeRate)
     );
 }

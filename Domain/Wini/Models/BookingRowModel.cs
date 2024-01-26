@@ -20,5 +20,5 @@ public record BookingRowModel
     public string? Authorizer { get; set; }
     public decimal? Amount { get; set; }
     public string? CurrencyCode { get; set; }
-    public decimal? CurrencyRate { get; set; }
+    public decimal? ExchangeRate { get; set; }
 }

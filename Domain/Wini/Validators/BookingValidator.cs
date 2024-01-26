@@ -8,7 +8,7 @@ public class BookingValidator : AbstractValidator<Booking>
         RuleFor(_ => _.Header).SetValidator(new BookingHeaderValidator());
         RuleFor(_ => _.Rows).NotEmpty().WithMessage("Booking must contain rows.");
 
-        When(_ => _.Rows.Any(), () => RuleFor(_ => _).Custom((booking, ctx)
+        When(_ => _.Rows.Count > 0, () => RuleFor(_ => _).Custom((booking, ctx)
             => ValidateAllRows(booking, companies, ctx))
         );
     }
@@ -19,7 +19,26 @@ public class BookingValidator : AbstractValidator<Booking>
             ctx.AddFailure("Row Numbers", "Row numbers are not in sequence.");
 
         if (!booking.AreAllCompaniesSame())
+        {
             ctx.AddFailure("Company", "All rows dont contain same company code. Only one company code can be used for each booking.");
+            return;
+        }
+
+        if (!booking.TryValidateExchangeRateDifferencesByCurrency(out var rateDifferences))
+        {
+            foreach (var item in rateDifferences)
+                ctx.AddFailure("Exchange Rate", $"Exchange rates '{string.Join(", ", item.ExchangeRates)}' do not balance with currency code '{item.Currency}'.");
+
+            return;
+        }
+
+        if (!booking.TryValidateBalanceDifferencesByCurrency(out var balanceDifferences))
+        {
+            foreach (var item in balanceDifferences)
+                ctx.AddFailure("Debit & Credit", $"Debit and credit must be equal when using currency code '{item.Currency}'. Balance = {item.Balance}");
+
+            return;
+        }
 
         var validator = new BookingRowValidator(booking, companies);
         foreach (var row in booking.Rows)
@@ -33,6 +52,6 @@ public class BookingValidator : AbstractValidator<Booking>
             return;
 
         foreach (var error in result.Errors)
-            ctx.AddFailure($"{error.PropertyName} (Row: {row.RowNumber})", error.ErrorMessage);
+            ctx.AddFailure($"Row {row.RowNumber}", error.ErrorMessage);
     }
 }

@@ -22,14 +22,32 @@ public class BookingRowValidator : AbstractValidator<BookingRow>
 
         RuleFor(_ => _).Custom((row, ctx) =>
         {
-            if (!row.IsCompanyCodeAllowed(companies))
+            if (!string.IsNullOrWhiteSpace(row.BusinessUnit.ToString()) && !row.IsCompanyCodeAllowed(companies))
+            {
                 ctx.AddFailure("Company Code", $"Company code '{row.BusinessUnit.CompanyCode.Code}' cannot be used.");
+                return;
+            }
 
-            if (booking.Header.LedgerType.Type == Ledgers.GP && !row.IsBaseCurrencyUsed(companies))
+            var isBaseCurrencyUsed = row.IsBaseCurrencyUsed(companies);
+            if (
+                !string.IsNullOrWhiteSpace(row.Money.Currency.CurrencyCode.Code) &&
+                booking.Header.LedgerType.Type == Ledgers.GP &&
+                !isBaseCurrencyUsed
+            )
+            {
                 ctx.AddFailure("GP ledger", $"Cannot use GP ledger as currency '{row.Money.Currency.CurrencyCode.Code}' is not base currency for company '{row.BusinessUnit.CompanyCode.Code}'.");
+                return;
+            }
 
-            if (row.Money.IsForeignCurrencySet() && row.IsBaseCurrencyUsed(companies))
-                ctx.AddFailure("Currency", $"Exchange rate with currency '{row.Money.Currency.CurrencyCode.Code}' cannot be set for company '{row.BusinessUnit.CompanyCode.Code}' as it is the base currency.");
+            if (
+                !string.IsNullOrWhiteSpace(row.Money.Currency.CurrencyCode.Code) &&
+                booking.Header.LedgerType.Type == Ledgers.AA &&
+                !row.Money.IsCurrencyAndExchangeRateSet() &&
+                !isBaseCurrencyUsed
+            )
+            {
+                ctx.AddFailure("Currency", $"Exchange rate with currency '{row.Money.Currency.CurrencyCode.Code}' must be set when foreign currency is used.");
+            }
         });
     }
 }

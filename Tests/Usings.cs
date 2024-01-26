@@ -13,3 +13,5 @@ global using Domain.Wini.Services;
 global using Domain.Interfaces;
 global using Moq;
 global using Tests.TestClasses;
+global using Domain.Events;
+global using Domain.Wini.Events;

@@ -10,3 +10,5 @@ global using FluentValidation;
 global using FluentValidation.Results;
 global using Domain.Wini.Validators;
 global using Domain.Interfaces;
+global using Domain.Events;
+global using Domain.Wini.Events;

@@ -12,7 +12,7 @@ public class BookingRowTests
         Assert.Equal(default, bookingRow.Account.Value);
         Assert.Equal(default, bookingRow.Account.Subsidiary);
         Assert.Equal(0, bookingRow.Money.Amount);
-        Assert.Equal(default, bookingRow.Money.Currency.CurrencyRate);
+        Assert.Equal(default, bookingRow.Money.Currency.ExchangeRate);
         Assert.Equal(default, bookingRow.Money.Currency.CurrencyCode.Code);
         Assert.Equal("", bookingRow.BusinessUnit.ToString());
         Assert.Equal(default, bookingRow.BusinessUnit.CompanyCode.Code);
@@ -70,7 +70,7 @@ public class BookingRowTests
         Assert.Equal(account.Value, bookingRow.Account.Value);
         Assert.Equal(account.Subsidiary, bookingRow.Account.Subsidiary);
         Assert.Equal(amount.Amount, bookingRow.Money.Amount);
-        Assert.Equal(amount.Currency.CurrencyRate, bookingRow.Money.Currency.CurrencyRate);
+        Assert.Equal(amount.Currency.ExchangeRate, bookingRow.Money.Currency.ExchangeRate);
         Assert.Equal(amount.Currency.CurrencyCode.Code, bookingRow.Money.Currency.CurrencyCode.Code);
         Assert.Equal("100KKTOT1234", bookingRow.BusinessUnit.ToString());
         Assert.Equal(bu.CompanyCode.Code, bookingRow.BusinessUnit.CompanyCode.Code);
@@ -130,7 +130,7 @@ public class BookingRowTests
         Assert.Equal(changedRow.Account.Value, bookingRow.Account.Value);
         Assert.Equal(changedRow.Account.Subsidiary, bookingRow.Account.Subsidiary);
         Assert.Equal(changedRow.Money.Amount, bookingRow.Money.Amount);
-        Assert.Equal(changedRow.Money.Currency.CurrencyRate, bookingRow.Money.Currency.CurrencyRate);
+        Assert.Equal(changedRow.Money.Currency.ExchangeRate, bookingRow.Money.Currency.ExchangeRate);
         Assert.Equal(changedRow.Money.Currency.CurrencyCode.Code, bookingRow.Money.Currency.CurrencyCode.Code);
         Assert.Equal(changedRow.BusinessUnit.ToString(), bookingRow.BusinessUnit.ToString());
         Assert.Equal(changedRow.BusinessUnit.CompanyCode.Code, bookingRow.BusinessUnit.CompanyCode.Code);
@@ -165,7 +165,7 @@ public class BookingRowTests
         Assert.Equal(default, bookingRow.Account.Value);
         Assert.Equal(default, bookingRow.Account.Subsidiary);
         Assert.Equal(0, bookingRow.Money.Amount);
-        Assert.Equal(default, bookingRow.Money.Currency.CurrencyRate);
+        Assert.Equal(default, bookingRow.Money.Currency.ExchangeRate);
         Assert.Equal(default, bookingRow.Money.Currency.CurrencyCode.Code);
         Assert.Equal("", bookingRow.BusinessUnit.ToString());
         Assert.Equal(default, bookingRow.BusinessUnit.CompanyCode.Code);

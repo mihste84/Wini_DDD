@@ -13,10 +13,10 @@ public class SubledgerValidator : AbstractValidator<Subledger>
         When(_ => isRequired && !string.IsNullOrWhiteSpace(_.Value), () =>
 
             RuleFor(_ => _.Type)
-                .NotEmpty().WithMessage("Subledger Type must be entered if Subledger is to be used.")
                 .Matches("A", RegexOptions.IgnoreCase).WithMessage("Subledger Type must be 'A'.")
                 .WithName("Subledger Type")
         );
+
         When(_ => isRequired && !string.IsNullOrWhiteSpace(_.Type), () =>
             RuleFor(_ => _.Value)
                 .NotEmpty()

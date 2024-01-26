@@ -81,7 +81,7 @@ public class BookingTests
         Assert.Equal("7894", row.Account.Subsidiary);
         Assert.Equal(100, row.Money.Amount);
         Assert.Equal("EUR", row.Money.Currency.CurrencyCode.Code);
-        Assert.Equal(10, row.Money.Currency.CurrencyRate);
+        Assert.Equal(10, row.Money.Currency.ExchangeRate);
         Assert.Equal("MIHSTE", row.Authorizer.UserId);
         Assert.False(row.Authorizer.HasAuthorized);
         Assert.Equal("100KKTOT8888", row.BusinessUnit.ToString());
@@ -120,7 +120,7 @@ public class BookingTests
         Assert.Equal("7894", row.Account.Subsidiary);
         Assert.Equal(100, row.Money.Amount);
         Assert.Equal("EUR", row.Money.Currency.CurrencyCode.Code);
-        Assert.Equal(10, row.Money.Currency.CurrencyRate);
+        Assert.Equal(10, row.Money.Currency.ExchangeRate);
         Assert.Equal("MIHSTE", row.Authorizer.UserId);
         Assert.False(row.Authorizer.HasAuthorized);
         Assert.Equal("100KKTOT8888", row.BusinessUnit.ToString());
@@ -156,7 +156,7 @@ public class BookingTests
         editRow.Subsidiary = "6543";
         editRow.Amount = 200;
         editRow.CurrencyCode = "SEK";
-        editRow.CurrencyRate = -10;
+        editRow.ExchangeRate = -10;
         editRow.Authorizer = default;
         editRow.BusinessUnit = "100NN123";
         editRow.CostObject1 = "CX1";
@@ -180,7 +180,7 @@ public class BookingTests
         Assert.Equal(editRow.Subsidiary, row.Account.Subsidiary);
         Assert.Equal(editRow.Amount, row.Money.Amount);
         Assert.Equal(editRow.CurrencyCode, row.Money.Currency.CurrencyCode.Code);
-        Assert.Equal(editRow.CurrencyRate, row.Money.Currency.CurrencyRate);
+        Assert.Equal(editRow.ExchangeRate, row.Money.Currency.ExchangeRate);
         Assert.Equal(editRow.Authorizer, row.Authorizer.UserId);
         Assert.False(row.Authorizer.HasAuthorized);
         Assert.Equal(editRow.BusinessUnit, row.BusinessUnit.ToString());
@@ -294,6 +294,8 @@ public class BookingTests
         booking.SetCancelledStatus(authenticationService.Object);
 
         Assert.Equal(WiniStatus.Cancelled, booking.BookingStatus.Status);
+        Assert.Single(booking.DomainEvents);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.Cancelled);
     }
 
     [Fact]
@@ -330,7 +332,7 @@ public class BookingTests
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
         var rows = new List<BookingRow> {
-            new BookingRow(
+            new(
                 1,
                 new BusinessUnit("100KKTOT"),
                 new Account("10500"),
@@ -343,7 +345,7 @@ public class BookingTests
                 new Authorizer("XMIHST", true),
                 new Money(100, "SEK", 0)
             ),
-            new BookingRow(
+            new(
                 1,
                 new BusinessUnit("100KKTOT"),
                 new Account("24500"),
@@ -364,6 +366,8 @@ public class BookingTests
         Assert.Equal(WiniStatus.SendError, booking.BookingStatus.Status);
         var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
+        Assert.Single(booking.DomainEvents);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.SendError);
     }
 
     [Fact]
@@ -403,7 +407,7 @@ public class BookingTests
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
         var rows = new List<BookingRow> {
-            new BookingRow(
+            new(
                 1,
                 new BusinessUnit("100KKTOT"),
                 new Account("10500"),
@@ -416,7 +420,7 @@ public class BookingTests
                 new Authorizer("XMIHST", false),
                 new Money(100, "SEK", 0)
             ),
-            new BookingRow(
+            new(
                 1,
                 new BusinessUnit("100KKTOT"),
                 new Account("24500"),
@@ -437,6 +441,8 @@ public class BookingTests
         Assert.Equal(WiniStatus.Saved, booking.BookingStatus.Status);
         var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.NotAuthorizedOnTime);
         Assert.True(hasHistorySaved);
+        Assert.Single(booking.DomainEvents);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.NotAuthorizedOnTime);
     }
 
     [Fact]
@@ -493,7 +499,7 @@ public class BookingTests
         var authenticationService = new Mock<IAuthenticationService>();
         authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var rows = new List<BookingRow> {
-            new BookingRow(
+            new(
                 1,
                 new BusinessUnit("100KKTOT"),
                 new Account("10500"),
@@ -506,7 +512,7 @@ public class BookingTests
                 new Authorizer("XMIHST", true),
                 new Money(100, "SEK", 0)
             ),
-            new BookingRow(
+            new(
                 1,
                 new BusinessUnit("100KKTOT"),
                 new Account("24500"),
@@ -529,6 +535,8 @@ public class BookingTests
         Assert.True(hasHistorySaved);
         var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
+        Assert.Single(booking.DomainEvents);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.Saved);
     }
 
     [Fact]
@@ -541,7 +549,7 @@ public class BookingTests
         var authenticationService = new Mock<IAuthenticationService>();
         authenticationService.Setup(_ => _.GetUserId()).Returns(authorizer);
         var rows = new List<BookingRow> {
-            new BookingRow(
+            new(
                 1,
                 new BusinessUnit("100KKTOT"),
                 new Account("10500"),
@@ -554,7 +562,7 @@ public class BookingTests
                 new Authorizer(authorizer, true),
                 new Money(100, "SEK", 0)
             ),
-            new BookingRow(
+            new(
                 1,
                 new BusinessUnit("100KKTOT"),
                 new Account("24500"),
@@ -577,6 +585,8 @@ public class BookingTests
         Assert.True(hasHistorySaved);
         var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
+        Assert.Single(booking.DomainEvents);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.Saved);
     }
 
     [Fact]
@@ -589,7 +599,7 @@ public class BookingTests
         var authenticationService = new Mock<IAuthenticationService>();
         authenticationService.Setup(_ => _.GetUserId()).Returns("ADMIN");
         var rows = new List<BookingRow> {
-            new BookingRow(
+            new(
                 1,
                 new BusinessUnit("100KKTOT"),
                 new Account("10500"),
@@ -602,7 +612,7 @@ public class BookingTests
                 new Authorizer(authorizer, true),
                 new Money(100, "SEK", 0)
             ),
-            new BookingRow(
+            new(
                 1,
                 new BusinessUnit("100KKTOT"),
                 new Account("24500"),
@@ -625,6 +635,8 @@ public class BookingTests
         Assert.True(hasHistorySaved);
         var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
+        Assert.Single(booking.DomainEvents);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.Saved);
     }
 
     [Fact]
@@ -680,7 +692,7 @@ public class BookingTests
         CostObjectType3 = "C",
         CostObjectType4 = default,
         CurrencyCode = "EUR",
-        CurrencyRate = 10,
+        ExchangeRate = 10,
         Remark = "TEST",
         Subledger = "990099",
         SubledgerType = "A",
