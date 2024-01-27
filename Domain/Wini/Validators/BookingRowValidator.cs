@@ -19,6 +19,11 @@ public class BookingRowValidator : AbstractValidator<BookingRow>
                     .WithName("Authorizer")
                     .WithMessage("Authorizer cannot be set on credit rows.")
             );
+        When(_ => booking.BookingStatus.Status == WiniStatus.Saved,
+            () => RuleFor(_ => _.Authorizer.HasAuthorized).Must(_ => !_)
+                .WithName("Authorizer")
+                .WithMessage("Booking cannot be authorized while status is Saved.")
+        );
 
         RuleFor(_ => _).Custom((row, ctx) =>
         {

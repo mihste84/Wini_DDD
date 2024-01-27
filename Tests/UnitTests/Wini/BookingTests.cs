@@ -1,10 +1,9 @@
-using Domain.Interfaces;
-using Moq;
-
 namespace Tests.UnitTests.Wini;
 
 public class BookingTests
 {
+    private readonly IEnumerable<Company> _companies = CommonTestValues.GetCompanies();
+
     [Fact]
     public void Create_New_Booking_With_No_Data()
     {
@@ -346,7 +345,7 @@ public class BookingTests
                 new Money(100, "SEK", 0)
             ),
             new(
-                1,
+                2,
                 new BusinessUnit("100KKTOT"),
                 new Account("24500"),
                 new Subledger(),
@@ -421,7 +420,7 @@ public class BookingTests
                 new Money(100, "SEK", 0)
             ),
             new(
-                1,
+                2,
                 new BusinessUnit("100KKTOT"),
                 new Account("24500"),
                 new Subledger(),
@@ -496,6 +495,8 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(true);
+
         var authenticationService = new Mock<IAuthenticationService>();
         authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var rows = new List<BookingRow> {
@@ -513,7 +514,7 @@ public class BookingTests
                 new Money(100, "SEK", 0)
             ),
             new(
-                1,
+                2,
                 new BusinessUnit("100KKTOT"),
                 new Account("24500"),
                 new Subledger(),
@@ -546,6 +547,8 @@ public class BookingTests
         const string authorizer = "XMIHST";
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(true);
+
         var authenticationService = new Mock<IAuthenticationService>();
         authenticationService.Setup(_ => _.GetUserId()).Returns(authorizer);
         var rows = new List<BookingRow> {
@@ -563,7 +566,7 @@ public class BookingTests
                 new Money(100, "SEK", 0)
             ),
             new(
-                1,
+                2,
                 new BusinessUnit("100KKTOT"),
                 new Account("24500"),
                 new Subledger(),
@@ -596,6 +599,8 @@ public class BookingTests
         const string authorizer = "XMIHST";
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
+        authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(false);
+
         var authenticationService = new Mock<IAuthenticationService>();
         authenticationService.Setup(_ => _.GetUserId()).Returns("ADMIN");
         var rows = new List<BookingRow> {
@@ -613,7 +618,7 @@ public class BookingTests
                 new Money(100, "SEK", 0)
             ),
             new(
-                1,
+                2,
                 new BusinessUnit("100KKTOT"),
                 new Account("24500"),
                 new Subledger(),
@@ -645,6 +650,7 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(true);
         var authenticationService = new Mock<IAuthenticationService>();
         authenticationService.Setup(_ => _.GetUserId()).Returns("USERID");
 
@@ -675,6 +681,523 @@ public class BookingTests
         Assert.Equal("Status", ex.PropertyName);
     }
 
+    [Fact]
+    public async Task Set_Booking_Status_ToBeAuthorized()
+    {
+        const string commissioner = "MIHSTE";
+        const string authorizer = "XMIHST";
+        var validationService = GetBookingValidationService();
+
+        var rows = new List<BookingRow> {
+            new(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer, false),
+                new Money(100, "SEK", 0)
+            ),
+            new(
+                2,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            ),
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.Saved);
+
+        await booking.SetToBeAuthorizedStatusAsync(validationService, _companies);
+
+        Assert.Equal(WiniStatus.ToBeAuthorized, booking.BookingStatus.Status);
+        var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.Saved);
+        Assert.True(hasHistorySaved);
+        Assert.Single(booking.DomainEvents);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.ToBeAuthorized);
+    }
+
+    [Fact]
+    public async Task Set_Booking_Status_ToBeAuthorized_Not_Valid_Error()
+    {
+        const string commissioner = "MIHSTE";
+        const string authorizer = "XMIHST";
+        var validationService = GetBookingValidationService();
+
+        var rows = new List<BookingRow> {
+            new(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer, false),
+                new Money(100, "SEK", 0)
+            ),
+            new(
+                2,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-50, "SEK", 0)
+            ),
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.Saved);
+
+        var ex = await Assert.ThrowsAsync<DomainValidationException>(() => booking.SetToBeAuthorizedStatusAsync(validationService, _companies));
+
+        Assert.Equal("Failed to validate booking 1.", ex.Message);
+        Assert.NotNull(ex.Errors);
+        Assert.Single(ex.Errors);
+        Assert.Contains(ex.Errors, _ => _.PropertyName == "Debit & Credit" && _.Message == "Debit and credit must be equal when using currency code 'SEK'. Balance = 50");
+    }
+
+    [Fact]
+    public async Task Set_Booking_Status_ToBeAuthorized_Wrong_Status()
+    {
+        const string commissioner = "MIHSTE";
+        const string authorizer = "XMIHST";
+        var validationService = GetBookingValidationService();
+
+        var rows = new List<BookingRow> {
+            new(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer, false),
+                new Money(100, "SEK", 0)
+            ),
+            new(
+                2,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            ),
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeSent);
+
+        var ex = await Assert.ThrowsAsync<DomainLogicException>(() => booking.SetToBeAuthorizedStatusAsync(validationService, _companies));
+
+        Assert.Equal("Status cannot be anything other than Saved", ex.Message);
+        Assert.Equal("ToBeAuthorized", ex.AttemptedValue);
+        Assert.Equal("Status", ex.PropertyName);
+    }
+
+    [Fact]
+    public async Task Set_Booking_Status_ToBeSent()
+    {
+        const string commissioner = "MIHSTE";
+        const string authorizer = "XMIHST";
+        var validationService = GetBookingValidationService();
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(true);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(authorizer);
+        var rows = new List<BookingRow> {
+            new(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer, false),
+                new Money(100, "SEK", 0)
+            ),
+            new(
+                2,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            )
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeAuthorized);
+
+        await booking.SetToBeSentStatusAsync(
+            authenticationService.Object,
+            authorizationService.Object,
+            validationService,
+            _companies
+        );
+
+        Assert.Equal(WiniStatus.ToBeSent, booking.BookingStatus.Status);
+        var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.ToBeAuthorized);
+        Assert.True(hasHistorySaved);
+        Assert.Single(booking.DomainEvents);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.ToBeSent);
+    }
+
+    [Fact]
+    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers()
+    {
+        const string commissioner = "MIHSTE";
+        const string authorizer1 = "XMIHST";
+        const string authorizer2 = "MIHHST";
+        var validationService = GetBookingValidationService();
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(true);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(authorizer1);
+        var rows = new List<BookingRow> {
+            new(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer1, false),
+                new Money(100, "SEK", 0)
+            ),
+            new(
+                2,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            ),
+            new(
+                3,
+                new BusinessUnit("100KKTOT"),
+                new Account("11000"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer2, false),
+                new Money(1000, "SEK", 0)
+            ),
+            new(
+                4,
+                new BusinessUnit("100KKTOT"),
+                new Account("25010"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-1000, "SEK", 0)
+            )
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeAuthorized);
+
+        await booking.SetToBeSentStatusAsync(
+            authenticationService.Object,
+            authorizationService.Object,
+            validationService,
+            _companies
+        );
+
+        Assert.Equal(WiniStatus.ToBeAuthorized, booking.BookingStatus.Status);
+        var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.ToBeAuthorized);
+        Assert.True(hasHistorySaved);
+        Assert.Empty(booking.DomainEvents);
+        Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer1 && _.Authorizer.HasAuthorized);
+        Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer2 && !_.Authorizer.HasAuthorized);
+    }
+
+    [Fact]
+    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers_Partly_Authorized()
+    {
+        const string commissioner = "MIHSTE";
+        const string authorizer1 = "XMIHST";
+        const string authorizer2 = "MIHHST";
+        var validationService = GetBookingValidationService();
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(true);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(authorizer2);
+        var rows = new List<BookingRow> {
+            new(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer1, true),
+                new Money(100, "SEK", 0)
+            ),
+            new(
+                2,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            ),
+            new(
+                3,
+                new BusinessUnit("100KKTOT"),
+                new Account("11000"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer2, false),
+                new Money(1000, "SEK", 0)
+            ),
+            new(
+                4,
+                new BusinessUnit("100KKTOT"),
+                new Account("25010"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-1000, "SEK", 0)
+            )
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeAuthorized);
+
+        await booking.SetToBeSentStatusAsync(
+            authenticationService.Object,
+            authorizationService.Object,
+            validationService,
+            _companies
+        );
+
+        Assert.Equal(WiniStatus.ToBeSent, booking.BookingStatus.Status);
+        var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.ToBeAuthorized);
+        Assert.True(hasHistorySaved);
+        Assert.Single(booking.DomainEvents);
+        Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer1 && _.Authorizer.HasAuthorized);
+        Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer2 && _.Authorizer.HasAuthorized);
+    }
+
+    [Fact]
+    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers_Nothing_Left_To_Authorize_For_User()
+    {
+        const string commissioner = "MIHSTE";
+        const string authorizer1 = "XMIHST";
+        const string authorizer2 = "MIHHST";
+        var validationService = GetBookingValidationService();
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(true);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(authorizer1);
+        var rows = new List<BookingRow> {
+            new(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer1, true),
+                new Money(100, "SEK", 0)
+            ),
+            new(
+                2,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            ),
+            new(
+                3,
+                new BusinessUnit("100KKTOT"),
+                new Account("11000"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer2, false),
+                new Money(1000, "SEK", 0)
+            ),
+            new(
+                4,
+                new BusinessUnit("100KKTOT"),
+                new Account("25010"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-1000, "SEK", 0)
+            )
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeAuthorized);
+
+        var ex = await Assert.ThrowsAsync<DomainLogicException>(async () => await booking.SetToBeSentStatusAsync(
+            authenticationService.Object,
+            authorizationService.Object,
+            validationService,
+            _companies
+        ));
+
+        Assert.NotNull(ex);
+        Assert.Equal("There are no rows to authorize for user.", ex.Message);
+        Assert.Equal(WiniStatus.ToBeAuthorized, booking.BookingStatus.Status);
+        Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer1 && _.Authorizer.HasAuthorized);
+        Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer2 && !_.Authorizer.HasAuthorized);
+    }
+
+    [Fact]
+    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers_Nothing_All_Rows_Authorized()
+    {
+        const string commissioner = "MIHSTE";
+        const string authorizer1 = "XMIHST";
+        const string authorizer2 = "MIHHST";
+        var validationService = GetBookingValidationService();
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(true);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(authorizer1);
+        var rows = new List<BookingRow> {
+            new(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer1, true),
+                new Money(100, "SEK", 0)
+            ),
+            new(
+                2,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            ),
+            new(
+                3,
+                new BusinessUnit("100KKTOT"),
+                new Account("11000"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark("Test"),
+                new Authorizer(authorizer2, true),
+                new Money(1000, "SEK", 0)
+            ),
+            new(
+                4,
+                new BusinessUnit("100KKTOT"),
+                new Account("25010"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-1000, "SEK", 0)
+            )
+        };
+        var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeAuthorized);
+
+        var ex = await Assert.ThrowsAsync<DomainLogicException>(async () => await booking.SetToBeSentStatusAsync(
+            authenticationService.Object,
+            authorizationService.Object,
+            validationService,
+            _companies
+        ));
+
+        Assert.NotNull(ex);
+        Assert.Equal("All booking rows are already authorized.", ex.Message);
+    }
+
     private static BookingRowModel GetRowModel(int rowNo = 1, decimal amount = 100)
     => new()
     {
@@ -698,4 +1221,41 @@ public class BookingTests
         SubledgerType = "A",
         Subsidiary = "7894"
     };
+
+    private static BookingValidationService GetBookingValidationService(
+        bool isAdmin = false,
+        bool isAuthNeeded = true,
+        bool isError = false
+    )
+    {
+        var res = isError
+            ? (
+                false,
+                new[] { new ValidationError {
+                    Message = "Error has occurred",
+                    PropertyName = "Test",
+                    ErrorCode = "1234",
+                    AttemptedValue = "1234"
+                } }
+            )
+            : (true, Array.Empty<ValidationError>());
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(isAdmin);
+        authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(isAuthNeeded);
+        var authorizerValidationService = new Mock<IAuthorizerValidationService>();
+        authorizerValidationService.Setup(_ => _.CanAuthorizeBookingRows(It.IsAny<IEnumerable<BookingRow>>()))
+            .ReturnsAsync(res);
+        var bookingPeriodValidationService = new Mock<IBookingPeriodValidationService>();
+        bookingPeriodValidationService.Setup(_ => _.ValidateAsync(It.IsAny<Booking>()))
+            .ReturnsAsync((true, Array.Empty<ValidationError>()));
+        var accountingValidationService = new Mock<IAccountingValidationService>();
+        accountingValidationService.Setup(_ => _.ValidateAsync(It.IsAny<IEnumerable<AccountingValidationInputModel>>()))
+            .ReturnsAsync((true, Array.Empty<ValidationError>()));
+        return new(
+            authorizationService.Object,
+            authorizerValidationService.Object,
+            bookingPeriodValidationService.Object,
+            accountingValidationService.Object
+        );
+    }
 }

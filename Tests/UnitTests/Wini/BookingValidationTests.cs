@@ -2,6 +2,7 @@ namespace Tests.UnitTests.Wini;
 
 public class BookingValidationTests
 {
+    private readonly IEnumerable<Company> _companies = CommonTestValues.GetCompanies();
     [Fact]
     public async Task Validate_Booking()
     {
@@ -16,7 +17,7 @@ public class BookingValidationTests
                 new CostObject(3,"3333", "C"),
                 new CostObject(4, "4444", "D"),
                 new Remark("Test"),
-                new Authorizer("XMIHST", true),
+                new Authorizer("XMIHST", false),
                 new Money(100, "SEK", 0)
             ),
             new(
@@ -36,7 +37,7 @@ public class BookingValidationTests
         var booking = CommonTestValues.GetBooking(rows, "MIHSTE", WiniStatus.Saved);
         var validationService = GetBookingValidationService();
 
-        var res = await validationService.ValidateAsync(booking);
+        var res = await validationService.ValidateAsync(booking, _companies);
 
         Assert.NotNull(res);
         Assert.True(res.IsValid);
@@ -49,7 +50,7 @@ public class BookingValidationTests
         var booking = CommonTestValues.GetNewEmptyBooking();
         var validationService = GetBookingValidationService();
 
-        var res = await validationService.ValidateAsync(booking);
+        var res = await validationService.ValidateAsync(booking, _companies);
 
         Assert.NotNull(res);
         Assert.False(res.IsValid);
@@ -97,7 +98,7 @@ public class BookingValidationTests
 
         var validationService = GetBookingValidationService();
 
-        var res = await validationService.ValidateAsync(booking);
+        var res = await validationService.ValidateAsync(booking, _companies);
 
         Assert.NotNull(res);
         Assert.False(res.IsValid);
@@ -111,6 +112,49 @@ public class BookingValidationTests
         Assert.Contains(res.Errors, _ => _.PropertyName == "Row 3" && _.Message == "'Amount' must not be equal to '0'.");
         Assert.Contains(res.Errors, _ => _.PropertyName == "Row 1" && _.Message == "'Currency Code' must not be empty.");
         Assert.Contains(res.Errors, _ => _.PropertyName == "Row 3" && _.Message == "'Currency Code' must not be empty.");
+    }
+
+    [Fact]
+    public async Task Validate_Booking_Authorized_While_Status_Saved()
+    {
+        var rows = new List<BookingRow> {
+            new(
+                1,
+                new BusinessUnit("100KKTOT"),
+                new Account("10500"),
+                new Subledger("1234", "A"),
+                new CostObject(1, "1111", "A"),
+                new CostObject(2, "2222", "B"),
+                new CostObject(3,"3333", "C"),
+                new CostObject(4, "4444", "D"),
+                new Remark("Test"),
+                new Authorizer("XMIHST", true),
+                new Money(100, "SEK", 0)
+            ),
+            new(
+                2,
+                new BusinessUnit("100KKTOT"),
+                new Account("24500"),
+                new Subledger(),
+                new CostObject(1),
+                new CostObject(2),
+                new CostObject(3),
+                new CostObject(4),
+                new Remark(),
+                new Authorizer(),
+                new Money(-100, "SEK", 0)
+            )
+        };
+        var booking = CommonTestValues.GetBooking(rows, "MIHSTE", WiniStatus.Saved);
+        var validationService = GetBookingValidationService();
+
+        var res = await validationService.ValidateAsync(booking, _companies);
+
+        Assert.NotNull(res);
+        Assert.False(res.IsValid);
+        Assert.NotNull(res.Errors);
+        Assert.Single(res.Errors);
+        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 1" && _.Message == "Booking cannot be authorized while status is Saved.");
     }
 
     [Fact]
@@ -147,7 +191,7 @@ public class BookingValidationTests
         var booking = CommonTestValues.GetBooking(rows, "MIHSTE", WiniStatus.Saved);
         var validationService = GetBookingValidationService();
 
-        var res = await validationService.ValidateAsync(booking);
+        var res = await validationService.ValidateAsync(booking, _companies);
 
         Assert.NotNull(res);
         Assert.False(res.IsValid);
@@ -170,7 +214,7 @@ public class BookingValidationTests
                 new CostObject(3,"3333", "C"),
                 new CostObject(4, "4444", "D"),
                 new Remark("Test"),
-                new Authorizer("XMIHST", true),
+                new Authorizer("XMIHST", false),
                 new Money(100, "NOK", 1)
             ),
             new(
@@ -190,7 +234,7 @@ public class BookingValidationTests
         var booking = CommonTestValues.GetBooking(rows, "MIHSTE", WiniStatus.Saved);
         var validationService = GetBookingValidationService();
 
-        var res = await validationService.ValidateAsync(booking);
+        var res = await validationService.ValidateAsync(booking, _companies);
 
         Assert.NotNull(res);
         Assert.False(res.IsValid);
@@ -214,7 +258,7 @@ public class BookingValidationTests
                 new CostObject(3,"3333", "C"),
                 new CostObject(4, "4444", "D"),
                 new Remark("Test"),
-                new Authorizer("XMIHST", true),
+                new Authorizer("XMIHST", false),
                 new Money(100, "NOK", 0)
             ),
             new(
@@ -234,7 +278,7 @@ public class BookingValidationTests
         var booking = CommonTestValues.GetBooking(rows, "MIHSTE", WiniStatus.Saved, Ledgers.AA);
         var validationService = GetBookingValidationService();
 
-        var res = await validationService.ValidateAsync(booking);
+        var res = await validationService.ValidateAsync(booking, _companies);
 
         Assert.NotNull(res);
         Assert.False(res.IsValid);
@@ -291,7 +335,7 @@ public class BookingValidationTests
         var booking = CommonTestValues.GetBooking(rows, "MIHSTE", WiniStatus.Saved);
         var validationService = GetBookingValidationService();
 
-        var res = await validationService.ValidateAsync(booking);
+        var res = await validationService.ValidateAsync(booking, _companies);
 
         Assert.NotNull(res);
         Assert.False(res.IsValid);
@@ -347,7 +391,7 @@ public class BookingValidationTests
         var booking = CommonTestValues.GetBooking(rows, "MIHSTE", WiniStatus.Saved);
         var validationService = GetBookingValidationService();
 
-        var res = await validationService.ValidateAsync(booking);
+        var res = await validationService.ValidateAsync(booking, _companies);
 
         Assert.NotNull(res);
         Assert.False(res.IsValid);
@@ -392,7 +436,7 @@ public class BookingValidationTests
 
         var validationService = GetBookingValidationService();
 
-        var res = await validationService.ValidateAsync(booking);
+        var res = await validationService.ValidateAsync(booking, _companies);
 
         Assert.NotNull(res);
         Assert.False(res.IsValid);
@@ -422,14 +466,11 @@ public class BookingValidationTests
         var accountingValidationService = new Mock<IAccountingValidationService>();
         accountingValidationService.Setup(_ => _.ValidateAsync(It.IsAny<IEnumerable<AccountingValidationInputModel>>()))
             .ReturnsAsync((true, Array.Empty<ValidationError>()));
-        var companyRepo = new Mock<ICompanyRepository>();
-        companyRepo.Setup(_ => _.SelectAllCompaniesAsync()).ReturnsAsync(CommonTestValues.GetCompanies());
         return new(
             authorizationService.Object,
             authorizerValidationService.Object,
             bookingPeriodValidationService.Object,
-            accountingValidationService.Object,
-            new TestWiniUnitOfWork(companyRepo.Object)
+            accountingValidationService.Object
         );
     }
 }

@@ -6,27 +6,24 @@ public class BookingValidationService : IBookingValidationService
     private readonly IAuthorizerValidationService _authorizerValidationService;
     private readonly IBookingPeriodValidationService _bookingPeriodValidationService;
     private readonly IAccountingValidationService _accountingValidationService;
-    private readonly IWiniUnitOfWork _unitOfWork;
 
     public BookingValidationService(
         IAuthorizationService authorizationService,
         IAuthorizerValidationService authorizerValidationService,
         IBookingPeriodValidationService bookingPeriodValidationService,
-        IAccountingValidationService accountingValidationService,
-        IWiniUnitOfWork unitOfWork
+        IAccountingValidationService accountingValidationService
     )
     {
         _authorizationService = authorizationService;
         _authorizerValidationService = authorizerValidationService;
         _bookingPeriodValidationService = bookingPeriodValidationService;
         _accountingValidationService = accountingValidationService;
-        _unitOfWork = unitOfWork;
     }
 
-    public async Task<BookingValidationResultModel> ValidateAsync(Booking booking)
+    public async Task<BookingValidationResultModel> ValidateAsync(Booking booking, IEnumerable<Company> companies)
     {
         var tasks = new[] {
-            ValidateValuesAsync(booking),
+            ValidateValuesAsync(booking, companies),
             ValidateBookingPeriodsAsync(booking),
             ValidateAccountingValuesAsync(booking),
             ValidateAuthorizersAsync(booking)
@@ -63,16 +60,16 @@ public class BookingValidationService : IBookingValidationService
         }
     }
 
-    private async Task<BookingValidationResultModel> ValidateValuesAsync(Booking booking)
+    private static Task<BookingValidationResultModel> ValidateValuesAsync(Booking booking, IEnumerable<Company> companies)
     {
-        var companies = await _unitOfWork.CompanyRepository.SelectAllCompaniesAsync();
         var (IsValid, Errors) = booking.ValidateValues(companies);
-        return new BookingValidationResultModel
+        var res = new BookingValidationResultModel
         {
             Errors = Errors,
             IsValid = IsValid,
             Message = !IsValid ? "Booking failed to validate. One or more fields did not pass the validation rules." : default
         };
+        return Task.FromResult(res);
     }
 
     private async Task<BookingValidationResultModel> ValidateBookingPeriodsAsync(Booking booking)

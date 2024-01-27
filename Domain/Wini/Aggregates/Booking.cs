@@ -101,11 +101,13 @@ public class Booking
         Rows.Remove(rowToDelete);
     }
 
-    public async Task SetToBeAuthorizedStatus(IBookingValidationService validationService)
+    public async Task SetToBeAuthorizedStatusAsync(IBookingValidationService validationService, IEnumerable<Company> companies)
     {
-        await validationService.ValidateAsync(this);
-
         BookingStatus.CanChangeStatusToBeAuthorized();
+
+        var res = await validationService.ValidateAsync(this, companies);
+        if (!res.IsValid)
+            throw new DomainValidationException($"Failed to validate booking {BookingId?.Value}.", res.Errors!);
 
         BookingStatus.TryChangeStatus(WiniStatus.ToBeAuthorized);
 
@@ -169,20 +171,27 @@ public class Booking
         AddStatusEvent(WiniStatus.Saved);
     }
 
-    public async Task SetToBeSentStatus(
+    public async Task SetToBeSentStatusAsync(
         IAuthenticationService authenticationService,
         IAuthorizationService authorizationService,
-        IBookingValidationService validationService)
+        IBookingValidationService validationService,
+        IEnumerable<Company> companies)
     {
-        await validationService.ValidateAsync(this);
-
         BookingStatus.CanChangeStatusToBeSent();
+
+        var allDebitRows = Rows.Where(_ => _.Money.IsDebitRow());
+        if (allDebitRows.All(_ => _.Authorizer.HasAuthorized))
+            throw new DomainLogicException("All booking rows are already authorized.");
+
+        var res = await validationService.ValidateAsync(this, companies);
+        if (!res.IsValid)
+            throw new DomainValidationException($"Failed to validate booking {BookingId?.Value}.", res.Errors!);
 
         if (authorizationService.IsBookingAuthorizationNeeded())
         {
             var userId = authenticationService.GetUserId();
             AuthorizeRowsForUser(userId);
-            if (Rows.Any(_ => _.Authorizer.HasAuthorized))
+            if (!allDebitRows.All(_ => _.Authorizer.HasAuthorized))
             {
                 // More rows left to be authorized by other users. Just save status to history.
                 BookingStatus.SaveStatusHistory();

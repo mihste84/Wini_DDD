@@ -14,6 +14,11 @@ public class DomainValidationException : Exception
         Errors = errors;
     }
 
+    public DomainValidationException(string? message, IEnumerable<ValidationError> errors) : base(message)
+    {
+        Errors = errors;
+    }
+
     public DomainValidationException(string? message, IEnumerable<ValidationFailure> errors) : base(message)
     {
         Errors = MapFailureToValidationError(errors);
