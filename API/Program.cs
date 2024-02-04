@@ -42,6 +42,7 @@ app.UseRouting();
 
 app.UsePathBase(new PathString("/api"));
 app.MapGet("/hello/{msg}", HelloEndpoints.Hello);
+app.MapGet("/companies", CompanyEndpoints.GetAllCompanies);
 
 app.Run();
 

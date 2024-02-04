@@ -1,6 +1,6 @@
 namespace AppLogic.Interfaces;
 
-public interface ICompanyRepository
+public interface IMasterdataRepository
 {
     Task<IEnumerable<Company>> SelectAllCompaniesAsync();
 }

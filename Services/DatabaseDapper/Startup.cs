@@ -7,7 +7,7 @@ public static class Startup
         if (string.IsNullOrWhiteSpace(connectionString))
             throw new ArgumentNullException(nameof(connectionString), "Connection string cannot be empty.");
 
-        services.AddScoped<IDbConnection>(_ => new SqlConnection(connectionString));
-        services.AddScoped<IUnitOfWork, DapperUnitOfWork>();
+        services.AddSingleton(_ => new ConnectionFactory(connectionString));
+        services.AddScoped<IMasterdataRepository, MasterdataRepository>();
     }
 }

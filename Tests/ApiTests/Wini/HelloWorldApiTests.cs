@@ -1,11 +1,11 @@
 namespace Tests.ApiTests.Wini;
 
 [Order(1)]
-public sealed class CountriesApiTests : IClassFixture<TestBase>
+public sealed class HelloWorldApiTests : IClassFixture<TestBase>
 {
     private readonly TestBase _testBase;
 
-    public CountriesApiTests(TestBase testBase)
+    public HelloWorldApiTests(TestBase testBase)
     {
         _testBase = testBase;
     }
