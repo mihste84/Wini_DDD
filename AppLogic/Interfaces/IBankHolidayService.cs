@@ -1,4 +1,4 @@
-namespace Domain.Interfaces;
+namespace AppLogic.Interfaces;
 
 public interface IBankHolidayService
 {

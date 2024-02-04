@@ -5,6 +5,7 @@ public class RecipientMessageValidator : AbstractValidator<RecipientMessage>
     {
         RuleFor(_ => _.BookingId).NotNull();
         RuleFor(_ => _.Recipient).NotNull();
-        RuleFor(_ => _.Message).NotEmpty().MaximumLength(100);
+        RuleFor(_ => _.Message).NotEmpty().MaximumLength(300);
+        RuleFor(_ => _.Recipient).SetValidator(new UserValidator(true, "Recipient"));
     }
 }

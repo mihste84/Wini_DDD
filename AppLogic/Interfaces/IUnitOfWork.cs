@@ -1,6 +1,6 @@
-namespace Domain.Wini.Interfaces;
+namespace AppLogic.Interfaces;
 
-public interface IWiniUnitOfWork
+public interface IUnitOfWork
 {
     ICompanyRepository CompanyRepository { get; }
     Task SaveChangesAsync(CancellationToken cancellationToken = default);

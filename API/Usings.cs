@@ -1,0 +1,12 @@
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Authorization;
+global using MediatR;
+global using Services.DatabaseDapper;
+global using Domain.Interfaces;
+global using API.Services;
+global using API.Endpoints;
+global using API.Models;
+global using Microsoft.AspNetCore.Authentication.Cookies;
+global using AppLogic.Startup;
+global using AppLogic.Requests;
+global using Microsoft.AspNetCore.Http;

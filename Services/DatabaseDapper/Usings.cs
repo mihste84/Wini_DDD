@@ -1,0 +1,12 @@
+﻿global using System.Data;
+global using Microsoft.Data.SqlClient;
+global using Microsoft.Extensions.DependencyInjection;
+global using Dapper;
+global using DapperQueryBuilder;
+global using Domain.Wini.Entities;
+global using Domain.Wini.Values;
+global using Domain.Wini.Enums;
+global using AppLogic.Interfaces;
+global using Services.DatabaseDapper.Queries;
+global using Microsoft.Extensions.Logging;
+global using Services.DatabaseDapper.Repositories;

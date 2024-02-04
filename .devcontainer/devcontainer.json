@@ -25,7 +25,7 @@
             "emptyPasswordInput": false,
             "savePassword": false,
             "profileName": "mssql-container",
-            "encrypt": "False",
+            "encrypt": "Optional",
             "trustServerCertificate": false
           }
         ]
@@ -33,19 +33,17 @@
 
       // Add the IDs of extensions you want installed when the container is created.
       "extensions": [
-		"ms-dotnettools.csharp",
-		"ms-mssql.mssql",
-		"ms-dotnettools.csharp",
-		"ms-mssql.data-workspace-vscode",
-		"GitHub.copilot",
-		"patcx.vscode-nuget-gallery",
-		"esbenp.prettier-vscode",
-		"bradlc.vscode-tailwindcss",
-		"chiadem.cs2ts-vscode-extension",
-		"josefpihrt-vscode.roslynator",
-		"formulahendry.dotnet-test-explorer",
-		"aliasadidev.nugetpackagemanagergui"
-	]
+        "ms-dotnettools.csharp",
+        "ms-mssql.mssql",
+        "ms-mssql.data-workspace-vscode",
+        "patcx.vscode-nuget-gallery",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "chiadem.cs2ts-vscode-extension",
+        "josefpihrt-vscode.roslynator",
+        "formulahendry.dotnet-test-explorer",
+        "aliasadidev.nugetpackagemanagergui"
+      ]
     }
   },
   "forwardPorts": [1433, 3000, 5299, 7206, 5173],
@@ -64,10 +62,6 @@
   //			"protocol": "https"
   //		}
   // }
-  "remoteEnv": {
-    //"ASPNETCORE_Kestrel__Certificates__Default__Password": "stemih11",
-    //"ASPNETCORE_Kestrel__Certificates__Default__Path": "/home/vscode/.aspnet/https/https.crt"
-  },
 
   // postCreateCommand.sh parameters: $1=SA password, $2=dacpac path, $3=sql script(s) path
   "postCreateCommand": "bash .devcontainer/mssql/postCreateCommand.sh 'P@ssw0rd' './bin/Debug/' './.devcontainer/mssql/'",

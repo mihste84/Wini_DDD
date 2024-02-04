@@ -15,9 +15,10 @@ public record Country
     public readonly string Name;
     public readonly string Code;
 
-    public Country(string code)
+    public Country(string? code)
     {
-        if (!_allowedCountries.TryGetValue(code, out var name))
+        var inputCode = code ?? "";
+        if (!_allowedCountries.TryGetValue(inputCode, out var name))
         {
             throw new DomainValidationException(
                 new[] { new ValidationError {
@@ -30,7 +31,7 @@ public record Country
         }
 
         Name = name;
-        Code = code;
+        Code = inputCode;
 
         var validator = new CountryValidator();
         var result = validator.Validate(this);

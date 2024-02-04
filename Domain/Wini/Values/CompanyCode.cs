@@ -6,7 +6,7 @@ public record CompanyCode
 
     public CompanyCode() { }
 
-    public CompanyCode(string companyCodeString)
+    public CompanyCode(string? companyCodeString)
     {
         if (string.IsNullOrWhiteSpace(companyCodeString))
             return;

@@ -36,7 +36,7 @@ public class AuthorizerTests
     [Fact]
     public void Fail_To_Create_Authorizer_With_Too_Long_Value()
     {
-        const string authorizer = "XYZASDFGH";
+        var authorizer = new string('x', 201);
         const bool hasAuthorized = true;
         var ex = Assert.Throws<DomainValidationException>(() => new Authorizer(authorizer, hasAuthorized));
 
@@ -45,6 +45,6 @@ public class AuthorizerTests
         Assert.Equal("MaximumLengthValidator", error.ErrorCode);
         Assert.Equal(authorizer, error.AttemptedValue);
         Assert.Equal("UserId", error.PropertyName);
-        Assert.Equal("The length of 'Authorizer' must be 8 characters or fewer. You entered 9 characters.", error.Message);
+        Assert.Equal("The length of 'Authorizer' must be 200 characters or fewer. You entered 201 characters.", error.Message);
     }
 }

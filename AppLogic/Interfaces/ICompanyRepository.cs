@@ -1,4 +1,4 @@
-namespace Domain.Wini.Interfaces;
+namespace AppLogic.Interfaces;
 
 public interface ICompanyRepository
 {

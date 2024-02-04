@@ -32,7 +32,7 @@ public class RecipientMessageTests
     [Fact]
     public void Fail_To_Create_RecipientMessage_With_Too_Long_Message()
     {
-        var message = new string('X', 101);
+        var message = new string('X', 301);
         var user = new User("MIHSTE");
 
         var ex = Assert.Throws<DomainValidationException>(() => new RecipientMessage(message, user, _bookingId));
@@ -42,6 +42,6 @@ public class RecipientMessageTests
         Assert.Equal(message, error.AttemptedValue);
         Assert.Equal("MaximumLengthValidator", error.ErrorCode);
         Assert.Equal("Message", error.PropertyName);
-        Assert.Equal("The length of 'Message' must be 100 characters or fewer. You entered 101 characters.", error.Message);
+        Assert.Equal("The length of 'Message' must be 300 characters or fewer. You entered 301 characters.", error.Message);
     }
 }
