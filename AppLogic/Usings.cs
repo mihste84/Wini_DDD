@@ -15,7 +15,6 @@ global using Domain.Wini.Events;
 global using AppLogic.Interfaces;
 global using AppLogic.Extensions;
 global using AppLogic.Models;
-global using AppLogic.Models.Dtos;
 global using MediatR;
 global using OneOf;
 global using OneOf.Types;

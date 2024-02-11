@@ -16,8 +16,8 @@ public sealed class CompanyApiTests : IClassFixture<TestBase>
         await _testBase.ResetDbAsync();
         var res = await _testBase.HttpClient.GetAsync("/api/companies");
         res.EnsureSuccessStatusCode();
-        var content = await res.Content.ReadFromJsonAsync<BaseResponse<IEnumerable<CompanyDto>>>();
+        var content = await res.Content.ReadFromJsonAsync<IEnumerable<CompanyDto>>();
         Assert.NotNull(content);
-        Assert.Equal(4, content.Value.Count());
+        Assert.Equal(4, content.Count());
     }
 }

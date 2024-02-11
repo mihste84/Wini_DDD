@@ -6,10 +6,10 @@ public static class Startup
     {
         services.AddMediatR(cfg =>
         {
-            cfg.RegisterServicesFromAssembly(typeof(HelloCommand).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(InsertHelloCommand).Assembly);
             cfg.AddOpenBehavior(typeof(AuthenticationBehaviour<,>));
             //cfg.AddOpenBehavior(typeof(RequestValidationBehaviour<,>));
         });
-        //services.AddValidatorsFromAssemblyContaining<HelloCommand>();
+        //services.AddValidatorsFromAssemblyContaining<InsertHelloCommand>();
     }
 }

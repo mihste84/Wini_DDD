@@ -19,6 +19,7 @@ global using Microsoft.AspNetCore.Mvc.Testing;
 global using System.Net.Http.Json;
 global using API.Models;
 global using Newtonsoft.Json;
-global using AppLogic.Models.Dtos;
+global using AppLogic.Models;
 global using AppLogic.Interfaces;
+global using AppLogic.Requests;
 global using Services.DatabaseDapper;

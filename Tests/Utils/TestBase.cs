@@ -8,15 +8,13 @@ public class TestBase
 {
     public readonly HttpClient HttpClient;
     private readonly string _connectionString;
-    public readonly IMasterdataRepository MasterdataRepository;
+
     public TestBase()
     {
         var webApplicationFactory = new WebApplicationFactory<Program>();
         var configuration = webApplicationFactory.Services.GetService(typeof(IConfiguration)) as IConfiguration;
         _connectionString = configuration!.GetConnectionString("WiniDb")!;
         HttpClient = webApplicationFactory.CreateDefaultClient();
-        var connectionFactory = new ConnectionFactory(_connectionString);
-        MasterdataRepository = new MasterdataRepository(connectionFactory);
     }
 
     private static async Task<Respawner> GetRespawnAsync(string connectionString)

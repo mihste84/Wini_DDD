@@ -41,7 +41,10 @@ app.UseRouting();
 // app.UseAuthorization();
 
 app.UsePathBase(new PathString("/api"));
-app.MapGet("/hello/{msg}", HelloEndpoints.Hello);
+app.MapPost("/hello", HelloEndpoints.Post);
+app.MapPatch("/hello/{id}", HelloEndpoints.Patch);
+app.MapDelete("/hello/{id}", HelloEndpoints.Delete);
+
 app.MapGet("/companies", CompanyEndpoints.GetAllCompanies);
 
 app.Run();

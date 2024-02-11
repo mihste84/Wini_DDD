@@ -7,7 +7,7 @@ public static class CompanyEndpoints
         var res = await mediator.Send(new GetAllCompaniesQuery());
 
         return res.Match(
-            success => Results.Ok(new BaseResponse<IEnumerable<CompanyDto>>(success.Value)),
+            success => Results.Ok(success.Value),
             notFound => Results.NotFound()
         );
     }
