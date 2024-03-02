@@ -63,7 +63,7 @@ public class BookingValidationTests
     }
 
     [Fact]
-    public async Task Validate_Booking_With_Empty_Rows_And_Not_In_Sequence()
+    public async Task Validate_Booking_With_Empty_Rows()
     {
         var rows = new List<BookingRow> {
             new(
@@ -80,7 +80,7 @@ public class BookingValidationTests
                 new Money()
             ),
             new(
-                3,
+                2,
                 new BusinessUnit(),
                 new Account(),
                 new Subledger(),
@@ -94,7 +94,10 @@ public class BookingValidationTests
             ),
         };
         var booking = CommonTestValues.GetBooking(rows);
-        booking.EditBookingHeader(new BookingHeaderModel(DateTime.UtcNow, "", true, Ledgers.AA));
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
+
+        booking.EditBookingHeader(new BookingHeaderModel(DateTime.UtcNow, "", true, Ledgers.AA), authenticationService.Object);
 
         var validationService = GetBookingValidationService();
 
@@ -103,15 +106,14 @@ public class BookingValidationTests
         Assert.NotNull(res);
         Assert.False(res.IsValid);
         Assert.NotNull(res.Errors);
-        Assert.Equal(8, res.Errors.Count());
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row Numbers" && _.Message == "Row numbers are not in sequence.");
+        Assert.Equal(7, res.Errors.Count());
         Assert.Contains(res.Errors, _ => _.PropertyName == "Header.TextToE1.Text" && _.Message == "'TextToE1' must not be empty.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 1" && _.Message == "'Account' must not be empty.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 3" && _.Message == "'Account' must not be empty.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 1" && _.Message == "'Amount' must not be equal to '0'.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 3" && _.Message == "'Amount' must not be equal to '0'.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 1" && _.Message == "'Currency Code' must not be empty.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 3" && _.Message == "'Currency Code' must not be empty.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "'Account' must not be empty.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#2" && _.Message == "'Account' must not be empty.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "'Amount' must not be equal to '0'.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#2" && _.Message == "'Amount' must not be equal to '0'.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "'Currency Code' must not be empty.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#2" && _.Message == "'Currency Code' must not be empty.");
     }
 
     [Fact]
@@ -154,7 +156,7 @@ public class BookingValidationTests
         Assert.False(res.IsValid);
         Assert.NotNull(res.Errors);
         Assert.Single(res.Errors);
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 1" && _.Message == "Booking cannot be authorized while status is Saved.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "Booking cannot be authorized while status is Saved.");
     }
 
     [Fact]
@@ -240,8 +242,8 @@ public class BookingValidationTests
         Assert.False(res.IsValid);
         Assert.NotNull(res.Errors);
         Assert.Equal(2, res.Errors.Count());
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 1" && _.Message == "Cannot use GP ledger as currency 'NOK' is not base currency for company '100'.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 2" && _.Message == "Cannot use GP ledger as currency 'NOK' is not base currency for company '100'.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "Cannot use GP ledger as currency 'NOK' is not base currency for company '100'.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#2" && _.Message == "Cannot use GP ledger as currency 'NOK' is not base currency for company '100'.");
     }
 
     [Fact]
@@ -284,8 +286,8 @@ public class BookingValidationTests
         Assert.False(res.IsValid);
         Assert.NotNull(res.Errors);
         Assert.Equal(2, res.Errors.Count());
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 1" && _.Message == "Exchange rate with currency 'NOK' must be set when foreign currency is used.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 2" && _.Message == "Exchange rate with currency 'NOK' must be set when foreign currency is used.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "Exchange rate with currency 'NOK' must be set when foreign currency is used.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#2" && _.Message == "Exchange rate with currency 'NOK' must be set when foreign currency is used.");
     }
 
     [Fact]
@@ -432,7 +434,10 @@ public class BookingValidationTests
             ),
         };
         var booking = CommonTestValues.GetBooking(rows);
-        booking.EditBookingHeader(new BookingHeaderModel(DateTime.UtcNow, "Test", true, Ledgers.AA));
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
+
+        booking.EditBookingHeader(new BookingHeaderModel(DateTime.UtcNow, "Test", true, Ledgers.AA), authenticationService.Object);
 
         var validationService = GetBookingValidationService();
 
@@ -442,11 +447,11 @@ public class BookingValidationTests
         Assert.False(res.IsValid);
         Assert.NotNull(res.Errors);
         Assert.Equal(5, res.Errors.Count());
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 1" && _.Message == "Subledger cannot be empty when Subledger Type has a value.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 1" && _.Message == "Cost Object 1 must be entered if Cost Object Type 1 is to be used.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 1" && _.Message == "Authorizer cannot be set on credit rows.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 2" && _.Message == "Subledger Type must be 'A'.");
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Row 2" && _.Message == "Cost Object Type 1 must be entered if Cost Object 1 is used.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "Subledger cannot be empty when Subledger Type has a value.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "Cost Object 1 must be entered if Cost Object Type 1 is to be used.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "Authorizer cannot be set on credit rows.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#2" && _.Message == "Subledger Type must be 'A'.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#2" && _.Message == "Cost Object Type 1 must be entered if Cost Object 1 is used.");
     }
 
     private static BookingValidationService GetBookingValidationService(

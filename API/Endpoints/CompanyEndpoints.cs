@@ -8,7 +8,7 @@ public static class CompanyEndpoints
 
         return res.Match(
             success => Results.Ok(success.Value),
-            notFound => Results.NotFound()
+            _ => Results.NotFound()
         );
     }
 }

@@ -9,7 +9,8 @@ public static class Startup
 
         services.AddSingleton(_ => new ConnectionFactory(connectionString));
         services.AddScoped<IMasterdataRepository, MasterdataRepository>();
-        services.AddScoped<IHelloRepository, HelloRepository>();
-        services.AddScoped<ITransactionHandler, TransactionScopeHandler>();
+        services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<ITransactionScope, TransactionScopeWrapper>();
+        services.AddScoped<ITransactionScopeManager, TransactionScopeManager>();
     }
 }

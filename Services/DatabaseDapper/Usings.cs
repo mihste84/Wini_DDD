@@ -10,3 +10,8 @@ global using AppLogic.Interfaces;
 global using Services.DatabaseDapper.Queries;
 global using Microsoft.Extensions.Logging;
 global using Services.DatabaseDapper.Repositories;
+global using AppLogic.Exceptions;
+global using AppLogic.Models;
+global using Domain.Wini.Aggregates;
+global using Domain.Wini.Events;
+global using Services.DatabaseDapper.Extensions;

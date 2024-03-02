@@ -56,8 +56,10 @@ public class BookingTests
             true,
             Ledgers.GP
         );
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
 
-        booking.EditBookingHeader(header);
+        booking.EditBookingHeader(header, authenticationService.Object);
 
         Assert.True(booking.Header.IsReversed);
         Assert.Equal(Ledgers.GP, booking.Header.LedgerType.Type);
@@ -70,8 +72,10 @@ public class BookingTests
     {
         var booking = CommonTestValues.GetNewEmptyBooking();
         var newRow = GetRowModel();
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
 
-        booking.AddNewRow(newRow);
+        booking.AddNewRow(newRow, authenticationService.Object);
 
         Assert.Single(booking.Rows);
         var row = booking.Rows.Single();
@@ -102,6 +106,30 @@ public class BookingTests
         Assert.Equal("TEST", row.Remark.Text);
         Assert.Equal("990099", row.Subledger.Value);
         Assert.Equal("A", row.Subledger.Type);
+
+        Assert.Single(booking.DomainEvents);
+        var evt = booking.DomainEvents.FirstOrDefault() as WiniBookingRowActionEvent;
+        Assert.NotNull(evt);
+        Assert.Equal(BookingRowAction.Added, evt.Action);
+        Assert.Equal(row, evt.Row);
+        Assert.Null(evt.BookingId);
+    }
+
+    [Fact]
+    public void Add_Multiple_New_Rows_To_Empty_Booking()
+    {
+        var booking = CommonTestValues.GetNewEmptyBooking();
+        var rows = new[] {
+            GetRowModel(1),
+            GetRowModel(2)
+        };
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
+
+        booking.AddMultipleRows(rows, authenticationService.Object);
+
+        Assert.Equal(2, booking.Rows.Count);
+        Assert.All(booking.DomainEvents, _ => Assert.IsType<WiniBookingRowActionEvent>(_));
     }
 
     [Fact]
@@ -109,8 +137,10 @@ public class BookingTests
     {
         var booking = CommonTestValues.GetBooking();
         var newRow = GetRowModel();
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
 
-        booking.AddNewRow(newRow);
+        booking.AddNewRow(newRow, authenticationService.Object);
 
         Assert.Single(booking.Rows);
         var row = booking.Rows.Single();
@@ -148,7 +178,11 @@ public class BookingTests
     {
         var booking = CommonTestValues.GetBooking();
         var newRow = GetRowModel(10);
-        booking.AddNewRow(newRow);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
+
+        booking.AddNewRow(newRow, authenticationService.Object);
+        var addedRow = booking.Rows.Single();
 
         var editRow = GetRowModel(10);
         editRow.Account = "98765";
@@ -170,7 +204,7 @@ public class BookingTests
         editRow.Subledger = default;
         editRow.SubledgerType = default;
 
-        booking.EditRow(editRow);
+        booking.EditRow(editRow, authenticationService.Object);
 
         Assert.Single(booking.Rows);
         var row = booking.Rows.Single();
@@ -201,6 +235,53 @@ public class BookingTests
         Assert.Equal(editRow.Remark, row.Remark.Text);
         Assert.Equal(editRow.Subledger, row.Subledger.Value);
         Assert.Equal(editRow.SubledgerType, row.Subledger.Type);
+
+        Assert.Equal(2, booking.DomainEvents.Count);
+        var evt1 = booking.DomainEvents[0] as WiniBookingRowActionEvent;
+        Assert.NotNull(evt1);
+        Assert.Equal(BookingRowAction.Added, evt1.Action);
+        Assert.Equal(addedRow, evt1.Row);
+        Assert.Equal(1, evt1.BookingId);
+        var evt2 = booking.DomainEvents[1] as WiniBookingRowActionEvent;
+        Assert.NotNull(evt2);
+        Assert.Equal(BookingRowAction.Updated, evt2.Action);
+        Assert.Equal(row, evt2.Row);
+        Assert.Equal(1, evt2.BookingId);
+    }
+
+    [Fact]
+    public void Upsert_Rows_Of_Existing_Booking()
+    {
+        var booking = CommonTestValues.GetBooking();
+        var newRow = GetRowModel(1);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
+
+        booking.AddNewRow(newRow, authenticationService.Object);
+
+        var editRow = GetRowModel(1);
+        editRow.Account = "12345";
+        var rowsToUpsert = new[] {
+            editRow,
+            GetRowModel(2)
+        };
+
+        booking.UpsertMultipleRows(rowsToUpsert, authenticationService.Object);
+
+        Assert.Equal(2, booking.Rows.Count);
+        Assert.Contains(booking.Rows, _ => _.RowNumber == 1 && _.Account.Value == "12345");
+        Assert.Contains(booking.Rows, _ => _.RowNumber == 2);
+        Assert.Equal(3, booking.DomainEvents.Count);
+        var evt1 = booking.DomainEvents[1] as WiniBookingRowActionEvent;
+        Assert.NotNull(evt1);
+        Assert.Equal(BookingRowAction.Updated, evt1.Action);
+        Assert.Equal(booking.Rows[0], evt1.Row);
+        Assert.Equal(1, evt1.BookingId);
+        var evt2 = booking.DomainEvents[2] as WiniBookingRowActionEvent;
+        Assert.NotNull(evt2);
+        Assert.Equal(BookingRowAction.Added, evt2.Action);
+        Assert.Equal(booking.Rows[1], evt2.Row);
+        Assert.Equal(1, evt2.BookingId);
     }
 
     [Fact]
@@ -208,11 +289,47 @@ public class BookingTests
     {
         var booking = CommonTestValues.GetBooking();
         var newRow = GetRowModel(10);
-        booking.AddNewRow(newRow);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
+        booking.AddNewRow(newRow, authenticationService.Object);
+        var row = booking.Rows[0];
 
-        booking.DeleteRow(10);
+        booking.DeleteRow(10, authenticationService.Object);
 
         Assert.Empty(booking.Rows);
+        Assert.Equal(2, booking.DomainEvents.Count);
+        var evt1 = booking.DomainEvents[0] as WiniBookingRowActionEvent;
+        Assert.NotNull(evt1);
+        Assert.Equal(BookingRowAction.Added, evt1.Action);
+        Assert.Equal(row, evt1.Row);
+        Assert.Equal(1, evt1.BookingId);
+        var evt2 = booking.DomainEvents[1] as WiniBookingRowDeleteEvent;
+        Assert.NotNull(evt2);
+        Assert.Equal(10, evt2.RowNumber);
+        Assert.Equal(1, evt2.BookingId);
+    }
+
+    [Fact]
+    public void Delete_Multiple_Rows_Of_Existing_Booking()
+    {
+        var booking = CommonTestValues.GetBooking();
+        var newRow = GetRowModel(1);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
+        var rowsToInsert = new[] {
+            GetRowModel(1),
+            GetRowModel(2),
+            GetRowModel(3)
+        };
+        booking.AddMultipleRows(rowsToInsert, authenticationService.Object);
+
+        var rowsToDelete = new[] { 1, 3 };
+
+        booking.DeleteMultipleRows(rowsToDelete, authenticationService.Object);
+
+        Assert.Single(booking.Rows);
+        Assert.Contains(booking.Rows, _ => _.RowNumber == 2);
+        Assert.Contains(booking.DomainEvents, _ => _ is WiniBookingRowDeleteEvent);
     }
 
     [Fact]
@@ -220,21 +337,26 @@ public class BookingTests
     {
         var booking = CommonTestValues.GetBooking(status: WiniStatus.Cancelled);
         var newRow = GetRowModel();
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.AddNewRow(newRow));
+        var ex = Assert.Throws<DomainLogicException>(() => booking.AddNewRow(newRow, authenticationService.Object));
 
-        Assert.Equal("Cannot add new row. Rows can only be added when Booking status is 'Saved'.", ex.Message);
+        Assert.Equal("Changes can only be made when Booking status is 'Saved'.", ex.Message);
     }
 
     [Fact]
     public void Fail_To_Add_New_Row_Duplicate_Row_Number()
     {
         var booking = CommonTestValues.GetBooking(status: WiniStatus.Saved);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
+
         var newRow = GetRowModel(1);
-        booking.AddNewRow(newRow);
+        booking.AddNewRow(newRow, authenticationService.Object);
         newRow = GetRowModel(1);
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.AddNewRow(newRow));
+        var ex = Assert.Throws<DomainLogicException>(() => booking.AddNewRow(newRow, authenticationService.Object));
 
         Assert.Equal("Cannot add new row. Row number 1 already exists.", ex.Message);
     }
@@ -243,41 +365,49 @@ public class BookingTests
     public void Fail_To_Edit_Row_Wrong_Status()
     {
         var booking = CommonTestValues.GetBooking(status: WiniStatus.Cancelled);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
         var newRow = GetRowModel();
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.EditRow(newRow));
+        var ex = Assert.Throws<DomainLogicException>(() => booking.EditRow(newRow, authenticationService.Object));
 
-        Assert.Equal("Cannot edit row. Rows can only be added when Booking status is 'Saved'.", ex.Message);
+        Assert.Equal("Changes can only be made when Booking status is 'Saved'.", ex.Message);
     }
 
     [Fact]
     public void Fail_To_Edit_Row_Wrong_Row_Number()
     {
         var booking = CommonTestValues.GetBooking();
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
         var newRow = GetRowModel(10);
         var editRow = GetRowModel(11);
-        var ex = Assert.Throws<NotFoundException>(() => booking.EditRow(editRow));
+        var ex = Assert.Throws<NotFoundException>(() => booking.EditRow(editRow, authenticationService.Object));
 
-        Assert.Equal("Cannot edit row. Existing row with number 11 could not be found.", ex.Message);
+        Assert.Equal("Cannot update row. Existing row with number 11 could not be found.", ex.Message);
     }
 
     [Fact]
     public void Fail_To_Delete_Row_Wrong_Status()
     {
         var booking = CommonTestValues.GetBooking(status: WiniStatus.Cancelled);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
         var newRow = GetRowModel(10);
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.DeleteRow(10));
+        var ex = Assert.Throws<DomainLogicException>(() => booking.DeleteRow(10, authenticationService.Object));
 
-        Assert.Equal("Cannot delete row. Rows can only be deleted when Booking status is 'Saved'.", ex.Message);
+        Assert.Equal("Changes can only be made when Booking status is 'Saved'.", ex.Message);
     }
 
     [Fact]
     public void Fail_To_Delete_Row_Wrong_Row_Number()
     {
         var booking = CommonTestValues.GetBooking();
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
         var newRow = GetRowModel(10);
-        var ex = Assert.Throws<NotFoundException>(() => booking.DeleteRow(11));
+        var ex = Assert.Throws<NotFoundException>(() => booking.DeleteRow(11, authenticationService.Object));
 
         Assert.Equal("Cannot delete row. Existing row with number 11 could not be found.", ex.Message);
     }
@@ -294,7 +424,7 @@ public class BookingTests
 
         Assert.Equal(WiniStatus.Cancelled, booking.BookingStatus.Status);
         Assert.Single(booking.DomainEvents);
-        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.Cancelled);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status.Status == WiniStatus.Cancelled);
     }
 
     [Fact]
@@ -330,6 +460,8 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var rows = new List<BookingRow> {
             new(
                 1,
@@ -360,13 +492,14 @@ public class BookingTests
         };
         var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeSent);
 
-        booking.SetSendErrorStatus(authorizationService.Object);
+        booking.SetSendErrorStatus(authenticationService.Object, authorizationService.Object);
 
         Assert.Equal(WiniStatus.SendError, booking.BookingStatus.Status);
         var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
-        Assert.Single(booking.DomainEvents);
-        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.SendError);
+        Assert.NotEmpty(booking.DomainEvents);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.SendError);
+        Assert.NotNull(statusEvent);
     }
 
     [Fact]
@@ -375,9 +508,11 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeSent);
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.SetSendErrorStatus(authorizationService.Object));
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetSendErrorStatus(authenticationService.Object, authorizationService.Object));
 
         Assert.Equal("Only admins can change status to SendError.", ex.Message);
         Assert.Null(ex.AttemptedValue);
@@ -390,9 +525,11 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.Saved);
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.SetSendErrorStatus(authorizationService.Object));
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetSendErrorStatus(authenticationService.Object, authorizationService.Object));
 
         Assert.Equal("Status cannot be anything other than ToBeSent", ex.Message);
         Assert.Equal("SendError", ex.AttemptedValue);
@@ -405,6 +542,8 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var rows = new List<BookingRow> {
             new(
                 1,
@@ -435,13 +574,14 @@ public class BookingTests
         };
         var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeAuthorized);
 
-        booking.SetNotAuthorizedOnTimeStatus(authorizationService.Object, new DateTime(2023, 3, 23, 23, 1, 0));
+        booking.SetNotAuthorizedOnTimeStatus(authenticationService.Object, authorizationService.Object, new DateTime(2023, 3, 23, 23, 1, 0));
 
         Assert.Equal(WiniStatus.Saved, booking.BookingStatus.Status);
         var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.NotAuthorizedOnTime);
         Assert.True(hasHistorySaved);
-        Assert.Single(booking.DomainEvents);
-        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.NotAuthorizedOnTime);
+        Assert.Equal(2, booking.DomainEvents.Count);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status.Status == WiniStatus.NotAuthorizedOnTime);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status.Status == WiniStatus.Saved);
     }
 
     [Fact]
@@ -450,9 +590,11 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(true);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeAuthorized);
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authorizationService.Object, new DateTime(2023, 3, 23, 22, 59, 0)));
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authenticationService.Object, authorizationService.Object, new DateTime(2023, 3, 23, 22, 59, 0)));
 
         Assert.Equal("Status cannot be changed to NotAuthorizedOnTime. 72 hours have not passed yet.", ex.Message);
         Assert.Equal("2023-03-23 22:59:00", ex.AttemptedValue);
@@ -465,9 +607,11 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeAuthorized);
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authorizationService.Object, new DateTime(2023, 3, 23, 23, 59, 0)));
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authenticationService.Object, authorizationService.Object, new DateTime(2023, 3, 23, 23, 59, 0)));
 
         Assert.Equal("Only admins can change status to NotAuthorizedOnTime.", ex.Message);
         Assert.Null(ex.AttemptedValue);
@@ -480,9 +624,11 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         var authorizationService = new Mock<IAuthorizationService>();
         authorizationService.Setup(_ => _.IsAdmin()).Returns(false);
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeSent);
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authorizationService.Object, new DateTime(2023, 3, 23, 23, 59, 0)));
+        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authenticationService.Object, authorizationService.Object, new DateTime(2023, 3, 23, 23, 59, 0)));
 
         Assert.Equal("Status cannot be anything other than ToBeAuthorized", ex.Message);
         Assert.Equal("NotAuthorizedOnTime", ex.AttemptedValue);
@@ -536,8 +682,9 @@ public class BookingTests
         Assert.True(hasHistorySaved);
         var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
-        Assert.Single(booking.DomainEvents);
-        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.Saved);
+        Assert.NotEmpty(booking.DomainEvents);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.Saved);
+        Assert.NotNull(statusEvent);
     }
 
     [Fact]
@@ -588,8 +735,9 @@ public class BookingTests
         Assert.True(hasHistorySaved);
         var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
-        Assert.Single(booking.DomainEvents);
-        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.Saved);
+        Assert.NotEmpty(booking.DomainEvents);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.Saved);
+        Assert.NotNull(statusEvent);
     }
 
     [Fact]
@@ -640,8 +788,9 @@ public class BookingTests
         Assert.True(hasHistorySaved);
         var allRowUnauthorized = booking.Rows.All(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
-        Assert.Single(booking.DomainEvents);
-        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.Saved);
+        Assert.NotEmpty(booking.DomainEvents);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.Saved);
+        Assert.NotNull(statusEvent);
     }
 
     [Fact]
@@ -687,7 +836,8 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         const string authorizer = "XMIHST";
         var validationService = GetBookingValidationService();
-
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var rows = new List<BookingRow> {
             new(
                 1,
@@ -718,13 +868,13 @@ public class BookingTests
         };
         var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.Saved);
 
-        await booking.SetToBeAuthorizedStatusAsync(validationService, _companies);
+        await booking.SetToBeAuthorizedStatusAsync(authenticationService.Object, validationService, _companies);
 
         Assert.Equal(WiniStatus.ToBeAuthorized, booking.BookingStatus.Status);
         var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.Saved);
         Assert.True(hasHistorySaved);
         Assert.Single(booking.DomainEvents);
-        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.ToBeAuthorized);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status.Status == WiniStatus.ToBeAuthorized);
     }
 
     [Fact]
@@ -733,7 +883,8 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         const string authorizer = "XMIHST";
         var validationService = GetBookingValidationService();
-
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var rows = new List<BookingRow> {
             new(
                 1,
@@ -764,7 +915,7 @@ public class BookingTests
         };
         var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.Saved);
 
-        var ex = await Assert.ThrowsAsync<DomainValidationException>(() => booking.SetToBeAuthorizedStatusAsync(validationService, _companies));
+        var ex = await Assert.ThrowsAsync<DomainValidationException>(() => booking.SetToBeAuthorizedStatusAsync(authenticationService.Object, validationService, _companies));
 
         Assert.Equal("Failed to validate booking 1.", ex.Message);
         Assert.NotNull(ex.Errors);
@@ -778,6 +929,8 @@ public class BookingTests
         const string commissioner = "MIHSTE";
         const string authorizer = "XMIHST";
         var validationService = GetBookingValidationService();
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
 
         var rows = new List<BookingRow> {
             new(
@@ -809,7 +962,7 @@ public class BookingTests
         };
         var booking = CommonTestValues.GetBooking(rows, commissioner, WiniStatus.ToBeSent);
 
-        var ex = await Assert.ThrowsAsync<DomainLogicException>(() => booking.SetToBeAuthorizedStatusAsync(validationService, _companies));
+        var ex = await Assert.ThrowsAsync<DomainLogicException>(() => booking.SetToBeAuthorizedStatusAsync(authenticationService.Object, validationService, _companies));
 
         Assert.Equal("Status cannot be anything other than Saved", ex.Message);
         Assert.Equal("ToBeAuthorized", ex.AttemptedValue);
@@ -867,8 +1020,9 @@ public class BookingTests
         Assert.Equal(WiniStatus.ToBeSent, booking.BookingStatus.Status);
         var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.ToBeAuthorized);
         Assert.True(hasHistorySaved);
-        Assert.Single(booking.DomainEvents);
-        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status == WiniStatus.ToBeSent);
+        Assert.NotEmpty(booking.DomainEvents);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.ToBeSent);
+        Assert.NotNull(statusEvent);
     }
 
     [Fact]
@@ -949,9 +1103,11 @@ public class BookingTests
         Assert.Equal(WiniStatus.ToBeAuthorized, booking.BookingStatus.Status);
         var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.ToBeAuthorized);
         Assert.True(hasHistorySaved);
-        Assert.Empty(booking.DomainEvents);
         Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer1 && _.Authorizer.HasAuthorized);
         Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer2 && !_.Authorizer.HasAuthorized);
+        Assert.NotEmpty(booking.DomainEvents);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.ToBeAuthorized);
+        Assert.NotNull(statusEvent);
     }
 
     [Fact]
@@ -1032,9 +1188,11 @@ public class BookingTests
         Assert.Equal(WiniStatus.ToBeSent, booking.BookingStatus.Status);
         var hasHistorySaved = booking.BookingStatus.StatusHistory.Any(_ => _.Status == WiniStatus.ToBeAuthorized);
         Assert.True(hasHistorySaved);
-        Assert.Single(booking.DomainEvents);
         Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer1 && _.Authorizer.HasAuthorized);
         Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer2 && _.Authorizer.HasAuthorized);
+        Assert.NotEmpty(booking.DomainEvents);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.ToBeSent);
+        Assert.NotNull(statusEvent);
     }
 
     [Fact]
@@ -1117,6 +1275,7 @@ public class BookingTests
         Assert.Equal(WiniStatus.ToBeAuthorized, booking.BookingStatus.Status);
         Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer1 && _.Authorizer.HasAuthorized);
         Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer2 && !_.Authorizer.HasAuthorized);
+        Assert.Empty(booking.DomainEvents);
     }
 
     [Fact]
@@ -1196,6 +1355,25 @@ public class BookingTests
 
         Assert.NotNull(ex);
         Assert.Equal("All booking rows are already authorized.", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("MIHSTE", "MIHSTE", false, true, default)]// Commisioner
+    [InlineData("XMIHST", "MIHSTE", true, true, default)]// Admin
+    [InlineData("XMIHST", "MIHSTE", false, false, "Forbidden")]// Neither
+    public void Can_Delete_Booking_Commissioner(string commissioner, string user, bool isAdmin, bool expectedResult, string? expectedReason)
+    {
+        var booking = CommonTestValues.GetBooking(commissioner);
+        var newRow = GetRowModel();
+        var authenticationService = new Mock<IAuthenticationService>();
+        authenticationService.Setup(_ => _.GetUserId()).Returns(user);
+        var authorizationService = new Mock<IAuthorizationService>();
+        authorizationService.Setup(_ => _.IsAdmin()).Returns(isAdmin);
+
+        var (canDelete, reason) = booking.CanDeleteBooking(authenticationService.Object, authorizationService.Object);
+
+        Assert.Equal(expectedResult, canDelete);
+        Assert.Equal(expectedReason, reason);
     }
 
     private static BookingRowModel GetRowModel(int rowNo = 1, decimal amount = 100)

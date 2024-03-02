@@ -21,7 +21,8 @@ CREATE TABLE [dbo].[BookingRows]
   [IsAuthorized] BIT NOT NULL,
   [Amount] Decimal(12, 2) NULL,
   [CurrencyCode] NVARCHAR(3) NULL,
-  [ExchangeRate] Decimal(9, 6) NULL
+  [ExchangeRate] Decimal(9, 6) NULL,
+  [IsDeleted] BIT NOT NULL DEFAULT 0
 )
 GO
 

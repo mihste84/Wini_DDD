@@ -2,7 +2,7 @@ namespace Domain.Wini.Values;
 
 public record BookingRow
 {
-    public readonly int? RowNumber;
+    public readonly int RowNumber;
     public BusinessUnit BusinessUnit { get; }
     public Account Account { get; }
     public Subledger Subledger { get; }
@@ -15,7 +15,7 @@ public record BookingRow
     public Money Money { get; }
 
     public BookingRow(
-        int? rowNumber,
+        int rowNumber,
         BusinessUnit bu,
         Account account,
         Subledger subledger,
@@ -40,7 +40,7 @@ public record BookingRow
         Money = amount;
     }
 
-    public BookingRow(int? rowNumber)
+    public BookingRow(int rowNumber)
     {
         RowNumber = rowNumber;
         BusinessUnit = new BusinessUnit();

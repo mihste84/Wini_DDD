@@ -17,9 +17,10 @@ GO
 ALTER TABLE [dbo].[Comments] ADD CONSTRAINT DF_Comments_Created DEFAULT GETUTCDATE() FOR [Created];
 GO
 
-CREATE NONCLUSTERED INDEX [IX_Comments_BookingId] ON [dbo].[Comments]
+CREATE UNIQUE NONCLUSTERED INDEX [IX_Comments_BookingId] ON [dbo].[Comments]
 (
-	[BookingId] ASC
+	[BookingId] ASC,
+  [Created] ASC
 )
 GO
 

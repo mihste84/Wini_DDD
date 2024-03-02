@@ -15,5 +15,5 @@ public record AccountingValidationInputModel
     public string? CostObject3Type { get; set; }
     public string? CostObject4Type { get; set; }
     public string? Currency { get; set; }
-    public int? BookingRow { get; set; }
+    public long? BookingRow { get; set; }
 }

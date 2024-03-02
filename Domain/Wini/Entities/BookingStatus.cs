@@ -4,18 +4,21 @@ public class BookingStatus
 {
     public WiniStatus Status { get; private set; }
     public DateTime Updated { get; private set; }
+    public User UpdatedBy { get; private set; }
     public readonly List<BookingStatus> StatusHistory = new();
 
-    public BookingStatus(WiniStatus status, DateTime updated)
+    public BookingStatus(WiniStatus status, DateTime updated, string userId)
     {
         Status = status;
         Updated = updated;
+        UpdatedBy = new User(userId);
     }
 
-    public BookingStatus(WiniStatus status, DateTime updated, List<BookingStatus> statusHistory)
+    public BookingStatus(WiniStatus status, DateTime updated, string userId, List<BookingStatus> statusHistory)
     {
         Status = status;
         Updated = updated;
+        UpdatedBy = new User(userId);
         StatusHistory = statusHistory;
     }
 
@@ -57,7 +60,7 @@ public class BookingStatus
             throw new DomainLogicException(nameof(Status), WiniStatus.Sent.ToString(), "Status cannot be anything other than ToBeSent");
     }
 
-    public void TryChangeStatus(WiniStatus status)
+    public BookingStatus TryChangeStatus(WiniStatus status, string userId)
     {
         switch (status)
         {
@@ -72,14 +75,18 @@ public class BookingStatus
         }
 
         SaveStatusHistory();
-
+        var now = DateTime.UtcNow;
         Status = status;
-        Updated = DateTime.UtcNow;
+        Updated = now;
+        UpdatedBy = new User(userId);
+
+        return new BookingStatus(status, now, userId);
     }
 
     public BookingStatus Copy()
     => new(
         Status,
-        new DateTime(Updated.Year, Updated.Month, Updated.Day, Updated.Hour, Updated.Minute, Updated.Second, Updated.Millisecond)
+        new DateTime(Updated.Year, Updated.Month, Updated.Day, Updated.Hour, Updated.Minute, Updated.Second, Updated.Millisecond),
+        UpdatedBy.UserId!
     );
 }

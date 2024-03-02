@@ -13,9 +13,12 @@ if (isDevelopment)
 if (builder.Environment.IsEnvironment("IntegrationTests"))
 {
     builder.Services.AddScoped<IAuthenticationService, TestAuthenticationService>();
+    builder.Services.AddScoped<Domain.Wini.Interfaces.IAuthorizationService, TestAuthorizationService>();
     builder.Services.AddSingleton<IAuthorizationHandler, AllowAnonymous>();
+    builder.Services.AddSingleton<IAuthorizerValidationService, TestAuthorizerValidationService>();
+    builder.Services.AddSingleton<IBookingPeriodValidationService, TestBookingPeriodValidationService>();
+    builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();
 }
-
 builder.Services.Configure<CookieAuthenticationOptions>(o => o.LoginPath = PathString.Empty);
 
 builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
@@ -24,7 +27,7 @@ builder.Services.AddProblemDetails();
 
 var connectionString = builder.Configuration.GetConnectionString("WiniDb");
 builder.Services.AddDatabaseServices(connectionString);
-builder.Services.AddAppLogicServices();
+builder.Services.AddAppLogicAndDomainServices();
 
 var app = builder.Build();
 
@@ -36,14 +39,19 @@ if (isDevelopment)
 
 app.UseRouting();
 
-// app.UseCors();
 // app.UseAuthentication();
 // app.UseAuthorization();
 
 app.UsePathBase(new PathString("/api"));
-app.MapPost("/hello", HelloEndpoints.Post);
-app.MapPatch("/hello/{id}", HelloEndpoints.Patch);
-app.MapDelete("/hello/{id}", HelloEndpoints.Delete);
+
+app.MapGet("/booking/{id}", BookingEndpoints.Get);
+app.MapPatch("/booking/{id}", BookingEndpoints.Patch);
+app.MapDelete("/booking/{id}", BookingEndpoints.Delete);
+app.MapPost("/booking", BookingEndpoints.Post);
+app.MapPatch("/booking/{id}/comment", CommentEndpoints.Patch);
+app.MapPatch("/booking/{id}/recipient", RecipientMessageEndpoints.Patch);
+
+app.MapPatch("/bookingstatus/{id}", BookingStatusEndpoints.Patch);
 
 app.MapGet("/companies", CompanyEndpoints.GetAllCompanies);
 

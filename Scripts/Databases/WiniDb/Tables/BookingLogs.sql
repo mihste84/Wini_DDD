@@ -17,9 +17,11 @@ GO
 ALTER TABLE [dbo].[BookingStatusLogs] ADD CONSTRAINT DF_BookingStatusLogs_Created DEFAULT GETUTCDATE() FOR [Created];
 GO
 
-CREATE NONCLUSTERED INDEX [IX_BookingStatusLogs_BookingId] ON [dbo].[BookingStatusLogs]
+CREATE UNIQUE NONCLUSTERED INDEX [IX_BookingStatusLogs_BookingId] ON [dbo].[BookingStatusLogs]
 (
-	[BookingId] ASC
+	[BookingId] ASC,
+	[Status] ASC,
+	[Created] ASC
 )
 GO
 

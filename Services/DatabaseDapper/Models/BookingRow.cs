@@ -24,4 +24,5 @@ public record BookingRow
     public decimal? Amount { get; set; }
     public string? CurrencyCode { get; set; }
     public decimal? ExchangeRate { get; set; }
+    public bool? IsDeleted { get; set; }
 }

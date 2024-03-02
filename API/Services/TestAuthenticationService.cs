@@ -2,6 +2,7 @@ namespace API.Services;
 
 public class TestAuthenticationService : IAuthenticationService
 {
-    public string GetUserId() => "test_user@mail.com";
+    public const string UserId = "test_user@mail.com";
+    public string GetUserId() => UserId;
     public bool IsAuthenticated() => true;
 }

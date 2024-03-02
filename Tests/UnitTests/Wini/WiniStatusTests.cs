@@ -2,10 +2,12 @@ namespace Tests.UnitTests.Wini;
 
 public class WiniStatusTests
 {
+    private const string User = "MIHSTE";
+
     [Fact]
     public void Create_Wini_Status()
     {
-        var status = new BookingStatus(WiniStatus.Saved, DateTime.UtcNow);
+        var status = new BookingStatus(WiniStatus.Saved, DateTime.UtcNow, User);
         Assert.Equal(WiniStatus.Saved, status.Status);
         Assert.Equal(DateTime.UtcNow.Date, status.Updated.Date);
     }
@@ -17,11 +19,12 @@ public class WiniStatusTests
     [InlineData(WiniStatus.SendError)]
     public void Set_Wini_Status_Saved(WiniStatus status)
     {
-        var bookingStatus = new BookingStatus(status, DateTime.UtcNow);
-        bookingStatus.TryChangeStatus(WiniStatus.Saved);
+        var bookingStatus = new BookingStatus(status, DateTime.UtcNow, User);
+        bookingStatus.TryChangeStatus(WiniStatus.Saved, User);
 
         Assert.Equal(WiniStatus.Saved, bookingStatus.Status);
         Assert.Equal(DateTime.UtcNow.Date, bookingStatus.Updated.Date);
+        Assert.Equal(User, bookingStatus.UpdatedBy.UserId);
         Assert.Single(bookingStatus.StatusHistory);
     }
 
@@ -31,9 +34,9 @@ public class WiniStatusTests
     [InlineData(WiniStatus.Cancelled)]
     public void Fail_To_Set_Wini_Status_Saved(WiniStatus status)
     {
-        var bookingStatus = new BookingStatus(status, DateTime.UtcNow);
+        var bookingStatus = new BookingStatus(status, DateTime.UtcNow, User);
 
-        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.Saved));
+        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.Saved, User));
 
         Assert.Equal("Status cannot be Sent, Saved or Cancelled", ex.Message);
         Assert.Equal(WiniStatus.Saved.ToString(), ex.AttemptedValue);
@@ -49,9 +52,9 @@ public class WiniStatusTests
     [InlineData(WiniStatus.Saved)]
     public void Set_Wini_Status_Cancelled(WiniStatus status)
     {
-        var bookingStatus = new BookingStatus(status, DateTime.UtcNow);
+        var bookingStatus = new BookingStatus(status, DateTime.UtcNow, User);
 
-        bookingStatus.TryChangeStatus(WiniStatus.Cancelled);
+        bookingStatus.TryChangeStatus(WiniStatus.Cancelled, User);
 
         Assert.Equal(WiniStatus.Cancelled, bookingStatus.Status);
         Assert.Equal(DateTime.UtcNow.Date, bookingStatus.Updated.Date);
@@ -63,9 +66,9 @@ public class WiniStatusTests
     [InlineData(WiniStatus.Cancelled)]
     public void Fail_To_Set_Wini_Status_Cancelled(WiniStatus status)
     {
-        var bookingStatus = new BookingStatus(status, DateTime.UtcNow);
+        var bookingStatus = new BookingStatus(status, DateTime.UtcNow, User);
 
-        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.Cancelled));
+        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.Cancelled, User));
 
         Assert.Equal("Status cannot be Sent or Cancelled", ex.Message);
         Assert.Equal(WiniStatus.Cancelled.ToString(), ex.AttemptedValue);
@@ -78,9 +81,9 @@ public class WiniStatusTests
     [InlineData(WiniStatus.ToBeAuthorized)]
     public void Set_Wini_Status_ToBeSent(WiniStatus status)
     {
-        var bookingStatus = new BookingStatus(status, DateTime.UtcNow);
+        var bookingStatus = new BookingStatus(status, DateTime.UtcNow, User);
 
-        bookingStatus.TryChangeStatus(WiniStatus.ToBeSent);
+        bookingStatus.TryChangeStatus(WiniStatus.ToBeSent, User);
 
         Assert.Equal(WiniStatus.ToBeSent, bookingStatus.Status);
         Assert.Equal(DateTime.UtcNow.Date, bookingStatus.Updated.Date);
@@ -91,9 +94,9 @@ public class WiniStatusTests
     [InlineData(WiniStatus.ToBeSent)]
     public void Set_Wini_Status_SendError(WiniStatus status)
     {
-        var bookingStatus = new BookingStatus(status, DateTime.UtcNow);
+        var bookingStatus = new BookingStatus(status, DateTime.UtcNow, User);
 
-        bookingStatus.TryChangeStatus(WiniStatus.SendError);
+        bookingStatus.TryChangeStatus(WiniStatus.SendError, User);
 
         Assert.Equal(WiniStatus.SendError, bookingStatus.Status);
         Assert.Equal(DateTime.UtcNow.Date, bookingStatus.Updated.Date);
@@ -108,9 +111,9 @@ public class WiniStatusTests
     [InlineData(WiniStatus.ToBeSent)]
     public void Fail_To_Set_Wini_Status_ToBeSent(WiniStatus status)
     {
-        var bookingStatus = new BookingStatus(status, DateTime.UtcNow);
+        var bookingStatus = new BookingStatus(status, DateTime.UtcNow, User);
 
-        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.ToBeSent));
+        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.ToBeSent, User));
 
         Assert.Equal("Status cannot be anything other than Saved or ToBeAuthorized", ex.Message);
         Assert.Equal(WiniStatus.ToBeSent.ToString(), ex.AttemptedValue);
@@ -121,9 +124,9 @@ public class WiniStatusTests
     [Fact]
     public void Set_Wini_Status_NotAuthorizedOnTime()
     {
-        var status = new BookingStatus(WiniStatus.ToBeAuthorized, DateTime.UtcNow);
+        var status = new BookingStatus(WiniStatus.ToBeAuthorized, DateTime.UtcNow, User);
 
-        status.TryChangeStatus(WiniStatus.NotAuthorizedOnTime);
+        status.TryChangeStatus(WiniStatus.NotAuthorizedOnTime, User);
 
         Assert.Equal(WiniStatus.NotAuthorizedOnTime, status.Status);
         Assert.Equal(DateTime.UtcNow.Date, status.Updated.Date);
@@ -139,9 +142,9 @@ public class WiniStatusTests
     [InlineData(WiniStatus.ToBeSent)]
     public void Fail_To_Set_Wini_Status_NotAuthorizedOnTime(WiniStatus status)
     {
-        var bookingStatus = new BookingStatus(status, DateTime.UtcNow);
+        var bookingStatus = new BookingStatus(status, DateTime.UtcNow, User);
 
-        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.NotAuthorizedOnTime));
+        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.NotAuthorizedOnTime, User));
 
         Assert.Equal("Status cannot be anything other than ToBeAuthorized", ex.Message);
         Assert.Equal(WiniStatus.NotAuthorizedOnTime.ToString(), ex.AttemptedValue);
@@ -158,9 +161,9 @@ public class WiniStatusTests
     [InlineData(WiniStatus.NotAuthorizedOnTime)]
     public void Fail_To_Set_Wini_Status_SendError(WiniStatus status)
     {
-        var bookingStatus = new BookingStatus(status, DateTime.UtcNow);
+        var bookingStatus = new BookingStatus(status, DateTime.UtcNow, User);
 
-        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.SendError));
+        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.SendError, User));
 
         Assert.Equal("Status cannot be anything other than ToBeSent", ex.Message);
         Assert.Equal(WiniStatus.SendError.ToString(), ex.AttemptedValue);
@@ -171,9 +174,9 @@ public class WiniStatusTests
     [Fact]
     public void Set_Wini_Status_Sent()
     {
-        var status = new BookingStatus(WiniStatus.ToBeSent, DateTime.UtcNow);
+        var status = new BookingStatus(WiniStatus.ToBeSent, DateTime.UtcNow, User);
 
-        status.TryChangeStatus(WiniStatus.Sent);
+        status.TryChangeStatus(WiniStatus.Sent, User);
 
         Assert.Equal(WiniStatus.Sent, status.Status);
         Assert.Equal(DateTime.UtcNow.Date, status.Updated.Date);
@@ -189,9 +192,9 @@ public class WiniStatusTests
     [InlineData(WiniStatus.ToBeAuthorized)]
     public void Fail_To_Set_Wini_Status_Sent(WiniStatus status)
     {
-        var bookingStatus = new BookingStatus(status, DateTime.UtcNow);
+        var bookingStatus = new BookingStatus(status, DateTime.UtcNow, User);
 
-        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.Sent));
+        var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.Sent, User));
 
         Assert.Equal("Status cannot be anything other than ToBeSent", ex.Message);
         Assert.Equal(WiniStatus.Sent.ToString(), ex.AttemptedValue);
@@ -202,15 +205,18 @@ public class WiniStatusTests
     [Fact]
     public void Status_History_Is_Appended()
     {
-        var status = new BookingStatus(WiniStatus.Saved, DateTime.UtcNow);
+        var status = new BookingStatus(WiniStatus.Saved, DateTime.UtcNow, User);
 
-        status.TryChangeStatus(WiniStatus.ToBeAuthorized);
-        status.TryChangeStatus(WiniStatus.ToBeSent);
-        status.TryChangeStatus(WiniStatus.Sent);
+        status.TryChangeStatus(WiniStatus.ToBeAuthorized, User);
+        status.TryChangeStatus(WiniStatus.ToBeSent, User);
+        status.TryChangeStatus(WiniStatus.Sent, User);
 
         Assert.Equal(3, status.StatusHistory.Count);
         Assert.Equal(WiniStatus.Saved, status.StatusHistory[0].Status);
+        Assert.Equal(User, status.StatusHistory[0].UpdatedBy.UserId);
         Assert.Equal(WiniStatus.ToBeAuthorized, status.StatusHistory[1].Status);
+        Assert.Equal(User, status.StatusHistory[1].UpdatedBy.UserId);
         Assert.Equal(WiniStatus.ToBeSent, status.StatusHistory[2].Status);
+        Assert.Equal(User, status.StatusHistory[2].UpdatedBy.UserId);
     }
 }

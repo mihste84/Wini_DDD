@@ -17,4 +17,16 @@ public record RecipientMessage
         if (!result.IsValid)
             throw new DomainValidationException(result.Errors);
     }
+
+    public RecipientMessage(string message, string recipient, IdValue<int> bookingId)
+    {
+        Message = message;
+        Recipient = new User(recipient);
+        BookingId = bookingId;
+
+        var validator = new RecipientMessageValidator();
+        var result = validator.Validate(this);
+        if (!result.IsValid)
+            throw new DomainValidationException(result.Errors);
+    }
 }

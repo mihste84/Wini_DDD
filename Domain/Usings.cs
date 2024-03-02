@@ -3,6 +3,7 @@ global using Domain.Wini.Values;
 global using Domain.Wini.Enums;
 global using Domain.Wini.Models;
 global using Domain.Models;
+global using Domain.Extensions;
 global using Domain.Wini.Exceptions;
 global using Domain.Wini.Interfaces;
 global using Domain.Wini.Aggregates;

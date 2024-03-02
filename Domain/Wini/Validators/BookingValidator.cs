@@ -52,6 +52,6 @@ public class BookingValidator : AbstractValidator<Booking>
             return;
 
         foreach (var error in result.Errors)
-            ctx.AddFailure($"Row {row.RowNumber}", error.ErrorMessage);
+            ctx.AddFailure($"#{row.RowNumber}", error.ErrorMessage);
     }
 }

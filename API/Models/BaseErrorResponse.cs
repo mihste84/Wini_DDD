@@ -18,7 +18,7 @@ public class BaseErrorResponse : IResult
 
     public BaseErrorResponse(
         IEnumerable<ValidationError> errors,
-        int statusCode = 400,
+        int statusCode = 422,
         string title = "Validation error",
         string detail = "One or more validation errors occurred."
     )
