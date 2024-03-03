@@ -26,10 +26,14 @@ public class TransactionScopeWrapper : ITransactionScope
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed)
+        {
             return;
+        }
 
         if (disposing)
+        {
             _scope.Dispose();
+        }
 
         _disposed = true;
     }

@@ -14,8 +14,12 @@ public record RecipientMessage
 
         var validator = new RecipientMessageValidator();
         var result = validator.Validate(this);
-        if (!result.IsValid)
-            throw new DomainValidationException(result.Errors);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 
     public RecipientMessage(string message, string recipient, IdValue<int> bookingId)
@@ -26,7 +30,11 @@ public record RecipientMessage
 
         var validator = new RecipientMessageValidator();
         var result = validator.Validate(this);
-        if (!result.IsValid)
-            throw new DomainValidationException(result.Errors);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 }

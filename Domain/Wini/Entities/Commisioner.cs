@@ -1,6 +1,5 @@
 namespace Domain.Wini.Entities;
 
-public class Commissioner : User
+public class Commissioner(string userId) : User(userId, true, "Commissioner")
 {
-    public Commissioner(string userId) : base(userId, true, "Commissioner") { }
 }

@@ -1,17 +1,12 @@
 namespace Tests.ApiTests.Wini;
 
 [Order(2)]
-public sealed class CompanyApiTests : IClassFixture<TestBase>
+public sealed class CompanyApiTests(TestBase testBase) : IClassFixture<TestBase>
 {
-    private readonly TestBase _testBase;
-
-    public CompanyApiTests(TestBase testBase)
-    {
-        _testBase = testBase;
-    }
+    private readonly TestBase _testBase = testBase;
 
     [Fact]
-    public async Task Get_All_Companies()
+    public async Task Get_All_Companies_Async()
     {
         await _testBase.ResetDbAsync();
         var res = await _testBase.HttpClient.GetAsync("/api/companies");

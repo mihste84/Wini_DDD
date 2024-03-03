@@ -1,12 +1,7 @@
 namespace Domain.Wini.Events;
 
-public class WiniBookingRowDeleteEvent : BaseDomainEvent
+public class WiniBookingRowDeleteEvent(int rowNumber, int bookingId) : BaseDomainEvent("WiniBookingRowDelete")
 {
-    public readonly int RowNumber;
-    public readonly int BookingId;
-    public WiniBookingRowDeleteEvent(int rowNumber, int bookingId) : base("WiniBookingRowDelete")
-    {
-        RowNumber = rowNumber;
-        BookingId = bookingId;
-    }
+    public readonly int RowNumber = rowNumber;
+    public readonly int BookingId = bookingId;
 }

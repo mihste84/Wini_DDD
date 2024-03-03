@@ -1,16 +1,7 @@
 namespace Services.DatabaseDapper;
 
-public class ConnectionFactory
+public class ConnectionFactory(string connectionString)
 {
-    private readonly string _connectionString;
-
-    public ConnectionFactory(string connectionString)
-    {
-        _connectionString = connectionString;
-    }
-
     public IDbConnection CreateConnection()
-    {
-        return new SqlConnection(_connectionString);
-    }
+    => new SqlConnection(connectionString);
 }

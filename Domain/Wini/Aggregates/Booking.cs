@@ -6,11 +6,11 @@ public partial class Booking
     public readonly Commissioner Commissioner;
     public BookingStatus BookingStatus { get; }
     public BookingHeader Header { get; private set; }
-    public List<BookingRow> Rows { get; } = new();
-    public List<Comment> Comments { get; } = new();
-    public List<RecipientMessage> Messages { get; } = new();
-    public List<Attachment> Attachments { get; } = new();
-    public List<BaseDomainEvent> DomainEvents { get; } = new();
+    public List<BookingRow> Rows { get; } = [];
+    public List<Comment> Comments { get; } = [];
+    public List<RecipientMessage> Messages { get; } = [];
+    public List<Attachment> Attachments { get; } = [];
+    public List<BaseDomainEvent> DomainEvents { get; } = [];
     public readonly DateTime Created;
 
     public Booking(
@@ -67,20 +67,26 @@ public partial class Booking
         Attachments = attachments;
         Created = created;
 
-        if (Rows.Count > 0 && !AreRowsInSequence())
+        if (Rows.Count == 0 || AreRowsInSequence())
         {
-            var errors = new[] {
-                new ValidationError { Message = "Row numbers are not in sequence.", PropertyName = "Row Numbers" }
-            };
-
-            throw new DomainValidationException($"Failed to validate booking {BookingId?.Value}.", errors);
+            return;
         }
+
+        var errors = new[] {
+            new ValidationError { Message = "Row numbers are not in sequence.", PropertyName = "Row Numbers" }
+        };
+
+        throw new DomainValidationException($"Failed to validate booking {BookingId?.Value}.", errors);
     }
 
-    public (bool CanDelete, string? Reason) CanDeleteBooking(IAuthenticationService authenticationService, IAuthorizationService authorizationService)
+    public (bool CanDelete, string? Reason) CanDeleteBooking(
+        IAuthenticationService authenticationService,
+        IAuthorizationService authorizationService)
     {
         if (BookingStatus.Status == WiniStatus.Sent)
+        {
             return (false, "AlreadySent");
+        }
 
         return (authenticationService.GetUserId() == Commissioner.UserId || authorizationService.IsAdmin())
         ? (true, default)

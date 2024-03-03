@@ -40,7 +40,6 @@
         "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss",
         "chiadem.cs2ts-vscode-extension",
-        "josefpihrt-vscode.roslynator",
         "formulahendry.dotnet-test-explorer",
         "aliasadidev.nugetpackagemanagergui"
       ]

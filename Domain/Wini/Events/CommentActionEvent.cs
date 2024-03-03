@@ -1,12 +1,7 @@
 namespace Domain.Wini.Events;
 
-public class CommentActionEvent : BaseDomainEvent
+public class CommentActionEvent(CrudAction action, Comment? comment) : BaseDomainEvent("ChangeComment")
 {
-    public readonly Comment? Comment;
-    public readonly CrudAction Action;
-    public CommentActionEvent(CrudAction action, Comment? comment) : base("ChangeComment")
-    {
-        Comment = comment;
-        Action = action;
-    }
+    public readonly Comment? Comment = comment;
+    public readonly CrudAction Action = action;
 }

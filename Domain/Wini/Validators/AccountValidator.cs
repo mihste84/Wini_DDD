@@ -12,11 +12,13 @@ public class AccountValidator : AbstractValidator<Account>
         RuleFor(_ => _.Subsidiary)
             .MaximumLength(8);
 
-        When(_ => isRequired, () =>
-        {
-            RuleFor(_ => _.Value)
-                .NotEmpty()
-                .WithName("Account");
-        });
+        When(
+            _ => isRequired,
+            () =>
+            {
+                RuleFor(_ => _.Value)
+                    .NotEmpty()
+                    .WithName("Account");
+            });
     }
 }

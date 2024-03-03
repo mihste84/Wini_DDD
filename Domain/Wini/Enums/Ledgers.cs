@@ -2,5 +2,6 @@ namespace Domain.Wini.Enums;
 
 public enum Ledgers
 {
-    AA, GP
+    AA,
+    GP
 }

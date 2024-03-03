@@ -1,17 +1,12 @@
 namespace Tests.ApiTests.Wini;
 
 [Order(5)]
-public sealed class RecipientMessageApiTests : IClassFixture<TestBase>
+public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<TestBase>
 {
-    private readonly TestBase _testBase;
-
-    public RecipientMessageApiTests(TestBase testBase)
-    {
-        _testBase = testBase;
-    }
+    private readonly TestBase _testBase = testBase;
 
     [Fact]
-    public async Task Insert_New_RecipientMessage()
+    public async Task Insert_New_RecipientMessage_Async()
     {
         await _testBase.ResetDbAsync();
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
@@ -29,14 +24,16 @@ public sealed class RecipientMessageApiTests : IClassFixture<TestBase>
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var RecipientMessages = await _testBase.QueryAsync<Services.DatabaseDapper.Models.RecipientMessage>("SELECT * FROM dbo.RecipientMessages WHERE BookingId = @BookingId", new { BookingId = sqlResult.Id });
+        var RecipientMessages = await _testBase.QueryAsync<Services.DatabaseDapper.Models.RecipientMessage>(
+            "SELECT * FROM dbo.RecipientMessages WHERE BookingId = @BookingId", new { BookingId = sqlResult.Id }
+        );
         Assert.Single(RecipientMessages);
         Assert.Equal(command.Value, RecipientMessages.FirstOrDefault()?.Value);
         Assert.Equal(command.Recipient, RecipientMessages.FirstOrDefault()?.Recipient);
     }
 
     [Fact]
-    public async Task Update_RecipientMessage()
+    public async Task Update_RecipientMessage_Async()
     {
         await _testBase.ResetDbAsync();
         var createdDate = DateTime.UtcNow;
@@ -70,7 +67,10 @@ public sealed class RecipientMessageApiTests : IClassFixture<TestBase>
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var dbRecipientMessages = await _testBase.QueryAsync<Services.DatabaseDapper.Models.RecipientMessage>("SELECT * FROM dbo.RecipientMessages WHERE BookingId = @BookingId ORDER BY Created DESC", new { BookingId = sqlResult.Id });
+        var dbRecipientMessages = await _testBase.QueryAsync<Services.DatabaseDapper.Models.RecipientMessage>(
+            "SELECT * FROM dbo.RecipientMessages WHERE BookingId = @BookingId ORDER BY Created DESC",
+            new { BookingId = sqlResult.Id }
+        );
         Assert.Equal(2, dbRecipientMessages.Count());
         Assert.Equal("TEST", dbRecipientMessages.FirstOrDefault()?.Value);
         Assert.Equal("XMIHST", dbRecipientMessages.FirstOrDefault()?.Recipient);
@@ -79,7 +79,7 @@ public sealed class RecipientMessageApiTests : IClassFixture<TestBase>
     }
 
     [Fact]
-    public async Task Delete_RecipientMessage()
+    public async Task Delete_RecipientMessage_Async()
     {
         await _testBase.ResetDbAsync();
         var createdDate = DateTime.UtcNow;
@@ -112,7 +112,11 @@ public sealed class RecipientMessageApiTests : IClassFixture<TestBase>
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var dbRecipientMessages = await _testBase.QueryAsync<Services.DatabaseDapper.Models.RecipientMessage>("SELECT * FROM dbo.RecipientMessages WHERE BookingId = @BookingId ORDER BY Created DESC", new { BookingId = sqlResult.Id });
+        var dbRecipientMessages = await _testBase.QueryAsync<Services.DatabaseDapper.Models.RecipientMessage>(
+            "SELECT * FROM dbo.RecipientMessages WHERE BookingId = @BookingId ORDER BY Created DESC",
+            new { BookingId = sqlResult.Id }
+        );
+
         Assert.Single(dbRecipientMessages);
         Assert.Equal("XYZ", dbRecipientMessages.FirstOrDefault()?.Value);
         Assert.Equal("RECP2", dbRecipientMessages.FirstOrDefault()?.Recipient);

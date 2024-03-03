@@ -2,7 +2,7 @@ namespace Domain.Wini.Validators;
 
 public class FileContentValidator : AbstractValidator<FileContent>
 {
-    private readonly string[] _allowedContentTypes = new[] {
+    private readonly string[] _allowedContentTypes = [
         "application/pdf",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -11,11 +11,13 @@ public class FileContentValidator : AbstractValidator<FileContent>
         "image/png",
         "image/jpeg",
         "application/octet-stream"
-    };
+    ];
+
     public FileContentValidator()
     {
         RuleFor(_ => _.ContentType)
-            .Must(_ => _allowedContentTypes.Contains(_)).WithMessage(_ => $"Content type value '{_.ContentType}' is not allowed.")
+            .Must(_ => _allowedContentTypes.Contains(_))
+            .WithMessage(_ => $"Content type value '{_.ContentType}' is not allowed.")
             .WithName("Content Type");
 
         RuleFor(_ => _.Name).NotEmpty().MaximumLength(100).WithName("Filename");

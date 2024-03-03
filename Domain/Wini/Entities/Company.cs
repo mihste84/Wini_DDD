@@ -1,18 +1,10 @@
 namespace Domain.Wini.Entities;
 
-public class Company
+public class Company(IdValue<int> id, CompanyCode companyCode, CompanyName name, Country country)
 {
-    public readonly IdValue<int> Id;
-    public CompanyCode CompanyCode { get; set; }
-    public CompanyName Name { get; set; }
-    public Country Country { get; set; }
-    public readonly CurrencyCode Currency;
-    public Company(IdValue<int> id, CompanyCode companyCode, CompanyName name, Country country)
-    {
-        Id = id;
-        CompanyCode = companyCode;
-        Name = name;
-        Country = country;
-        Currency = new CurrencyCode(country);
-    }
+    public readonly IdValue<int> Id = id;
+    public CompanyCode CompanyCode { get; set; } = companyCode;
+    public CompanyName Name { get; set; } = name;
+    public Country Country { get; set; } = country;
+    public readonly CurrencyCode Currency = new(country);
 }

@@ -1,7 +1,7 @@
-
 namespace AppLogic.Requests;
 
-public class InsertNewBookingCommand : BookingInput, IRequest<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, ForbiddenResult, Unknown>>
+public class InsertNewBookingCommand
+: BookingInput, IRequest<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, ForbiddenResult, Unknown>>
 {
     public class InsertNewBookingValidator : AbstractValidator<InsertNewBookingCommand>
     {
@@ -12,38 +12,26 @@ public class InsertNewBookingCommand : BookingInput, IRequest<OneOf<Result<SqlRe
         }
     }
 
-    public class InsertNewBookingHandler : IRequestHandler<InsertNewBookingCommand, OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, ForbiddenResult, Unknown>>
-    {
-        private readonly IBookingRepository _repo;
-        private readonly IAuthenticationService _authenticationService;
-        private readonly IAuthorizationService _authorizationService;
-        private readonly IDateTimeService _dateTimeService;
-        private readonly ITransactionScopeManager _transactionManager;
-        private readonly ILogger<InsertNewBookingHandler> _logger;
-        public InsertNewBookingHandler(
-            IBookingRepository repo,
-            IAuthenticationService authenticationService,
-            IAuthorizationService authorizationService,
-            IDateTimeService dateTimeService,
-            ILogger<InsertNewBookingHandler> logger,
-            ITransactionScopeManager transactionFactory
+    public class InsertNewBookingHandler(
+        IBookingRepository repo,
+        IAuthenticationService authenticationService,
+        IAuthorizationService authorizationService,
+        IDateTimeService dateTimeService,
+        ILogger<InsertNewBookingHandler> logger,
+        ITransactionScopeManager transactionFactory
         )
+        : IRequestHandler<InsertNewBookingCommand, OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, ForbiddenResult, Unknown>>
+    {
+        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, ForbiddenResult, Unknown>>
+        Handle(InsertNewBookingCommand request, CancellationToken cancellationToken)
         {
-            _repo = repo;
-            _authenticationService = authenticationService;
-            _authorizationService = authorizationService;
-            _dateTimeService = dateTimeService;
-            _transactionManager = transactionFactory;
-            _logger = logger;
-        }
-
-        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, ForbiddenResult, Unknown>> Handle(InsertNewBookingCommand request, CancellationToken cancellationToken)
-        {
-            if (!_authorizationService.IsWrite())
+            if (!authorizationService.IsWrite())
+            {
                 return new ForbiddenResult();
+            }
 
-            var user = _authenticationService.GetUserId();
-            var now = _dateTimeService.GetDateTimeUtc();
+            var user = authenticationService.GetUserId();
+            var now = dateTimeService.GetDateTimeUtc();
 
             try
             {
@@ -57,11 +45,11 @@ public class InsertNewBookingCommand : BookingInput, IRequest<OneOf<Result<SqlRe
                     new LedgerType(request.LedgerType ?? Ledgers.AA)
                 );
 
-                booking.AddMultipleRows(request.Rows, _authenticationService);
+                booking.AddMultipleRows(request.Rows, authenticationService);
 
-                using var transaction = _transactionManager.CreateTransaction();
+                using var transaction = transactionFactory.CreateTransaction();
 
-                var res = await _repo.InsertBookingAsync(booking, user);
+                var res = await repo.InsertBookingAsync(booking, user);
 
                 transaction.Complete();
 
@@ -79,7 +67,7 @@ public class InsertNewBookingCommand : BookingInput, IRequest<OneOf<Result<SqlRe
             }
             catch (Exception ex) when (ex is DatabaseOperationException or InvalidOperationException)
             {
-                _logger.LogError("An database error occurred when trying to insert booking. Message = {message}", ex.Message);
+                logger.LogError("An database error occurred when trying to insert booking. Message = {message}", ex.Message);
                 return new Unknown();
             }
         }

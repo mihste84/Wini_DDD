@@ -5,11 +5,13 @@ public class CurrencyValidator : AbstractValidator<Currency>
     {
         RuleFor(_ => _.CurrencyCode).SetValidator(new CurrencyCodeValidator(isRequired));
 
-        When(_ => isRequired, () =>
-        {
-            RuleFor(_ => _.CurrencyCode)
-                .NotEmpty()
-                .WithName("Currency Rate");
-        });
+        When(
+            _ => isRequired,
+            () =>
+            {
+                RuleFor(_ => _.CurrencyCode)
+                    .NotEmpty()
+                    .WithName("Currency Rate");
+            });
     }
 }

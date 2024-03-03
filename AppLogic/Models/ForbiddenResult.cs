@@ -1,3 +1,3 @@
 namespace AppLogic.Models;
 
-public readonly struct ForbiddenResult { }
+public readonly struct ForbiddenResult;

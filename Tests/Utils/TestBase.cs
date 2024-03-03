@@ -19,14 +19,15 @@ public class TestBase
         HttpClient = webApplicationFactory.CreateDefaultClient();
     }
 
-    private static async Task<Respawner> GetRespawnAsync(string connectionString)
-    => await Respawner.CreateAsync(connectionString, new RespawnerOptions
-    {
-        TablesToIgnore = new Table[]
+    private static Task<Respawner> GetRespawnAsync(string connectionString)
+    => Respawner.CreateAsync(
+        connectionString,
+        new RespawnerOptions
         {
-            "Companies"
-        }
-    });
+            TablesToIgnore = [
+                "Companies"
+            ]
+        });
 
     public async Task<SqlResult?> InsertAsync<M>(string sql, M model)
     {
@@ -81,25 +82,28 @@ public class TestBase
         Services.DatabaseDapper.Models.RecipientMessage[]? messages = default
     )
     {
-        var bookingModel = booking ?? new Services.DatabaseDapper.Models.Booking
-        {
-            BookingDate = new DateTime(2024, 1, 1),
-            Created = DateTime.UtcNow,
-            CreatedBy = TestAuthenticationService.UserId,
-            LedgerType = (short)Ledgers.GP,
-            Reversed = true,
-            Status = (short)WiniStatus.Saved,
-            TextToE1 = "Test",
-            Updated = DateTime.UtcNow,
-            UpdatedBy = TestAuthenticationService.UserId
-        };
+        var bookingModel = booking
+            ?? new Services.DatabaseDapper.Models.Booking
+            {
+                BookingDate = new DateTime(2024, 1, 1),
+                Created = DateTime.UtcNow,
+                CreatedBy = TestAuthenticationService.UserId,
+                LedgerType = (short)Ledgers.GP,
+                Reversed = true,
+                Status = (short)WiniStatus.Saved,
+                TextToE1 = "Test",
+                Updated = DateTime.UtcNow,
+                UpdatedBy = TestAuthenticationService.UserId
+            };
         var sqlResult = await InsertAsync(BookingQueries.Insert, bookingModel);
         Assert.NotNull(sqlResult);
-        var rowToInsert = rows?.Select(_ =>
-        {
-            _.BookingId = sqlResult.Id;
-            return _;
-        }) ?? new[] {
+        var rowToInsert = rows?
+            .Select(_ =>
+            {
+                _.BookingId = sqlResult.Id;
+                return _;
+            })
+            ?? [
             new Services.DatabaseDapper.Models.BookingRow
             {
                 RowNumber = 1,
@@ -124,26 +128,30 @@ public class TestBase
                 BookingId = sqlResult.Id,
                 IsAuthorized = false
             }
-        };
+        ];
 
         await InsertMultipleAsync(BookingRowQueries.Insert, rowToInsert);
 
         if (comments != default)
         {
-            await InsertMultipleAsync(CommentQueries.Insert, comments.Select(_ =>
-            {
-                _.BookingId = sqlResult.Id;
-                return _;
-            }));
+            await InsertMultipleAsync(
+                CommentQueries.Insert,
+                comments.Select(_ =>
+                {
+                    _.BookingId = sqlResult.Id;
+                    return _;
+                }));
         }
 
         if (messages != default)
         {
-            await InsertMultipleAsync(RecipientMessageQueries.Insert, messages.Select(_ =>
-            {
-                _.BookingId = sqlResult.Id;
-                return _;
-            }));
+            await InsertMultipleAsync(
+                RecipientMessageQueries.Insert,
+                messages.Select(_ =>
+                {
+                    _.BookingId = sqlResult.Id;
+                    return _;
+                }));
         }
 
         return sqlResult;

@@ -4,12 +4,16 @@ public record CompanyCode
 {
     public int? Code { get; }
 
-    public CompanyCode() { }
+    public CompanyCode()
+    {
+    }
 
     public CompanyCode(string? companyCodeString)
     {
         if (string.IsNullOrWhiteSpace(companyCodeString))
+        {
             return;
+        }
 
         if (!int.TryParse(companyCodeString.Trim(), out var companyCode))
         {
@@ -22,20 +26,30 @@ public record CompanyCode
 
         var validator = new CompanyCodeValidator(false);
         var result = validator.Validate(this);
-        if (!result.IsValid)
-            throw new DomainValidationException(result.Errors);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 
     public CompanyCode(int? companyCode)
     {
         Code = companyCode;
 
-        if (Code.HasValue)
+        if (!Code.HasValue)
         {
-            var validator = new CompanyCodeValidator(false);
-            var result = validator.Validate(this);
-            if (!result.IsValid)
-                throw new DomainValidationException(result.Errors);
+            return;
         }
+
+        var validator = new CompanyCodeValidator(false);
+        var result = validator.Validate(this);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 }

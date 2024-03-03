@@ -18,8 +18,12 @@ public record CostObject
 
         var validator = new CostObjectValidator(number, false);
         var result = validator.Validate(this);
-        if (!result.IsValid)
-            throw new DomainValidationException(result.Errors);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 
     public CostObject Copy() => new(Number, Value, Type);

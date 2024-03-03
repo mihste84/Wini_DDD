@@ -8,11 +8,13 @@ public class CostcenterValidator : AbstractValidator<Costcenter>
             .MaximumLength(5)
             .WithName("Costcenter");
 
-        When(_ => isRequired, () =>
-        {
-            RuleFor(_ => _.Code)
-                .NotEmpty()
-                .WithName("Costcenter");
-        });
+        When(
+            _ => isRequired,
+            () =>
+            {
+                RuleFor(_ => _.Code)
+                    .NotEmpty()
+                    .WithName("Costcenter");
+            });
     }
 }

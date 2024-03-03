@@ -1,12 +1,7 @@
 namespace Domain.Wini.Events;
 
-public class RecipinetMessageActionEvent : BaseDomainEvent
+public class RecipinetMessageActionEvent(CrudAction action, RecipientMessage? msg) : BaseDomainEvent("ChangeComment")
 {
-    public readonly RecipientMessage? RecipientMessage;
-    public readonly CrudAction Action;
-    public RecipinetMessageActionEvent(CrudAction action, RecipientMessage? msg) : base("ChangeComment")
-    {
-        RecipientMessage = msg;
-        Action = action;
-    }
+    public readonly RecipientMessage? RecipientMessage = msg;
+    public readonly CrudAction Action = action;
 }

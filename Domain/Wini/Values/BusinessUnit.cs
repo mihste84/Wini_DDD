@@ -22,8 +22,12 @@ public record BusinessUnit
 
         var validator = new BusinessUnitValidator();
         var result = validator.Validate(this);
-        if (!result.IsValid)
-            throw new DomainValidationException(result.Errors);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 
     private static Costcenter GetCostcenter(string? businessUnit)

@@ -1,25 +1,12 @@
 namespace Domain.Wini.Services;
 
-public class BookingValidationService : IBookingValidationService
+public class BookingValidationService(
+    IAuthorizationService authorizationService,
+    IAuthorizerValidationService authorizerValidationService,
+    IBookingPeriodValidationService bookingPeriodValidationService,
+    IAccountingValidationService accountingValidationService
+    ) : IBookingValidationService
 {
-    private readonly IAuthorizationService _authorizationService;
-    private readonly IAuthorizerValidationService _authorizerValidationService;
-    private readonly IBookingPeriodValidationService _bookingPeriodValidationService;
-    private readonly IAccountingValidationService _accountingValidationService;
-
-    public BookingValidationService(
-        IAuthorizationService authorizationService,
-        IAuthorizerValidationService authorizerValidationService,
-        IBookingPeriodValidationService bookingPeriodValidationService,
-        IAccountingValidationService accountingValidationService
-    )
-    {
-        _authorizationService = authorizationService;
-        _authorizerValidationService = authorizerValidationService;
-        _bookingPeriodValidationService = bookingPeriodValidationService;
-        _accountingValidationService = accountingValidationService;
-    }
-
     public async Task<BookingValidationResultModel> ValidateAsync(Booking booking, IEnumerable<Company> companies)
     {
         var tasks = new[] {
@@ -33,7 +20,9 @@ public class BookingValidationService : IBookingValidationService
         {
             var result = await task;
             if (!result.IsValid)
+            {
                 return result;
+            }
         }
 
         return new();
@@ -41,12 +30,14 @@ public class BookingValidationService : IBookingValidationService
 
     private async Task<BookingValidationResultModel> ValidateAuthorizersAsync(Booking booking)
     {
-        if (!_authorizationService.IsBookingAuthorizationNeeded())
+        if (!authorizationService.IsBookingAuthorizationNeeded())
+        {
             return new BookingValidationResultModel();
+        }
 
         try
         {
-            var (IsValid, Errors) = await _authorizerValidationService.CanAuthorizeBookingRows(booking.Rows);
+            var (IsValid, Errors) = await authorizerValidationService.CanAuthorizeBookingRowsAsync(booking.Rows);
             return new BookingValidationResultModel
             {
                 Errors = Errors,
@@ -74,7 +65,7 @@ public class BookingValidationService : IBookingValidationService
 
     private async Task<BookingValidationResultModel> ValidateBookingPeriodsAsync(Booking booking)
     {
-        var (IsValid, Errors) = await _bookingPeriodValidationService.ValidateAsync(booking);
+        var (IsValid, Errors) = await bookingPeriodValidationService.ValidateAsync(booking);
         return new BookingValidationResultModel
         {
             Errors = Errors,
@@ -90,26 +81,26 @@ public class BookingValidationService : IBookingValidationService
         var inputModel = booking.Rows
             .Where(_ => _.CanRowBeAuthorized())
             .Select(_ => new AccountingValidationInputModel
-            {
-                Account = _.Account.Value,
-                BookingRow = _.RowNumber,
-                BusinessUnit = _.BusinessUnit.ToString(),
-                CostObject1 = _.CostObject1.Value,
-                CostObject1Type = _.CostObject1.Type,
-                CostObject2 = _.CostObject2.Value,
-                CostObject2Type = _.CostObject2.Type,
-                CostObject3 = _.CostObject3.Value,
-                CostObject3Type = _.CostObject3.Type,
-                CostObject4 = _.CostObject4.Value,
-                CostObject4Type = _.CostObject4.Type,
-                Currency = _.Money.Currency.CurrencyCode.Code,
-                Subledger = _.Subledger.Value,
-                Subsidiary = _.Account.Subsidiary
-            });
+                {
+                    Account = _.Account.Value,
+                    BookingRow = _.RowNumber,
+                    BusinessUnit = _.BusinessUnit.ToString(),
+                    CostObject1 = _.CostObject1.Value,
+                    CostObject1Type = _.CostObject1.Type,
+                    CostObject2 = _.CostObject2.Value,
+                    CostObject2Type = _.CostObject2.Type,
+                    CostObject3 = _.CostObject3.Value,
+                    CostObject3Type = _.CostObject3.Type,
+                    CostObject4 = _.CostObject4.Value,
+                    CostObject4Type = _.CostObject4.Type,
+                    Currency = _.Money.Currency.CurrencyCode.Code,
+                    Subledger = _.Subledger.Value,
+                    Subsidiary = _.Account.Subsidiary
+                });
 
         try
         {
-            var (IsValid, Errors) = await _accountingValidationService.ValidateAsync(inputModel);
+            var (IsValid, Errors) = await accountingValidationService.ValidateAsync(inputModel);
             return new BookingValidationResultModel
             {
                 Errors = Errors,

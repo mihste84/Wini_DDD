@@ -3,6 +3,7 @@ namespace Domain.Wini.Exceptions;
 public class AuthorizerValidationException : Exception
 {
     public Booking? Booking { get; }
+
     public AuthorizerValidationException() : base()
     {
     }

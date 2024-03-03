@@ -4,7 +4,9 @@ public class User
 {
     public readonly string? UserId;
 
-    public User() { }
+    public User()
+    {
+    }
 
     public User(string? userId)
     {
@@ -12,8 +14,12 @@ public class User
 
         var validator = new UserValidator(false);
         var result = validator.Validate(this);
-        if (!result.IsValid)
-            throw new DomainValidationException(result.Errors);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 
     public User(string? userId, bool isRequired, string propertyName)
@@ -22,7 +28,11 @@ public class User
 
         var validator = new UserValidator(isRequired, propertyName);
         var result = validator.Validate(this);
-        if (!result.IsValid)
-            throw new DomainValidationException(result.Errors);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 }

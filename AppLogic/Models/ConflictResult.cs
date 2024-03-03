@@ -1,3 +1,3 @@
 namespace AppLogic.Models;
 
-public readonly struct ConflictResult { }
+public readonly struct ConflictResult;

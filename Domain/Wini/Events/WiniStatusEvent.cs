@@ -1,10 +1,6 @@
 namespace Domain.Wini.Events;
 
-public class WiniStatusEvent : BaseDomainEvent
+public class WiniStatusEvent(BookingStatus status) : BaseDomainEvent("WiniStatusChange")
 {
-    public readonly BookingStatus Status;
-    public WiniStatusEvent(BookingStatus status) : base("WiniStatusChange")
-    {
-        Status = status;
-    }
+    public readonly BookingStatus Status = status;
 }

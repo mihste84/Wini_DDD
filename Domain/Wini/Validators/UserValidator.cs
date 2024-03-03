@@ -6,6 +6,8 @@ public class UserValidator : AbstractValidator<User>
         RuleFor(_ => _.UserId).MaximumLength(200).WithName(name);
 
         if (isRequired)
+        {
             RuleFor(_ => _.UserId).NotEmpty().WithName(name);
+        }
     }
 }

@@ -23,7 +23,9 @@ public static class BookingQueries
         SELECT * FROM dbo.Attachments
         WHERE BookingId = @BookingId;
     """;
-    public const string SelectBookingAndRowsById = SelectBookingById + """
+
+    public const string SelectBookingAndRowsById = SelectBookingById
+        + """
         
         SELECT * FROM dbo.BookingRows
         WHERE BookingId = @BookingId AND IsDeleted = 0

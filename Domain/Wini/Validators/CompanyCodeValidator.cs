@@ -5,11 +5,13 @@ public class CompanyCodeValidator : AbstractValidator<CompanyCode>
     {
         RuleFor(_ => _.Code).InclusiveBetween(0, 999).WithName("Company Code");
 
-        When(_ => isRequired, () =>
-        {
-            RuleFor(_ => _.Code)
-                .NotEmpty()
-                .WithName("Company Code");
-        });
+        When(
+            _ => isRequired,
+            () =>
+            {
+                RuleFor(_ => _.Code)
+                    .NotEmpty()
+                    .WithName("Company Code");
+            });
     }
 }

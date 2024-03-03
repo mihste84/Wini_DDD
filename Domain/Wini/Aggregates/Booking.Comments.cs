@@ -6,7 +6,12 @@ public partial class Booking
     {
         CheckIfCanComment(authenticationService);
         if (Comments.FindIndex(_ => _.Created.CompareWithoutMilliseconds(createdDate)) > -1)
-            throw new DomainLogicException(nameof(createdDate), createdDate.ToString(), "Cannot have multiple comments with same created date.");
+        {
+            throw new DomainLogicException(
+                nameof(createdDate),
+                createdDate.ToString(),
+                "Cannot have multiple comments with same created date.");
+        }
 
         var newComment = new Comment(comment, BookingId!, createdDate);
         Comments.Add(newComment);
@@ -36,11 +41,17 @@ public partial class Booking
     private void CheckIfCanComment(IAuthenticationService authenticationService)
     {
         if (BookingId == default)
+        {
             throw new DomainLogicException("Cannot add comment on unsaved bookings.");
+        }
 
         var userId = authenticationService.GetUserId();
-        if (userId != Commissioner.UserId)
-            throw new DomainLogicException(nameof(userId), userId, "Only commissioners can add comments.");
+        if (userId == Commissioner.UserId)
+        {
+            return;
+        }
+
+        throw new DomainLogicException(nameof(userId), userId, "Only commissioners can add comments.");
     }
 
     private Comment GetCommentByCreateDate(DateTime createdDate)
@@ -51,7 +62,9 @@ public partial class Booking
     {
         var index = Comments.FindIndex(_ => _.Created.CompareWithoutMilliseconds(createdDate));
         if (index == -1)
+        {
             throw new DomainLogicException($"Cannot find comment created on date {createdDate}.");
+        }
 
         return index;
     }

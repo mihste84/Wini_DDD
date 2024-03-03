@@ -3,16 +3,18 @@ namespace Domain.Wini.Aggregates;
 public partial class Booking
 {
     public async Task SetToBeAuthorizedStatusAsync(
-            IAuthenticationService authenticationService,
-            IBookingValidationService validationService,
-            IEnumerable<Company> companies
+        IAuthenticationService authenticationService,
+        IBookingValidationService validationService,
+        IEnumerable<Company> companies
         )
     {
         BookingStatus.CanChangeStatusToBeAuthorized();
 
         var res = await validationService.ValidateAsync(this, companies);
         if (!res.IsValid)
+        {
             throw new DomainValidationException($"Failed to validate booking {BookingId?.Value}.", res.Errors!);
+        }
 
         var status = BookingStatus.TryChangeStatus(WiniStatus.ToBeAuthorized, authenticationService.GetUserId());
 
@@ -25,7 +27,9 @@ public partial class Booking
 
         var userId = authenticationService.GetUserId();
         if (userId != Commissioner.UserId)
+        {
             throw new DomainLogicException(nameof(userId), userId, $"Only commissioners can change status to {WiniStatus.Cancelled}.");
+        }
 
         var status = BookingStatus.TryChangeStatus(WiniStatus.Cancelled, authenticationService.GetUserId());
 
@@ -37,7 +41,9 @@ public partial class Booking
         BookingStatus.CanChangeStatusToSendError();
 
         if (!authorizationService.IsAdmin())
+        {
             throw new DomainLogicException($"Only admins can change status to {WiniStatus.SendError}.");
+        }
 
         RemoveAuthorizationAllRows(BookingId!.Value);
         var status = BookingStatus.TryChangeStatus(WiniStatus.SendError, authenticationService.GetUserId());
@@ -55,11 +61,15 @@ public partial class Booking
         BookingStatus.CanChangeStatusToSent();
 
         if (!authorizationService.IsAdmin())
+        {
             throw new DomainLogicException($"Only admins can change status to {WiniStatus.Sent}.");
+        }
 
         var res = await validationService.ValidateAsync(this, companies);
         if (!res.IsValid)
+        {
             throw new DomainValidationException($"Failed to validate booking {BookingId?.Value}.", res.Errors!);
+        }
 
         var status = BookingStatus.TryChangeStatus(WiniStatus.Sent, authenticationService.GetUserId());
 
@@ -71,10 +81,17 @@ public partial class Booking
         BookingStatus.CanChangeStatusToNotAuthorizedOnTime();
 
         if (!authorizationService.IsAdmin())
+        {
             throw new DomainLogicException($"Only admins can change status to {WiniStatus.NotAuthorizedOnTime}.");
+        }
 
         if (!HaveThreeDaysPassed(now))
-            throw new DomainLogicException(nameof(now), now.ToString("yyyy-MM-dd HH:mm:ss"), $"Status cannot be changed to {WiniStatus.NotAuthorizedOnTime}. 72 hours have not passed yet.");
+        {
+            throw new DomainLogicException(
+                nameof(now),
+                now.ToString("yyyy-MM-dd HH:mm:ss"),
+                $"Status cannot be changed to {WiniStatus.NotAuthorizedOnTime}. 72 hours have not passed yet.");
+        }
 
         var status = BookingStatus.TryChangeStatus(WiniStatus.NotAuthorizedOnTime, authenticationService.GetUserId());
         AddStatusEvent(status);
@@ -89,7 +106,9 @@ public partial class Booking
 
         var userId = authenticationService.GetUserId();
         if (!(userId == Commissioner.UserId || Rows.Any(_ => _.Authorizer.UserId == userId) || authorizationService.IsAdmin()))
+        {
             throw new DomainLogicException($"Only admins, commissioners or authorizers can change status to {WiniStatus.Saved}.");
+        }
 
         RemoveAuthorizationAllRows(BookingId!.Value);
 
@@ -108,11 +127,15 @@ public partial class Booking
 
         var allDebitRows = Rows.Where(_ => _.Money.IsDebitRow());
         if (allDebitRows.All(_ => _.Authorizer.HasAuthorized))
+        {
             throw new DomainLogicException("All booking rows are already authorized.");
+        }
 
         var res = await validationService.ValidateAsync(this, companies);
         if (!res.IsValid)
+        {
             throw new DomainValidationException($"Failed to validate booking {BookingId?.Value}.", res.Errors!);
+        }
 
         if (authorizationService.IsBookingAuthorizationNeeded())
         {

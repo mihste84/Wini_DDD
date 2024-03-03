@@ -2,7 +2,7 @@ namespace Tests.UnitTests.Wini;
 
 public class BookingDateTests
 {
-    private readonly IReadOnlyList<DateTime> _bankHolidays = new List<DateTime>{
+    private readonly IReadOnlyList<DateTime> _bankHolidays = [
         new(2023, 1, 1),
         new(2023, 1, 6),
         new(2023, 4, 7),
@@ -12,7 +12,7 @@ public class BookingDateTests
         new(2023, 6, 6),
         new(2023, 12, 25),
         new(2023, 12, 26)
-    };
+    ];
 
     [Fact]
     public void Create_Booking_Date()
@@ -88,7 +88,7 @@ public class BookingDateTests
     {
         var deviatingPeriodSettings = new DeviatingPeriodSettings
         {
-            DeviatingPeriods = new List<int> { 8 }
+            DeviatingPeriods = [8]
         };
         var isPeriodEnd = BookingDate.IsPeriodEnd(currentPeriod, currentBookClosingDay, deviatingPeriodSettings);
 

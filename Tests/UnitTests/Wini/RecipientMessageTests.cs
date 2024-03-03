@@ -3,6 +3,7 @@ namespace Tests.UnitTests.Wini;
 public class RecipientMessageTests
 {
     private readonly IdValue<int> _bookingId = new(1);
+
     [Fact]
     public void Create_RecipientMessage()
     {

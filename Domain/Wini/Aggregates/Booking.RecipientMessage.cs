@@ -6,7 +6,9 @@ public partial class Booking
     {
         CheckIfCanChangeRecipientMessage(authenticationService);
         if (Messages.FindIndex(_ => _.Recipient.UserId == recipient) > -1)
+        {
             throw new DomainLogicException(nameof(recipient), recipient, "Cannot have multiple messages with same recipient.");
+        }
 
         var newRecipient = new RecipientMessage(msg, recipient, BookingId!);
         Messages.Add(newRecipient);
@@ -33,14 +35,22 @@ public partial class Booking
     private void CheckIfCanChangeRecipientMessage(IAuthenticationService authenticationService)
     {
         if (BookingId == default)
+        {
             throw new DomainLogicException("Cannot change recipients on unsaved bookings.");
+        }
 
         if (BookingStatus.Status != WiniStatus.Saved)
+        {
             throw new DomainLogicException("Recipients can only be changed when status is 'Saved'.");
+        }
 
         var userId = authenticationService.GetUserId();
-        if (userId != Commissioner.UserId)
-            throw new DomainLogicException(nameof(userId), userId, "Only commissioners can change recipients.");
+        if (userId == Commissioner.UserId)
+        {
+            return;
+        }
+
+        throw new DomainLogicException(nameof(userId), userId, "Only commissioners can change recipients.");
     }
 
     private RecipientMessage GetRecipientMessageByUser(string? recipient)
@@ -51,7 +61,9 @@ public partial class Booking
     {
         var index = Messages.FindIndex(_ => _.Recipient.UserId == recipient);
         if (index == -1)
-            throw new DomainLogicException($"Cannot find message with recipient {recipient}."); ;
+        {
+            throw new DomainLogicException($"Cannot find message with recipient {recipient}.");
+        }
 
         return index;
     }

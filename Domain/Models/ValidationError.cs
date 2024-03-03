@@ -7,7 +7,9 @@ public record ValidationError
     public object? AttemptedValue { get; init; }
     public string? ErrorCode { get; init; }
 
-    public ValidationError() { }
+    public ValidationError()
+    {
+    }
     public ValidationError(ValidationFailure failure)
     {
         Message = failure.ErrorMessage;

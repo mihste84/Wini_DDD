@@ -1,5 +1,3 @@
-using Domain.Models;
-
 namespace API.Models;
 
 public class BaseErrorResponse : IResult
@@ -39,7 +37,11 @@ public class BaseErrorResponse : IResult
             Instance = httpContext.Request.Path
         };
 
-        if (_errors?.Any() == true) problemDetails.Extensions.Add("errors", _errors);
+        if (_errors?.Any() == true)
+        {
+            problemDetails.Extensions.Add("errors", _errors);
+        }
+
         httpContext.Response.StatusCode = _statusCode;
         httpContext.Response.WriteAsJsonAsync(problemDetails);
 

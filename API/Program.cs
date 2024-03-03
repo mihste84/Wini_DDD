@@ -44,17 +44,17 @@ app.UseRouting();
 
 app.UsePathBase(new PathString("/api"));
 
-app.MapGet("/booking/{id}", BookingEndpoints.Get);
-app.MapPatch("/booking/{id}", BookingEndpoints.Patch);
-app.MapDelete("/booking/{id}", BookingEndpoints.Delete);
-app.MapPost("/booking", BookingEndpoints.Post);
-app.MapPatch("/booking/{id}/comment", CommentEndpoints.Patch);
-app.MapPatch("/booking/{id}/recipient", RecipientMessageEndpoints.Patch);
+app.MapGet("/booking/{id}", BookingEndpoints.GetAsync);
+app.MapPatch("/booking/{id}", BookingEndpoints.PatchAsync);
+app.MapDelete("/booking/{id}", BookingEndpoints.DeleteAsync);
+app.MapPost("/booking", BookingEndpoints.PostAsync);
+app.MapPatch("/booking/{id}/comment", CommentEndpoints.PatchAsync);
+app.MapPatch("/booking/{id}/recipient", RecipientMessageEndpoints.PatchAsync);
 
-app.MapPatch("/bookingstatus/{id}", BookingStatusEndpoints.Patch);
+app.MapPatch("/bookingstatus/{id}", BookingStatusEndpoints.PatchAsync);
 
-app.MapGet("/companies", CompanyEndpoints.GetAllCompanies);
+app.MapGet("/companies", CompanyEndpoints.GetAllCompaniesAsync);
 
 app.Run();
 
-public partial class Program { }
+public partial class Program;

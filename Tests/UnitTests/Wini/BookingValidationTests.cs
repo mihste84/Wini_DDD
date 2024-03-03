@@ -3,8 +3,9 @@ namespace Tests.UnitTests.Wini;
 public class BookingValidationTests
 {
     private readonly IEnumerable<Company> _companies = CommonTestValues.GetCompanies();
+
     [Fact]
-    public async Task Validate_Booking()
+    public async Task Validate_Booking_Async()
     {
         var rows = new List<BookingRow> {
             new(
@@ -45,7 +46,7 @@ public class BookingValidationTests
     }
 
     [Fact]
-    public async Task Validate_Empty_Booking()
+    public async Task Validate_Empty_Booking_Async()
     {
         var booking = CommonTestValues.GetNewEmptyBooking();
         var validationService = GetBookingValidationService();
@@ -63,7 +64,7 @@ public class BookingValidationTests
     }
 
     [Fact]
-    public async Task Validate_Booking_With_Empty_Rows()
+    public async Task Validate_Booking_With_Empty_Rows_Async()
     {
         var rows = new List<BookingRow> {
             new(
@@ -117,7 +118,7 @@ public class BookingValidationTests
     }
 
     [Fact]
-    public async Task Validate_Booking_Authorized_While_Status_Saved()
+    public async Task Validate_Booking_Authorized_While_Status_Saved_Async()
     {
         var rows = new List<BookingRow> {
             new(
@@ -160,7 +161,7 @@ public class BookingValidationTests
     }
 
     [Fact]
-    public async Task Validate_Booking_Not_Same_Company_On_All_Rows()
+    public async Task Validate_Booking_Not_Same_Company_On_All_Rows_Async()
     {
         var rows = new List<BookingRow> {
             new(
@@ -199,11 +200,14 @@ public class BookingValidationTests
         Assert.False(res.IsValid);
         Assert.NotNull(res.Errors);
         Assert.Single(res.Errors);
-        Assert.Contains(res.Errors, _ => _.PropertyName == "Company" && _.Message == "All rows dont contain same company code. Only one company code can be used for each booking.");
+        Assert.Contains(
+            res.Errors,
+            _ => _.PropertyName == "Company" && _.Message == "All rows dont contain same company code. Only one company code can be used for each booking."
+        );
     }
 
     [Fact]
-    public async Task Validate_Booking_Not_Base_Currency_GP_Ledger()
+    public async Task Validate_Booking_Not_Base_Currency_GP_Ledger_Async()
     {
         var rows = new List<BookingRow> {
             new(
@@ -247,7 +251,7 @@ public class BookingValidationTests
     }
 
     [Fact]
-    public async Task Validate_Booking_No_Exchange_Rate_For_Foreign_Currency_AA_Ledger()
+    public async Task Validate_Booking_No_Exchange_Rate_For_Foreign_Currency_AA_Ledger_Async()
     {
         var rows = new List<BookingRow> {
             new(
@@ -291,7 +295,7 @@ public class BookingValidationTests
     }
 
     [Fact]
-    public async Task Validate_Booking_Different_Exchange_Rates()
+    public async Task Validate_Booking_Different_Exchange_Rates_Async()
     {
         var rows = new List<BookingRow> {
             new(
@@ -347,7 +351,7 @@ public class BookingValidationTests
     }
 
     [Fact]
-    public async Task Validate_Booking_Balance_Differences_By_Currency()
+    public async Task Validate_Booking_Balance_Differences_By_Currency_Async()
     {
         var rows = new List<BookingRow> {
             new(
@@ -403,7 +407,7 @@ public class BookingValidationTests
     }
 
     [Fact]
-    public async Task Validate_Booking_Invalid_Subledger_CostObject_And_Authorizer_Values()
+    public async Task Validate_Booking_Invalid_Subledger_CostObject_And_Authorizer_Values_Async()
     {
         var rows = new List<BookingRow> {
             new(
@@ -463,7 +467,7 @@ public class BookingValidationTests
         authorizationService.Setup(_ => _.IsAdmin()).Returns(isAdmin);
         authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(isAuthNeeded);
         var authorizerValidationService = new Mock<IAuthorizerValidationService>();
-        authorizerValidationService.Setup(_ => _.CanAuthorizeBookingRows(It.IsAny<IEnumerable<BookingRow>>()))
+        authorizerValidationService.Setup(_ => _.CanAuthorizeBookingRowsAsync(It.IsAny<IEnumerable<BookingRow>>()))
             .ReturnsAsync((true, Array.Empty<ValidationError>()));
         var bookingPeriodValidationService = new Mock<IBookingPeriodValidationService>();
         bookingPeriodValidationService.Setup(_ => _.ValidateAsync(It.IsAny<Booking>()))

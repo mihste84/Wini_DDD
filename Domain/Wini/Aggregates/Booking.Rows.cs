@@ -9,8 +9,11 @@ public partial class Booking
         for (int i = 0; i < rowNumbers.Length - 1; i++)
         {
             if (rowNumbers[i] > rowNumbers[i + 1])
+            {
                 return false;
+            }
         }
+
         return true;
     }
 
@@ -40,7 +43,9 @@ public partial class Booking
         VerifyIfBookingIsEditable(authenticationService.GetUserId());
 
         foreach (var row in rows)
+        {
             AddNewRowToList(row);
+        }
 
         VerifyIfRowsAreInSequence();
     }
@@ -50,7 +55,9 @@ public partial class Booking
         VerifyIfBookingIsEditable(authenticationService.GetUserId());
 
         if (!TryGetExistingRowIndex(row.RowNumber, out var existingRowIndex))
+        {
             throw new NotFoundException($"Cannot update row. Existing row with number {row.RowNumber} could not be found.");
+        }
 
         ReplaceRowByIndex(row, existingRowIndex);
     }
@@ -60,7 +67,9 @@ public partial class Booking
         VerifyIfBookingIsEditable(authenticationService.GetUserId());
 
         foreach (var row in rows)
+        {
             UpsertRow(row);
+        }
 
         VerifyIfRowsAreInSequence();
     }
@@ -77,20 +86,25 @@ public partial class Booking
         VerifyIfBookingIsEditable(authenticationService.GetUserId());
 
         foreach (var rowNumber in rowNumbers)
+        {
             DeleteRowFromList(rowNumber);
+        }
 
         VerifyIfRowsAreInSequence();
     }
 
     private void AddDeleteRowEvent(int rowNumber, int bookingId)
         => DomainEvents.Add(new WiniBookingRowDeleteEvent(rowNumber, bookingId));
+
     private void AddRowActionEvent(BookingRowAction action, BookingRow row, int? bookingId)
         => DomainEvents.Add(new WiniBookingRowActionEvent(action, row, bookingId));
 
     private void AuthorizeRowsForUser(string userId, int bookingId)
     {
         if (!Rows.Any(_ => _.CanRowBeAuthorizedByUser(userId)))
+        {
             throw new DomainLogicException(nameof(userId), userId, "There are no rows to authorize for user.");
+        }
 
         AuthorizeRowsByUserId(userId, bookingId);
     }
@@ -157,23 +171,35 @@ public partial class Booking
 
     private void VerifyIfRowsAreInSequence()
     {
-        if (!AreRowsInSequence())
-            throw new DomainLogicException("Cannot update rows. Row numbers not in sequence.");
+        if (AreRowsInSequence())
+        {
+            return;
+        }
+
+        throw new DomainLogicException("Cannot update rows. Row numbers not in sequence.");
     }
 
     private void VerifyIfBookingIsEditable(string userId)
     {
         if (userId != Commissioner.UserId)
+        {
             throw new DomainLogicException("Only commissioner make changes to booking.");
+        }
 
-        if (BookingStatus.Status != WiniStatus.Saved)
-            throw new DomainLogicException("Changes can only be made when Booking status is 'Saved'.");
+        if (BookingStatus.Status == WiniStatus.Saved)
+        {
+            return;
+        }
+
+        throw new DomainLogicException("Changes can only be made when Booking status is 'Saved'.");
     }
 
     private void AddNewRowToList(BookingRowModel row)
     {
         if (Rows.Any(_ => _.RowNumber == row.RowNumber))
+        {
             throw new DomainLogicException($"Cannot add new row. Row number {row.RowNumber} already exists.");
+        }
 
         var newRow = MapBookingRowModelToValue(row);
 

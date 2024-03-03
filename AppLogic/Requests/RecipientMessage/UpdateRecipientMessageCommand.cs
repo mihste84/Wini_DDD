@@ -20,52 +20,47 @@ public class UpdateRecipientMessageCommand : IRequest<OneOf<Result<SqlResult>, V
         }
     }
 
-    public class UpdateRecipientMessageHandler
-        : IRequestHandler<UpdateRecipientMessageCommand, OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
-    {
-        private readonly IBookingRepository _bookingRepo;
-        private readonly IAuthenticationService _authenticationService;
-        private readonly IAuthorizationService _authorizationService;
-        private readonly ITransactionScopeManager _transactionManager;
-        private readonly ILogger<UpdateRecipientMessageHandler> _logger;
-
-        public UpdateRecipientMessageHandler(
-            IBookingRepository bookingRepo,
-            IAuthenticationService authenticationService,
-            IAuthorizationService authorizationService,
-            ITransactionScopeManager transactionManager,
-            ILogger<UpdateRecipientMessageHandler> logger
+    public class UpdateRecipientMessageHandler(
+        IBookingRepository bookingRepo,
+        IAuthenticationService authenticationService,
+        IAuthorizationService authorizationService,
+        ITransactionScopeManager transactionManager,
+        ILogger<UpdateRecipientMessageCommand.UpdateRecipientMessageHandler> logger
         )
+                : IRequestHandler<UpdateRecipientMessageCommand, OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
+    {
+        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>> Handle(
+            UpdateRecipientMessageCommand request,
+            CancellationToken cancellationToken)
         {
-            _bookingRepo = bookingRepo;
-            _authenticationService = authenticationService;
-            _authorizationService = authorizationService;
-            _transactionManager = transactionManager;
-            _logger = logger;
-        }
-
-        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>> Handle(UpdateRecipientMessageCommand request, CancellationToken cancellationToken)
-        {
-            if (!_authorizationService.IsWrite())
+            if (!authorizationService.IsWrite())
+            {
                 return new ForbiddenResult();
+            }
 
             if (!new UpdateRecipientMessageValidator().IsValid(request, out var requestErrors))
+            {
                 return new ValidationErrorResult(requestErrors);
+            }
 
             try
             {
-                var res = await _bookingRepo.GetBookingIdAsync(request.BookingId, false);
+                var res = await bookingRepo.GetBookingIdAsync(request.BookingId, false);
                 if (res == default)
+                {
                     return new NotFound();
+                }
 
                 if (!res.Value.RowVersion.SequenceEqual(request.RowVersion!))
+                {
                     return new ConflictResult();
+                }
 
                 UpdateRecipientMessageByAction(request.Action, res.Value.Booking, request.Recipient!, request.Value!);
 
-                using var scope = _transactionManager.CreateTransaction();
+                using var scope = transactionManager.CreateTransaction();
 
-                var sqlResult = await _bookingRepo.UpdateBookingAsync(res.Value.Booking, _authenticationService.GetUserId());
+                var sqlResult = await bookingRepo.UpdateBookingAsync(res.Value.Booking, authenticationService.GetUserId());
 
                 scope.Complete();
 
@@ -83,7 +78,7 @@ public class UpdateRecipientMessageCommand : IRequest<OneOf<Result<SqlResult>, V
             }
             catch (Exception ex) when (ex is DatabaseOperationException or InvalidOperationException or DatabaseValueException)
             {
-                _logger.LogError("An database error occurred when trying to edit booking recipient. Message = {message}", ex.Message);
+                logger.LogError("An database error occurred when trying to edit booking recipient. Message = {message}", ex.Message);
                 return new Unknown();
             }
         }
@@ -92,9 +87,15 @@ public class UpdateRecipientMessageCommand : IRequest<OneOf<Result<SqlResult>, V
         {
             switch (action)
             {
-                case CrudAction.Added: booking.AddNewRecipientMessage(value, recipient, _authenticationService); break;
-                case CrudAction.Edited: booking.EditRecipientMessage(value, recipient, _authenticationService); break;
-                case CrudAction.Deleted: booking.DeleteRecipientMessage(recipient, _authenticationService); break;
+                case CrudAction.Added:
+                    booking.AddNewRecipientMessage(value, recipient, authenticationService);
+                    break;
+                case CrudAction.Edited:
+                    booking.EditRecipientMessage(value, recipient, authenticationService);
+                    break;
+                case CrudAction.Deleted:
+                    booking.DeleteRecipientMessage(recipient, authenticationService);
+                    break;
             }
         }
     }

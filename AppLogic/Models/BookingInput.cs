@@ -2,7 +2,7 @@ namespace AppLogic.Models;
 
 public class BookingInput
 {
-    public BookingRowModel[] Rows { get; set; } = Array.Empty<BookingRowModel>();
+    public BookingRowModel[] Rows { get; set; } = [];
     public DateTime? BookingDate { get; set; }
     public string? TextToE1 { get; set; }
     public bool? IsReversed { get; set; }

@@ -31,17 +31,17 @@ public class DomainValidationException : Exception
 
     public DomainValidationException() : base()
     {
-        Errors = Array.Empty<ValidationError>();
+        Errors = [];
     }
 
     public DomainValidationException(string? message) : base(message)
     {
-        Errors = Array.Empty<ValidationError>();
+        Errors = [];
     }
 
     public DomainValidationException(string? message, Exception? innerException) : base(message, innerException)
     {
-        Errors = Array.Empty<ValidationError>();
+        Errors = [];
     }
 
     private static IEnumerable<ValidationError> MapFailureToValidationError(IEnumerable<ValidationFailure> errors)

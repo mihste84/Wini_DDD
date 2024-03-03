@@ -594,7 +594,9 @@ public class BookingTests
         authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeAuthorized);
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authenticationService.Object, authorizationService.Object, new DateTime(2023, 3, 23, 22, 59, 0)));
+        var ex = Assert.Throws<DomainLogicException>(
+            () => booking.SetNotAuthorizedOnTimeStatus(authenticationService.Object, authorizationService.Object, new DateTime(2023, 3, 23, 22, 59, 0))
+        );
 
         Assert.Equal("Status cannot be changed to NotAuthorizedOnTime. 72 hours have not passed yet.", ex.Message);
         Assert.Equal("2023-03-23 22:59:00", ex.AttemptedValue);
@@ -611,7 +613,9 @@ public class BookingTests
         authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeAuthorized);
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authenticationService.Object, authorizationService.Object, new DateTime(2023, 3, 23, 23, 59, 0)));
+        var ex = Assert.Throws<DomainLogicException>(
+            () => booking.SetNotAuthorizedOnTimeStatus(authenticationService.Object, authorizationService.Object, new DateTime(2023, 3, 23, 23, 59, 0))
+        );
 
         Assert.Equal("Only admins can change status to NotAuthorizedOnTime.", ex.Message);
         Assert.Null(ex.AttemptedValue);
@@ -628,7 +632,9 @@ public class BookingTests
         authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
         var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.ToBeSent);
 
-        var ex = Assert.Throws<DomainLogicException>(() => booking.SetNotAuthorizedOnTimeStatus(authenticationService.Object, authorizationService.Object, new DateTime(2023, 3, 23, 23, 59, 0)));
+        var ex = Assert.Throws<DomainLogicException>(
+            () => booking.SetNotAuthorizedOnTimeStatus(authenticationService.Object, authorizationService.Object, new DateTime(2023, 3, 23, 23, 59, 0))
+        );
 
         Assert.Equal("Status cannot be anything other than ToBeAuthorized", ex.Message);
         Assert.Equal("NotAuthorizedOnTime", ex.AttemptedValue);
@@ -831,7 +837,7 @@ public class BookingTests
     }
 
     [Fact]
-    public async Task Set_Booking_Status_ToBeAuthorized()
+    public async Task Set_Booking_Status_ToBeAuthorized_Async()
     {
         const string commissioner = "MIHSTE";
         const string authorizer = "XMIHST";
@@ -878,7 +884,7 @@ public class BookingTests
     }
 
     [Fact]
-    public async Task Set_Booking_Status_ToBeAuthorized_Not_Valid_Error()
+    public async Task Set_Booking_Status_ToBeAuthorized_Not_Valid_Error_Async()
     {
         const string commissioner = "MIHSTE";
         const string authorizer = "XMIHST";
@@ -924,7 +930,7 @@ public class BookingTests
     }
 
     [Fact]
-    public async Task Set_Booking_Status_ToBeAuthorized_Wrong_Status()
+    public async Task Set_Booking_Status_ToBeAuthorized_Wrong_Status_Async()
     {
         const string commissioner = "MIHSTE";
         const string authorizer = "XMIHST";
@@ -970,7 +976,7 @@ public class BookingTests
     }
 
     [Fact]
-    public async Task Set_Booking_Status_ToBeSent()
+    public async Task Set_Booking_Status_ToBeSent_Async()
     {
         const string commissioner = "MIHSTE";
         const string authorizer = "XMIHST";
@@ -1026,7 +1032,7 @@ public class BookingTests
     }
 
     [Fact]
-    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers()
+    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers_Async()
     {
         const string commissioner = "MIHSTE";
         const string authorizer1 = "XMIHST";
@@ -1111,7 +1117,7 @@ public class BookingTests
     }
 
     [Fact]
-    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers_Partly_Authorized()
+    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers_Partly_Authorized_Async()
     {
         const string commissioner = "MIHSTE";
         const string authorizer1 = "XMIHST";
@@ -1196,7 +1202,7 @@ public class BookingTests
     }
 
     [Fact]
-    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers_Nothing_Left_To_Authorize_For_User()
+    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers_Nothing_Left_To_Authorize_For_User_Async()
     {
         const string commissioner = "MIHSTE";
         const string authorizer1 = "XMIHST";
@@ -1279,7 +1285,7 @@ public class BookingTests
     }
 
     [Fact]
-    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers_Nothing_All_Rows_Authorized()
+    public async Task Set_Booking_Status_ToBeSent_Multiple_Authorizers_Nothing_All_Rows_Authorized_Async()
     {
         const string commissioner = "MIHSTE";
         const string authorizer1 = "XMIHST";
@@ -1421,7 +1427,7 @@ public class BookingTests
         authorizationService.Setup(_ => _.IsAdmin()).Returns(isAdmin);
         authorizationService.Setup(_ => _.IsBookingAuthorizationNeeded()).Returns(isAuthNeeded);
         var authorizerValidationService = new Mock<IAuthorizerValidationService>();
-        authorizerValidationService.Setup(_ => _.CanAuthorizeBookingRows(It.IsAny<IEnumerable<BookingRow>>()))
+        authorizerValidationService.Setup(_ => _.CanAuthorizeBookingRowsAsync(It.IsAny<IEnumerable<BookingRow>>()))
             .ReturnsAsync(res);
         var bookingPeriodValidationService = new Mock<IBookingPeriodValidationService>();
         bookingPeriodValidationService.Setup(_ => _.ValidateAsync(It.IsAny<Booking>()))

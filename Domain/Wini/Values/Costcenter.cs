@@ -4,7 +4,9 @@ public record Costcenter
 {
     public string? Code { get; }
 
-    public Costcenter() { }
+    public Costcenter()
+    {
+    }
 
     public Costcenter(string? costcenter)
     {
@@ -12,7 +14,11 @@ public record Costcenter
 
         var validator = new CostcenterValidator(false);
         var result = validator.Validate(this);
-        if (!result.IsValid)
-            throw new DomainValidationException(result.Errors);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 }

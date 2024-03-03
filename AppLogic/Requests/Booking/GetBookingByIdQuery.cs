@@ -12,27 +12,27 @@ public class GetBookingByIdQuery : IRequest<OneOf<Result<BookingDto>, Validation
         }
     }
 
-    public class GetBookingByIdHandler : IRequestHandler<GetBookingByIdQuery, OneOf<Result<BookingDto>, ValidationErrorResult, ForbiddenResult, NotFound>>
+    public class GetBookingByIdHandler(
+        IBookingRepository repo,
+        IAuthorizationService authorizationService) : IRequestHandler<GetBookingByIdQuery, OneOf<Result<BookingDto>, ValidationErrorResult, ForbiddenResult, NotFound>>
     {
-        private readonly IBookingRepository _repo;
-        private readonly IAuthorizationService _authorizationService;
-
-        public GetBookingByIdHandler(IBookingRepository repo, IAuthorizationService authorizationService)
-        {
-            _repo = repo;
-            _authorizationService = authorizationService;
-        }
-
         public async Task<OneOf<Result<BookingDto>, ValidationErrorResult, ForbiddenResult, NotFound>> Handle(GetBookingByIdQuery request, CancellationToken cancellationToken)
         {
-            if (!_authorizationService.IsRead())
+            if (!authorizationService.IsRead())
+            {
                 return new ForbiddenResult();
+            }
 
             if (!new GetBookingByIdValidator().IsValid(request, out var errors))
+            {
                 return new ValidationErrorResult(errors);
+            }
 
-            var result = await _repo.GetBookingIdAsync(request.BookingId);
-            if (result == default) return new NotFound();
+            var result = await repo.GetBookingIdAsync(request.BookingId);
+            if (result == default)
+            {
+                return new NotFound();
+            }
 
             var booking = result.Value.Booking;
 

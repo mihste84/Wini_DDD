@@ -1,32 +1,27 @@
 namespace Tests.ApiTests.Wini;
 
 [Order(3)]
-public sealed class BookingApiTests : IClassFixture<TestBase>
+public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
 {
-    private readonly TestBase _testBase;
-
-    public BookingApiTests(TestBase testBase)
-    {
-        _testBase = testBase;
-    }
+    private readonly TestBase _testBase = testBase;
 
     [Fact]
-    public async Task Insert_New_Empty_Booking()
+    public async Task Insert_New_Empty_Booking_Async()
     {
         await _testBase.ResetDbAsync();
         var command = new InsertNewBookingCommand
         {
-            Rows = new[] {
+            Rows = [
                 new BookingRowModel() { RowNumber = 1 },
                 new BookingRowModel() { RowNumber = 2 }
-            }
+            ]
         };
 
         var res = await _testBase.HttpClient.PostAsJsonAsync("/api/booking", command);
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         var booking = await _testBase.QuerySingleAsync<Services.DatabaseDapper.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         var numberOfRows = await _testBase.QuerySingleAsync<int>("SELECT count(*) FROM dbo.BookingRows");
-        Assert.True(res.StatusCode == System.Net.HttpStatusCode.Created);
+        Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
         Assert.NotNull(content);
         Assert.True(content.Id > 0);
         Assert.Equal(2, numberOfRows);
@@ -40,7 +35,7 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
     }
 
     [Fact]
-    public async Task Insert_New_Booking()
+    public async Task Insert_New_Booking_Async()
     {
         await _testBase.ResetDbAsync();
         var rowToInsert = new BookingRowModel
@@ -71,13 +66,11 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
             IsReversed = true,
             LedgerType = Ledgers.GP,
             TextToE1 = "Test",
-            Rows = new[] {
-                rowToInsert
-            }
+            Rows = [rowToInsert]
         };
 
         var res = await _testBase.HttpClient.PostAsJsonAsync("/api/booking", command);
-        Assert.True(res.StatusCode == System.Net.HttpStatusCode.Created);
+        Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
@@ -116,7 +109,7 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
     }
 
     [Fact]
-    public async Task Get_Booking_By_Id()
+    public async Task Get_Booking_By_Id_Async()
     {
         await _testBase.ResetDbAsync();
 
@@ -127,7 +120,7 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
     }
 
     [Fact]
-    public async Task Update_Booking()
+    public async Task Update_Booking_Async()
     {
         await _testBase.ResetDbAsync();
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
@@ -161,10 +154,10 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
             IsReversed = false,
             LedgerType = Ledgers.AA,
             TextToE1 = "Test edit",
-            Rows = new[] {
+            Rows = [
                 rowToUpdate,
                 rowToInsert
-            },
+            ],
             BookingId = sqlResult.Id,
             RowVersion = sqlResult.RowVersion
         };
@@ -227,7 +220,7 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
     }
 
     [Fact]
-    public async Task Update_Booking_With_Delete_Rows()
+    public async Task Update_Booking_With_Delete_Rows_Async()
     {
         await _testBase.ResetDbAsync();
         var insertRows = new[] {
@@ -239,7 +232,7 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, insertRows);
         var command = new UpdateBookingCommand
         {
-            Rows = new[] {
+            Rows = [
                 new BookingRowModel {
                     RowNumber = 1,
                     Account = "123"
@@ -248,8 +241,8 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
                     RowNumber = 3,
                     Account = "987"
                 }
-            },
-            RowNumbersToDelete = new[] { 2 },
+            ],
+            RowNumbersToDelete = [2],
             BookingId = sqlResult.Id,
             RowVersion = sqlResult.RowVersion
         };
@@ -273,7 +266,7 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
     }
 
     [Fact]
-    public async Task Update_Booking_Status_Cancelled()
+    public async Task Update_Booking_Status_Cancelled_Async()
     {
         await _testBase.ResetDbAsync();
         var insertRows = GetBookingRows();
@@ -293,14 +286,19 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
 
         var booking = await _testBase.QuerySingleAsync<Services.DatabaseDapper.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
-        var logs = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var logs = (
+            await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>(
+                "SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id",
+                new { booking.Id })
+            )
+            .ToArray();
         Assert.NotEmpty(logs);
         Assert.Equal(WiniStatus.Cancelled, (WiniStatus)booking.Status!);
         Assert.Contains(logs, _ => _.Status == booking.Status);
     }
 
     [Fact]
-    public async Task Update_Booking_Status_SendError()
+    public async Task Update_Booking_Status_SendError_Async()
     {
         await _testBase.ResetDbAsync();
         var insertRows = GetBookingRows("Test", true);
@@ -321,7 +319,10 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
 
         var booking = await _testBase.QuerySingleAsync<Services.DatabaseDapper.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
-        var logs = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var logs = (
+                await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+            )
+            .ToArray();
         var rows = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
@@ -331,7 +332,7 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
     }
 
     [Fact]
-    public async Task Update_Booking_Status_Saved()
+    public async Task Update_Booking_Status_Saved_Async()
     {
         await _testBase.ResetDbAsync();
         var insertRows = GetBookingRows("Test", true);
@@ -352,7 +353,10 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
 
         var booking = await _testBase.QuerySingleAsync<Services.DatabaseDapper.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
-        var logs = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var logs = (
+                await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+            )
+            .ToArray();
         var rows = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
@@ -362,7 +366,7 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
     }
 
     [Fact]
-    public async Task Update_Booking_Status_ToBeSent()
+    public async Task Update_Booking_Status_ToBeSent_Async()
     {
         await _testBase.ResetDbAsync();
         var insertRows = GetBookingRows(TestAuthenticationService.UserId, false);
@@ -383,7 +387,10 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
 
         var booking = await _testBase.QuerySingleAsync<Services.DatabaseDapper.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
-        var logs = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var logs = (
+                await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+            )
+            .ToArray();
         var rows = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
@@ -394,7 +401,7 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
     }
 
     [Fact]
-    public async Task Update_Booking_Status_ToBeAuthorized()
+    public async Task Update_Booking_Status_ToBeAuthorized_Async()
     {
         await _testBase.ResetDbAsync();
         var insertRows = GetBookingRows();
@@ -415,7 +422,10 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
 
         var booking = await _testBase.QuerySingleAsync<Services.DatabaseDapper.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
-        var logs = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var logs = (
+            await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+            )
+            .ToArray();
         var rows = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
@@ -425,14 +435,17 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
     }
 
     [Fact]
-    public async Task Update_Booking_Status_NotAuthorizedOnTime()
+    public async Task Update_Booking_Status_NotAuthorizedOnTime_Async()
     {
         await _testBase.ResetDbAsync();
         var insertRows = GetBookingRows();
         var bookingToInsert = GetBooking(WiniStatus.ToBeAuthorized);
         var sqlResult = await _testBase.SeedBaseBookingAsync(bookingToInsert, insertRows);
         var threeDaysAgo = DateTime.UtcNow.AddDays(-3);
-        var rowVersion = await _testBase.QuerySingleAsync<byte[]>("UPDATE dbo.Bookings SET Updated = @Updated WHERE Id = @Id; SELECT RowVersion FROM dbo.Bookings", new { Updated = threeDaysAgo, sqlResult.Id });
+        var rowVersion = await _testBase.QuerySingleAsync<byte[]>(
+            "UPDATE dbo.Bookings SET Updated = @Updated WHERE Id = @Id; SELECT RowVersion FROM dbo.Bookings",
+            new { Updated = threeDaysAgo, sqlResult.Id }
+        );
         var command = new UpdateBookingStatusCommand
         {
             BookingId = sqlResult.Id,
@@ -448,7 +461,10 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
 
         var booking = await _testBase.QuerySingleAsync<Services.DatabaseDapper.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
-        var logs = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var logs = (
+                await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+            )
+            .ToArray();
         var rows = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
@@ -459,7 +475,7 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
     }
 
     [Fact]
-    public async Task Update_Booking_Status_Sent()
+    public async Task Update_Booking_Status_Sent_Async()
     {
         await _testBase.ResetDbAsync();
         var insertRows = GetBookingRows("Test", true);
@@ -480,14 +496,17 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
 
         var booking = await _testBase.QuerySingleAsync<Services.DatabaseDapper.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
-        var logs = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var logs = (
+                await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+            )
+            .ToArray();
         Assert.NotEmpty(logs);
         Assert.Equal(WiniStatus.Sent, (WiniStatus)booking.Status!);
         Assert.Contains(logs, _ => _.Status == booking.Status);
     }
 
     [Fact]
-    public async Task Delete_Booking()
+    public async Task Delete_Booking_Async()
     {
         await _testBase.ResetDbAsync();
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
@@ -518,7 +537,7 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
     };
 
     private static Services.DatabaseDapper.Models.BookingRow[] GetBookingRows(string authorizer = "AUTH", bool isAuthorized = false)
-    => new[] {
+    => [
         new Services.DatabaseDapper.Models.BookingRow() {
             Account = "12345",
             Amount = 100,
@@ -544,5 +563,5 @@ public sealed class BookingApiTests : IClassFixture<TestBase>
             RowNumber = 2,
             IsAuthorized = false
         }
-    };
+    ];
 }

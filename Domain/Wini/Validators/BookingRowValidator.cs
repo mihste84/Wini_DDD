@@ -19,7 +19,8 @@ public class BookingRowValidator : AbstractValidator<BookingRow>
                     .WithName("Authorizer")
                     .WithMessage("Authorizer cannot be set on credit rows.")
             );
-        When(_ => booking.BookingStatus.Status == WiniStatus.Saved,
+        When(
+            _ => booking.BookingStatus.Status == WiniStatus.Saved,
             () => RuleFor(_ => _.Authorizer.HasAuthorized).Must(_ => !_)
                 .WithName("Authorizer")
                 .WithMessage("Booking cannot be authorized while status is Saved.")
@@ -36,23 +37,27 @@ public class BookingRowValidator : AbstractValidator<BookingRow>
             var isBaseCurrencyUsed = row.IsBaseCurrencyUsed(companies);
             if (
                 !string.IsNullOrWhiteSpace(row.Money.Currency.CurrencyCode.Code) &&
-                booking.Header.LedgerType.Type == Ledgers.GP &&
-                !isBaseCurrencyUsed
+                    booking.Header.LedgerType.Type == Ledgers.GP &&
+                    !isBaseCurrencyUsed
             )
             {
-                ctx.AddFailure("GP ledger", $"Cannot use GP ledger as currency '{row.Money.Currency.CurrencyCode.Code}' is not base currency for company '{row.BusinessUnit.CompanyCode.Code}'.");
+                ctx.AddFailure(
+                    "GP ledger",
+                    $"Cannot use GP ledger as currency '{row.Money.Currency.CurrencyCode.Code}' is not base currency for company '{row.BusinessUnit.CompanyCode.Code}'.");
                 return;
             }
 
             if (
-                !string.IsNullOrWhiteSpace(row.Money.Currency.CurrencyCode.Code) &&
-                booking.Header.LedgerType.Type == Ledgers.AA &&
-                !row.Money.IsCurrencyAndExchangeRateSet() &&
-                !isBaseCurrencyUsed
+                string.IsNullOrWhiteSpace(row.Money.Currency.CurrencyCode.Code) ||
+                    booking.Header.LedgerType.Type != Ledgers.AA ||
+                    row.Money.IsCurrencyAndExchangeRateSet() ||
+                    isBaseCurrencyUsed
             )
             {
-                ctx.AddFailure("Currency", $"Exchange rate with currency '{row.Money.Currency.CurrencyCode.Code}' must be set when foreign currency is used.");
+                return;
             }
+
+            ctx.AddFailure("Currency", $"Exchange rate with currency '{row.Money.Currency.CurrencyCode.Code}' must be set when foreign currency is used.");
         });
     }
 }

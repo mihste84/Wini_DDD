@@ -9,5 +9,5 @@ public class TestAuthorizationService : Domain.Wini.Interfaces.IAuthorizationSer
     public bool IsControlActuary() => false;
     public bool IsSpecificActuary() => false;
     public bool IsBookingAuthorizationNeeded() => true;
-    public bool IsUserInRole(string userId, string roleName) => throw new NotImplementedException();
+    public bool IsUserInRole(string userId, string roleName) => true;
 }

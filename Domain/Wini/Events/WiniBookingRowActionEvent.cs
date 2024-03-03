@@ -1,14 +1,9 @@
 namespace Domain.Wini.Events;
 
-public class WiniBookingRowActionEvent : BaseDomainEvent
+public class WiniBookingRowActionEvent(BookingRowAction action, BookingRow row, int? bookingId)
+: BaseDomainEvent("WiniBookingRowAction")
 {
-    public readonly BookingRow Row;
-    public readonly BookingRowAction Action;
-    public readonly int? BookingId;
-    public WiniBookingRowActionEvent(BookingRowAction action, BookingRow row, int? bookingId) : base("WiniBookingRowAction")
-    {
-        Row = row;
-        Action = action;
-        BookingId = bookingId;
-    }
+    public readonly BookingRow Row = row;
+    public readonly BookingRowAction Action = action;
+    public readonly int? BookingId = bookingId;
 }

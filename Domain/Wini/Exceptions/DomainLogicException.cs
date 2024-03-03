@@ -11,6 +11,7 @@ public class DomainLogicException : Exception
         PropertyName = propertyName;
         AttemptedValue = attemptedValue;
     }
+
     public DomainLogicException(string propertyName, string attemptedValue, string message)
         : base(message)
     {

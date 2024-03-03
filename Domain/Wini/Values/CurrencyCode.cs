@@ -14,7 +14,9 @@ public record CurrencyCode
 
     public string? Code { get; }
 
-    public CurrencyCode() { }
+    public CurrencyCode()
+    {
+    }
 
     public CurrencyCode(string? code)
     {
@@ -22,8 +24,12 @@ public record CurrencyCode
 
         var validator = new CurrencyCodeValidator(false);
         var result = validator.Validate(this);
-        if (!result.IsValid)
-            throw new DomainValidationException(result.Errors);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 
     public CurrencyCode(Country country)
@@ -44,7 +50,11 @@ public record CurrencyCode
 
         var validator = new CurrencyCodeValidator(false);
         var result = validator.Validate(this);
-        if (!result.IsValid)
-            throw new DomainValidationException(result.Errors);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 }

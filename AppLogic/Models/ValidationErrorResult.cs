@@ -1,11 +1,6 @@
 namespace AppLogic.Models;
 
-public readonly struct ValidationErrorResult
+public readonly struct ValidationErrorResult(IEnumerable<ValidationError> value)
 {
-    public ValidationErrorResult(IEnumerable<ValidationError> value)
-    {
-        Value = value;
-    }
-
-    public readonly IEnumerable<ValidationError> Value { get; }
+    public readonly IEnumerable<ValidationError> Value { get; } = value;
 }

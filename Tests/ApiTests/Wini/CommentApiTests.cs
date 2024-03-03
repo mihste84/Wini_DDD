@@ -1,17 +1,12 @@
 namespace Tests.ApiTests.Wini;
 
 [Order(4)]
-public sealed class CommentApiTests : IClassFixture<TestBase>
+public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
 {
-    private readonly TestBase _testBase;
-
-    public CommentApiTests(TestBase testBase)
-    {
-        _testBase = testBase;
-    }
+    private readonly TestBase _testBase = testBase;
 
     [Fact]
-    public async Task Insert_New_Comment()
+    public async Task Insert_New_Comment_Async()
     {
         await _testBase.ResetDbAsync();
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
@@ -29,13 +24,16 @@ public sealed class CommentApiTests : IClassFixture<TestBase>
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var comments = await _testBase.QueryAsync<Services.DatabaseDapper.Models.Comment>("SELECT * FROM dbo.Comments WHERE BookingId = @BookingId", new { BookingId = sqlResult.Id });
+        var comments = await _testBase.QueryAsync<Services.DatabaseDapper.Models.Comment>(
+            "SELECT * FROM dbo.Comments WHERE BookingId = @BookingId",
+            new { BookingId = sqlResult.Id }
+        );
         Assert.Single(comments);
         Assert.Equal(command.Value, comments.FirstOrDefault()?.Value);
     }
 
     [Fact]
-    public async Task Update_Comment()
+    public async Task Update_Comment_Async()
     {
         await _testBase.ResetDbAsync();
         var createdDate = DateTime.UtcNow;
@@ -67,14 +65,17 @@ public sealed class CommentApiTests : IClassFixture<TestBase>
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var dbComments = await _testBase.QueryAsync<Services.DatabaseDapper.Models.Comment>("SELECT * FROM dbo.Comments WHERE BookingId = @BookingId ORDER BY Created DESC", new { BookingId = sqlResult.Id });
+        var dbComments = await _testBase.QueryAsync<Services.DatabaseDapper.Models.Comment>(
+            "SELECT * FROM dbo.Comments WHERE BookingId = @BookingId ORDER BY Created DESC",
+            new { BookingId = sqlResult.Id }
+        );
         Assert.Equal(2, dbComments.Count());
         Assert.Equal("TEST", dbComments.FirstOrDefault()?.Value);
         Assert.Equal("XYZ", dbComments.LastOrDefault()?.Value);
     }
 
     [Fact]
-    public async Task Delete_Comment()
+    public async Task Delete_Comment_Async()
     {
         await _testBase.ResetDbAsync();
         var createdDate = DateTime.UtcNow;
@@ -105,7 +106,10 @@ public sealed class CommentApiTests : IClassFixture<TestBase>
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var dbComments = await _testBase.QueryAsync<Services.DatabaseDapper.Models.Comment>("SELECT * FROM dbo.Comments WHERE BookingId = @BookingId ORDER BY Created DESC", new { BookingId = sqlResult.Id });
+        var dbComments = await _testBase.QueryAsync<Services.DatabaseDapper.Models.Comment>(
+            "SELECT * FROM dbo.Comments WHERE BookingId = @BookingId ORDER BY Created DESC",
+            new { BookingId = sqlResult.Id }
+        );
         Assert.Single(dbComments);
         Assert.Equal("XYZ", dbComments.LastOrDefault()?.Value);
     }

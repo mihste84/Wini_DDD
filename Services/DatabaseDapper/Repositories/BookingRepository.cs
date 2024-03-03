@@ -1,30 +1,26 @@
 namespace Services.DatabaseDapper.Repositories;
 
-public class BookingRepository : IBookingRepository
+public class BookingRepository(ConnectionFactory factory) : IBookingRepository
 {
-    private readonly ConnectionFactory _factory;
-
-    public BookingRepository(ConnectionFactory factory)
-    {
-        _factory = factory;
-    }
-
     public async Task<(Booking Booking, byte[] RowVersion)?> GetBookingIdAsync(int? id, bool includeRows = true)
     {
-        using var conn = _factory.CreateConnection();
+        using var conn = factory.CreateConnection();
         conn.Open();
 
         var query = includeRows ? BookingQueries.SelectBookingAndRowsById : BookingQueries.SelectBookingById;
         var mapper = await conn.QueryMultipleAsync(query, new { BookingId = id });
 
         var booking = await mapper.ReadFirstOrDefaultAsync<Models.Booking>();
-        if (booking == default) return default;
+        if (booking == default)
+        {
+            return default;
+        }
 
         var comments = await mapper.ReadAsync<Models.Comment>();
         var messages = await mapper.ReadAsync<Models.RecipientMessage>();
         var logs = await mapper.ReadAsync<Models.BookingStatusLog>();
         var attachments = await mapper.ReadAsync<Models.Attachment>();
-        var rows = includeRows ? await mapper.ReadAsync<Models.BookingRow>() : Array.Empty<Models.BookingRow>();
+        var rows = includeRows ? await mapper.ReadAsync<Models.BookingRow>() : [];
 
         return (
             MapToDomainModel(booking, rows, comments, messages, logs, attachments),
@@ -34,21 +30,20 @@ public class BookingRepository : IBookingRepository
 
     public async Task DeleteBookingIdAsync(int? id)
     {
-        using var conn = _factory.CreateConnection();
+        using var conn = factory.CreateConnection();
         conn.Open();
 
-        if (await conn.ExecuteAsync(BookingQueries.DeleteBookingById, new { BookingId = id }) == 0)
-            throw new DatabaseOperationException($"Failed to delete booking with ID {id}.");
-    }
+        if (await conn.ExecuteAsync(BookingQueries.DeleteBookingById, new { BookingId = id }) != 0)
+        {
+            return;
+        }
 
-    public Task<(Booking Booking, byte[] RowVersion)?> GetEntireBookingByIdAsync(int? id)
-    {
-        throw new NotImplementedException();
+        throw new DatabaseOperationException($"Failed to delete booking with ID {id}.");
     }
 
     public async Task<bool> IsSameRowVersionAsync(int id, byte[] rowVersion)
     {
-        using var conn = _factory.CreateConnection();
+        using var conn = factory.CreateConnection();
         conn.Open();
 
         var res = await conn.QueryFirstAsync<byte[]>(BookingQueries.SelectRowVersionById, new { Id = id });
@@ -60,19 +55,24 @@ public class BookingRepository : IBookingRepository
     {
         var bookingModel = MapToModel(booking, user);
 
-        using var conn = _factory.CreateConnection();
+        using var conn = factory.CreateConnection();
         conn.Open();
 
         var res = await conn.QuerySingleAsync<SqlResult>(BookingQueries.UpdateStatus, bookingModel);
         await TryInsertStatusLogsAsync(booking, user, conn);
 
         var rowActions = booking.DomainEvents.Select(_ => _ as WiniBookingRowActionEvent).Where(_ => _ != default);
-        if (!rowActions.Any()) return res;
+        if (rowActions.Any())
+        {
+            if (rowActions.Any(_ => _!.Action == BookingRowAction.RemoveAuthorization))
+            {
+                await conn.ExecuteAsync(BookingRowQueries.UpdateRemoveAllAuthorizations, new { BookingId = res.Id }); // No need to check number of updated rows. Can be 0.
+            }
 
-        if (rowActions.Any(_ => _!.Action == BookingRowAction.RemoveAuthorization))
-            await conn.ExecuteAsync(BookingRowQueries.UpdateRemoveAllAuthorizations, new { BookingId = res.Id }); // No need to check number of updated rows. Can be 0.
+            await TryAuthorizeRowsAsync(rowActions, res.Id, conn);
 
-        await TryAuthorizeRowsAsync(rowActions, res.Id, conn);
+            return res;
+        }
 
         return res;
     }
@@ -81,7 +81,7 @@ public class BookingRepository : IBookingRepository
     {
         var bookingModel = MapToModel(booking, user);
 
-        using var conn = _factory.CreateConnection();
+        using var conn = factory.CreateConnection();
         conn.Open();
 
         var res = await conn.QuerySingleAsync<SqlResult>(BookingQueries.Update, bookingModel);
@@ -99,7 +99,7 @@ public class BookingRepository : IBookingRepository
     {
         var bookingModel = MapToModel(booking, user);
 
-        using var conn = _factory.CreateConnection();
+        using var conn = factory.CreateConnection();
         conn.Open();
 
         var res = await conn.QuerySingleAsync<SqlResult>(BookingQueries.Insert, bookingModel);
@@ -109,7 +109,10 @@ public class BookingRepository : IBookingRepository
         {
             var rowsToInsert = booking.Rows.Select(_ => MapToModel(_, res.Id));
             var numberOfRowsAdded = await conn.ExecuteAsync(BookingRowQueries.Insert, rowsToInsert);
-            if (numberOfRowsAdded == 0) throw new DatabaseOperationException("Failed to insert booking rows.");
+            if (numberOfRowsAdded == 0)
+            {
+                throw new DatabaseOperationException("Failed to insert booking rows.");
+            }
         }
 
         return res;
@@ -124,14 +127,19 @@ public class BookingRepository : IBookingRepository
             var model = new { Rows = authorizedRows.Select(_ => _!.Row.RowNumber), BookingId = bookingId };
             var numberOfRowsAuthorized = await conn.ExecuteAsync(BookingRowQueries.UpdateAuthorizeByRow, model);
             if (numberOfRowsAuthorized != authorizedRowsCount)
+            {
                 throw new DatabaseOperationException("Failed to authorize all booking rows.");
+            }
         }
     }
 
     private static async Task TryUpdateRecipinetMessageAsync(Booking booking, string user, IDbConnection conn)
     {
         if (booking.DomainEvents?.Any(_ => _ is RecipinetMessageActionEvent) == false)
+        {
             return;
+        }
+
         // Few items per booking that are rarely updated. Just delete and insert all when changes are made.
         await conn.ExecuteAsync(RecipientMessageQueries.DeleteAllByBookingId, new { BookingId = booking.BookingId!.Value });
 
@@ -145,7 +153,10 @@ public class BookingRepository : IBookingRepository
     private static async Task TryUpdateCommentsAsync(Booking booking, string user, IDbConnection conn)
     {
         if (booking.DomainEvents?.Any(_ => _ is CommentActionEvent) == false)
+        {
             return;
+        }
+
         // Few items per booking that are rarely updated. Just delete and insert all when changes are made.
         await conn.ExecuteAsync(CommentQueries.DeleteAllByBookingId, new { BookingId = booking.BookingId!.Value });
 
@@ -156,7 +167,6 @@ public class BookingRepository : IBookingRepository
         }
     }
 
-
     private static async Task TryInsertRowsAsync(Booking booking, IDbConnection conn)
     {
         var rowActions = booking.DomainEvents.Select(_ => _ as WiniBookingRowActionEvent).Where(_ => _ != default);
@@ -164,7 +174,10 @@ public class BookingRepository : IBookingRepository
         {
             var rowsToUpsert = rowActions.Select(_ => MapToModel(_!.Row, booking.BookingId!.Value));
             var numberOfRowsUpserted = await conn.ExecuteAsync(BookingRowQueries.Upsert, rowsToUpsert);
-            if (numberOfRowsUpserted == 0) throw new DatabaseOperationException("Failed to upsert booking rows.");
+            if (numberOfRowsUpserted == 0)
+            {
+                throw new DatabaseOperationException("Failed to upsert booking rows.");
+            }
         }
     }
 
@@ -177,7 +190,10 @@ public class BookingRepository : IBookingRepository
                 BookingRowQueries.UpdateIsDeleted,
                 new { Rows = rowsToDelete.Select(_ => _!.RowNumber), BookingId = booking.BookingId!.Value, IsDeleted = true }
             );
-            if (deletedRows == 0) throw new DatabaseOperationException("Failed to delete booking rows.");
+            if (deletedRows == 0)
+            {
+                throw new DatabaseOperationException("Failed to delete booking rows.");
+            }
         }
     }
 
@@ -188,7 +204,10 @@ public class BookingRepository : IBookingRepository
         {
             var statusesToAdd = statusChanges.Select(_ => MapToModel(_!.Status, booking.BookingId!.Value, user));
             var numberOfRowsAdded = await conn.ExecuteAsync(BookingStatusLogQueries.Insert, statusesToAdd);
-            if (numberOfRowsAdded == 0) throw new DatabaseOperationException("Failed to insert status logs.");
+            if (numberOfRowsAdded == 0)
+            {
+                throw new DatabaseOperationException("Failed to insert status logs.");
+            }
         }
     }
 

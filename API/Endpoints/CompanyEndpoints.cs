@@ -2,7 +2,7 @@ namespace API.Endpoints;
 
 public static class CompanyEndpoints
 {
-    public static async Task<IResult> GetAllCompanies(IMediator mediator)
+    public static async Task<IResult> GetAllCompaniesAsync(IMediator mediator)
     {
         var res = await mediator.Send(new GetAllCompaniesQuery());
 

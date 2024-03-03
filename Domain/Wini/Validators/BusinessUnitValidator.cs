@@ -9,8 +9,12 @@ public class BusinessUnitValidator : AbstractValidator<BusinessUnit>
 
         RuleFor(_ => _).Custom((bu, ctx) =>
         {
-            if (bu.ToString()?.Length > 12)
-                ctx.AddFailure("Business Unit", "BusinessUnit max length is 12 characters");
+            if (!(bu.ToString()?.Length > 12))
+            {
+                return;
+            }
+
+            ctx.AddFailure("Business Unit", "BusinessUnit max length is 12 characters");
         });
     }
 }

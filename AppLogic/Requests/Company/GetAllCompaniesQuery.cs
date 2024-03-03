@@ -2,24 +2,17 @@ namespace AppLogic.Requests;
 
 public class GetAllCompaniesQuery : IRequest<OneOf<Result<IEnumerable<CompanyDto>>, NotFound>>
 {
-    public class GetAllCompaniesHandler : IRequestHandler<GetAllCompaniesQuery, OneOf<Result<IEnumerable<CompanyDto>>, NotFound>>
+    public class GetAllCompaniesHandler(
+        IMasterdataRepository companyRepo,
+        ILogger<GetAllCompaniesQuery.GetAllCompaniesHandler> logger) : IRequestHandler<GetAllCompaniesQuery, OneOf<Result<IEnumerable<CompanyDto>>, NotFound>>
     {
-        private readonly IMasterdataRepository _companyRepo;
-        private readonly ILogger<GetAllCompaniesHandler> _logger;
-
-        public GetAllCompaniesHandler(IMasterdataRepository companyRepo, ILogger<GetAllCompaniesHandler> logger)
-        {
-            _companyRepo = companyRepo;
-            _logger = logger;
-        }
-
         public async Task<OneOf<Result<IEnumerable<CompanyDto>>, NotFound>> Handle(GetAllCompaniesQuery request, CancellationToken cancellationToken)
         {
-            var companies = await _companyRepo.SelectAllCompaniesAsync();
+            var companies = await companyRepo.SelectAllCompaniesAsync();
 
             if (companies?.Any() == false)
             {
-                _logger.LogWarning("No companies returned from database.");
+                logger.LogWarning("No companies returned from database.");
                 return new NotFound();
             }
 

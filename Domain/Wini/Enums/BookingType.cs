@@ -2,5 +2,6 @@ namespace Domain.Wini.Enums;
 
 public enum BookingType
 {
-    Wini, Lighthouse
+    Wini,
+    Lighthouse
 }
