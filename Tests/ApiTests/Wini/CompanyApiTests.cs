@@ -1,6 +1,6 @@
 namespace Tests.ApiTests.Wini;
 
-[Order(2)]
+[Order(4)]
 public sealed class CompanyApiTests(TestBase testBase) : IClassFixture<TestBase>
 {
     private readonly TestBase _testBase = testBase;

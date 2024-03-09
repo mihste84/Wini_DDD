@@ -14,7 +14,8 @@ public class GetBookingByIdQuery : IRequest<OneOf<Result<BookingDto>, Validation
 
     public class GetBookingByIdHandler(
         IBookingRepository repo,
-        IAuthorizationService authorizationService) : IRequestHandler<GetBookingByIdQuery, OneOf<Result<BookingDto>, ValidationErrorResult, ForbiddenResult, NotFound>>
+        IAuthorizationService authorizationService)
+    : IRequestHandler<GetBookingByIdQuery, OneOf<Result<BookingDto>, ValidationErrorResult, ForbiddenResult, NotFound>>
     {
         public async Task<OneOf<Result<BookingDto>, ValidationErrorResult, ForbiddenResult, NotFound>> Handle(GetBookingByIdQuery request, CancellationToken cancellationToken)
         {
@@ -38,7 +39,7 @@ public class GetBookingByIdQuery : IRequest<OneOf<Result<BookingDto>, Validation
 
             var dto = new BookingDto(
                 (short)booking.BookingStatus.Status,
-                booking.Header.BookingDate.Date,
+                booking.Header.BookingDate.Date.ToDateTime(default),
                 booking.Header.TextToE1.Text,
                 booking.Header.IsReversed,
                 (short)booking.Header.LedgerType.Type,

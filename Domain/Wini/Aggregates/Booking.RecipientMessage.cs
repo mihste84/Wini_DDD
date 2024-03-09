@@ -55,19 +55,19 @@ public partial class Booking
 
     private RecipientMessage GetRecipientMessageByUser(string? recipient)
     => Messages.Find(_ => _.Recipient.UserId == recipient)
-        ?? throw new DomainLogicException($"Cannot find message with recipient {recipient}.");
+        ?? throw new NotFoundException("Cannot find message with recipient.");
 
     private int GetecipientMessageIndexByUser(string recipient)
     {
         var index = Messages.FindIndex(_ => _.Recipient.UserId == recipient);
         if (index == -1)
         {
-            throw new DomainLogicException($"Cannot find message with recipient {recipient}.");
+            throw new NotFoundException($"Cannot find message with recipient {recipient}.");
         }
 
         return index;
     }
 
-    private void AddRecipientMessageEvent(CrudAction action, RecipientMessage? recipient)
+    private void AddRecipientMessageEvent(CrudAction action, RecipientMessage recipient)
         => DomainEvents.Add(new RecipinetMessageActionEvent(action, recipient));
 }

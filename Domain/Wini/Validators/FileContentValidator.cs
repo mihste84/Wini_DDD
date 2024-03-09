@@ -16,15 +16,16 @@ public class FileContentValidator : AbstractValidator<FileContent>
     public FileContentValidator()
     {
         RuleFor(_ => _.ContentType)
+            .MaximumLength(200)
             .Must(_ => _allowedContentTypes.Contains(_))
             .WithMessage(_ => $"Content type value '{_.ContentType}' is not allowed.")
             .WithName("Content Type");
 
-        RuleFor(_ => _.Name).NotEmpty().MaximumLength(100).WithName("Filename");
-        RuleFor(_ => _.Path).NotEmpty().MaximumLength(200).WithName("File Path");
+        RuleFor(_ => _.Name).NotEmpty().MaximumLength(300).WithName("Filename");
+        RuleFor(_ => _.Path).NotEmpty().MaximumLength(400).WithName("File Path");
         RuleFor(_ => _.Size)
-            .InclusiveBetween(0, 2000000)
-            .WithMessage("Size must be between 0 and 2000000 byte.")
+            .InclusiveBetween(0, FileContent.MaxAttachmentSize)
+            .WithMessage($"Size must be between 0 and {FileContent.MaxAttachmentSize} byte.")
             .WithName("File Size");
     }
 }

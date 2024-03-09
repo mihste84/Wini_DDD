@@ -1,6 +1,8 @@
+using System.Web;
+
 namespace Tests.ApiTests.Wini;
 
-[Order(4)]
+[Order(3)]
 public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
 {
     private readonly TestBase _testBase = testBase;
@@ -10,16 +12,10 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
     {
         await _testBase.ResetDbAsync();
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
-        var command = new UpdateBookingCommentCommand
-        {
-            RowVersion = sqlResult.RowVersion,
-            Value = "TEST",
-            Action = CrudAction.Added,
-            Created = DateTime.UtcNow
-        };
+        var command = new CommentInput(DateTime.UtcNow, "TEST", sqlResult.RowVersion);
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/comment", command);
-        Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
+        var res = await _testBase.HttpClient.PostAsJsonAsync($"/api/booking/{sqlResult.Id}/comment", command);
+        Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
@@ -44,20 +40,13 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
                 Value = "ASDFG"
             },
             new Services.DatabaseDapper.Models.Comment {
-                Created = new DateTime(2024, 1, 1),
+                Created = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 CreatedBy = "MIHSTE",
                 Value = "XYZ"
             }
         };
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default, comments);
-
-        var command = new UpdateBookingCommentCommand
-        {
-            RowVersion = sqlResult.RowVersion,
-            Value = "TEST",
-            Created = createdDate,
-            Action = CrudAction.Edited
-        };
+        var command = new CommentInput(DateTime.UtcNow, "TEST", sqlResult.RowVersion);
 
         var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/comment", command);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
@@ -86,21 +75,16 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
                 Value = "ASDFG"
             },
             new Services.DatabaseDapper.Models.Comment {
-                Created = new DateTime(2024, 1, 1),
+                Created = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Local),
                 CreatedBy = "MIHSTE",
                 Value = "XYZ"
             }
         };
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default, comments);
-
-        var command = new UpdateBookingCommentCommand
-        {
-            RowVersion = sqlResult.RowVersion,
-            Created = createdDate,
-            Action = CrudAction.Deleted
-        };
-
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/comment", command);
+        var rowVersion = "rowVersion=" + string.Join("&rowVersion=", sqlResult.RowVersion!);
+        var res = await _testBase.HttpClient.DeleteAsync(
+            $"/api/booking/{sqlResult.Id}/comment?{rowVersion}&created={HttpUtility.UrlEncode(createdDate.ToString("yyyy-MM-dd HH:mm:ss.fffffff"))}"
+        );
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();

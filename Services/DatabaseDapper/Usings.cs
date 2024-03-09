@@ -8,6 +8,7 @@ global using Domain.Wini.Values;
 global using Domain.Wini.Enums;
 global using AppLogic.Interfaces;
 global using Services.DatabaseDapper.Queries;
+global using Services.DatabaseDapper.Mappings;
 global using Services.DatabaseDapper.Repositories;
 global using AppLogic.Exceptions;
 global using AppLogic.Models;

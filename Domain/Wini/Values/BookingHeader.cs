@@ -15,7 +15,7 @@ public record BookingHeader
         LedgerType = new LedgerType(Ledgers.AA);
     }
 
-    public BookingHeader(DateTime bookingDate, string? textToE1, bool isReversed, Ledgers ledgerType)
+    public BookingHeader(DateOnly bookingDate, string? textToE1, bool isReversed, Ledgers ledgerType)
     {
         BookingDate = new BookingDate(bookingDate);
         TextToE1 = new TextToE1(textToE1);

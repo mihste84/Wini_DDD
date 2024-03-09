@@ -4,7 +4,7 @@ public class GetAllCompaniesQuery : IRequest<OneOf<Result<IEnumerable<CompanyDto
 {
     public class GetAllCompaniesHandler(
         IMasterdataRepository companyRepo,
-        ILogger<GetAllCompaniesQuery.GetAllCompaniesHandler> logger) : IRequestHandler<GetAllCompaniesQuery, OneOf<Result<IEnumerable<CompanyDto>>, NotFound>>
+        ILogger<GetAllCompaniesHandler> logger) : IRequestHandler<GetAllCompaniesQuery, OneOf<Result<IEnumerable<CompanyDto>>, NotFound>>
     {
         public async Task<OneOf<Result<IEnumerable<CompanyDto>>, NotFound>> Handle(GetAllCompaniesQuery request, CancellationToken cancellationToken)
         {

@@ -10,16 +10,10 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
     {
         await _testBase.ResetDbAsync();
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
-        var command = new UpdateRecipientMessageCommand
-        {
-            RowVersion = sqlResult.RowVersion,
-            Value = "TEST",
-            Action = CrudAction.Added,
-            Recipient = "XMIHST"
-        };
+        var command = new RecipientMessageInput("XMIHST", "TEST", sqlResult.RowVersion);
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/recipient", command);
-        Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
+        var res = await _testBase.HttpClient.PostAsJsonAsync($"/api/booking/{sqlResult.Id}/recipient", command);
+        Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
@@ -45,7 +39,7 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
                 Value = "ASDFG"
             },
             new Services.DatabaseDapper.Models.RecipientMessage {
-                Created = new DateTime(2024, 1, 1),
+                Created = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Local),
                 CreatedBy = "MIHSTE",
                 Recipient = "RECP2",
                 Value = "XYZ"
@@ -53,13 +47,7 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
         };
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default, default, messages);
 
-        var command = new UpdateRecipientMessageCommand
-        {
-            RowVersion = sqlResult.RowVersion,
-            Value = "TEST",
-            Recipient = "XMIHST",
-            Action = CrudAction.Edited
-        };
+        var command = new RecipientMessageInput("XMIHST", "TEST", sqlResult.RowVersion);
 
         var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/recipient", command);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
@@ -91,7 +79,7 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
                 Value = "ASDFG"
             },
             new Services.DatabaseDapper.Models.RecipientMessage {
-                Created = new DateTime(2024, 1, 1),
+                Created = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Local),
                 CreatedBy = "MIHSTE",
                 Recipient = "RECP2",
                 Value = "XYZ"
@@ -99,14 +87,10 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
         };
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default, default, messages);
 
-        var command = new UpdateRecipientMessageCommand
-        {
-            RowVersion = sqlResult.RowVersion,
-            Recipient = "XMIHST",
-            Action = CrudAction.Deleted
-        };
-
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/recipient", command);
+        var rowVersion = "rowVersion=" + string.Join("&rowVersion=", sqlResult.RowVersion!);
+        var res = await _testBase.HttpClient.DeleteAsync(
+            $"/api/booking/{sqlResult.Id}/recipient?{rowVersion}&recipient=XMIHST"
+        );
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();

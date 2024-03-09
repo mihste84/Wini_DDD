@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Configuration;
 using Respawn;
-using Respawn.Graph;
 using Dapper;
 using Microsoft.Data.SqlClient;
 
@@ -79,13 +78,14 @@ public class TestBase
         Services.DatabaseDapper.Models.Booking? booking,
         Services.DatabaseDapper.Models.BookingRow[]? rows,
         Services.DatabaseDapper.Models.Comment[]? comments = default,
-        Services.DatabaseDapper.Models.RecipientMessage[]? messages = default
+        Services.DatabaseDapper.Models.RecipientMessage[]? messages = default,
+        Services.DatabaseDapper.Models.Attachment[]? attachments = default
     )
     {
         var bookingModel = booking
             ?? new Services.DatabaseDapper.Models.Booking
             {
-                BookingDate = new DateTime(2024, 1, 1),
+                BookingDate = new DateOnly(2024, 1, 1).ToDateTime(default),
                 Created = DateTime.UtcNow,
                 CreatedBy = TestAuthenticationService.UserId,
                 LedgerType = (short)Ledgers.GP,
@@ -148,6 +148,17 @@ public class TestBase
             await InsertMultipleAsync(
                 RecipientMessageQueries.Insert,
                 messages.Select(_ =>
+                {
+                    _.BookingId = sqlResult.Id;
+                    return _;
+                }));
+        }
+
+        if (attachments != default)
+        {
+            await InsertMultipleAsync(
+                AttachmentQueries.Insert,
+                attachments.Select(_ =>
                 {
                     _.BookingId = sqlResult.Id;
                     return _;

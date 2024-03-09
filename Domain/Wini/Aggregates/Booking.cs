@@ -96,7 +96,7 @@ public partial class Booking
     public bool AreAllCompaniesSame()
     {
         var firstCompanyValue = Rows.FirstOrDefault()?.BusinessUnit.CompanyCode.Code;
-        return Rows.All(_ => _.BusinessUnit.CompanyCode.Code == firstCompanyValue);
+        return Rows.TrueForAll(_ => _.BusinessUnit.CompanyCode.Code == firstCompanyValue);
     }
 
     public bool TryValidateExchangeRateDifferencesByCurrency(out IEnumerable<(string? Currency, decimal?[] ExchangeRates)> differences)
@@ -106,7 +106,7 @@ public partial class Booking
             .Select(_ => new { Currency = _.Key, ExchangeRates = _.Select(x => x.Money.Currency.ExchangeRate).Distinct().ToArray() });
 
         differences = ratesByCurrency
-            .Where(_ => !_.ExchangeRates.All(x => x == _.ExchangeRates[0]))
+            .Where(_ => !Array.TrueForAll(_.ExchangeRates, x => x == _.ExchangeRates[0]))
             .Select(_ => (_.Currency, _.ExchangeRates));
 
         return !differences.Any();

@@ -101,7 +101,7 @@ public partial class Booking
 
     private void AuthorizeRowsForUser(string userId, int bookingId)
     {
-        if (!Rows.Any(_ => _.CanRowBeAuthorizedByUser(userId)))
+        if (!Rows.Exists(_ => _.CanRowBeAuthorizedByUser(userId)))
         {
             throw new DomainLogicException(nameof(userId), userId, "There are no rows to authorize for user.");
         }
@@ -196,7 +196,7 @@ public partial class Booking
 
     private void AddNewRowToList(BookingRowModel row)
     {
-        if (Rows.Any(_ => _.RowNumber == row.RowNumber))
+        if (Rows.Exists(_ => _.RowNumber == row.RowNumber))
         {
             throw new DomainLogicException($"Cannot add new row. Row number {row.RowNumber} already exists.");
         }

@@ -2,7 +2,7 @@ namespace Tests.UnitTests.Wini;
 
 public class BookingDateTests
 {
-    private readonly IReadOnlyList<DateTime> _bankHolidays = [
+    private readonly IReadOnlyList<DateOnly> _bankHolidays = [
         new(2023, 1, 1),
         new(2023, 1, 6),
         new(2023, 4, 7),
@@ -17,14 +17,9 @@ public class BookingDateTests
     [Fact]
     public void Create_Booking_Date()
     {
-        var today = new DateTime(2023, 1, 23, 23, 59, 59);
+        var today = new DateOnly(2023, 1, 23);
         var bookingDate = new BookingDate(today);
-        Assert.Equal(today.Date, bookingDate.Date.Date);
-        Assert.Equal(0, bookingDate.Date.Hour);
-        Assert.Equal(0, bookingDate.Date.Minute);
-        Assert.Equal(0, bookingDate.Date.Second);
-        Assert.Equal(0, bookingDate.Date.Millisecond);
-        Assert.Equal(0, bookingDate.Date.Microsecond);
+        Assert.Equal(today, bookingDate.Date);
     }
 
     [Theory]
@@ -54,7 +49,7 @@ public class BookingDateTests
     [InlineData(2023, 12, 29, true, -1)]
     public void Check_Is_Date_Book_Closing_Day(int year, int month, int day, bool isBookClosingDay, int? expectedBookClosingDay)
     {
-        var dateToCheck = new DateTime(year, month, day);
+        var dateToCheck = new DateOnly(year, month, day);
         var bookingDate = new BookingDate(dateToCheck);
 
         var isBookClosingDayResult = bookingDate.TryCheckIfDateBookClosingDay(_bankHolidays, out var bookClosingDay);
@@ -107,8 +102,8 @@ public class BookingDateTests
 
     public void Check_Is_Period_Closed(int year, int month, int day, bool expectedResult)
     {
-        var dateToCheck = new DateTime(year, month, day);
-        var bookingDatePeriod = new DateTime(2023, 3, 24);
+        var dateToCheck = new DateOnly(year, month, day);
+        var bookingDatePeriod = new DateOnly(2023, 3, 24);
         var bookingDate = new BookingDate(bookingDatePeriod);
 
         var isPeriodClosed = bookingDate.IsPeriodClosed(dateToCheck);

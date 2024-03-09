@@ -56,19 +56,19 @@ public partial class Booking
 
     private Comment GetCommentByCreateDate(DateTime createdDate)
     => Comments.Find(_ => _.Created.CompareWithoutMilliseconds(createdDate))
-        ?? throw new DomainLogicException($"Cannot find comment created on date {createdDate}.");
+        ?? throw new NotFoundException($"Cannot find comment created on date {createdDate}.");
 
     private int GetCommentIndexCreateDate(DateTime createdDate)
     {
         var index = Comments.FindIndex(_ => _.Created.CompareWithoutMilliseconds(createdDate));
         if (index == -1)
         {
-            throw new DomainLogicException($"Cannot find comment created on date {createdDate}.");
+            throw new NotFoundException($"Cannot find comment created on date {createdDate}.");
         }
 
         return index;
     }
 
-    private void AddCommentEvent(CrudAction action, Comment? newComment)
-        => DomainEvents.Add(new CommentActionEvent(action, newComment));
+    private void AddCommentEvent(CrudAction action, Comment newComment)
+    => DomainEvents.Add(new CommentActionEvent(action, newComment));
 }

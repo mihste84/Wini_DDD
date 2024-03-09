@@ -2,31 +2,36 @@ namespace Domain.Wini.Values;
 
 public record BookingDate
 {
-    public readonly DateTime Date;
+    public readonly DateOnly Date;
 
     public BookingDate(DateTime date)
     {
-        Date = date.Date;
+        Date = DateOnly.FromDateTime(date);
     }
 
-    public bool TryCheckIfDateBookClosingDay(IEnumerable<DateTime> bankHolidays, out int? bookClosingDay)
+    public BookingDate(DateOnly date)
+    {
+        Date = date;
+    }
+
+    public bool TryCheckIfDateBookClosingDay(IEnumerable<DateOnly> bankHolidays, out int? bookClosingDay)
     {
         var bookClosing = new BookClosingDay(Date, bankHolidays);
         bookClosingDay = bookClosing.Day;
         return bookClosing.IsTodayBookClosingDay;
     }
 
-    public static bool TryCheckIfDateBookClosingDay(DateTime dateToCheck, IEnumerable<DateTime> bankHolidays, out int? bookClosingDay)
+    public static bool TryCheckIfDateBookClosingDay(DateOnly dateToCheck, IEnumerable<DateOnly> bankHolidays, out int? bookClosingDay)
     {
         var bookClosing = new BookClosingDay(dateToCheck, bankHolidays);
         bookClosingDay = bookClosing.Day;
         return bookClosing.IsTodayBookClosingDay;
     }
 
-    public bool IsPeriodClosed(DateTime today)
+    public bool IsPeriodClosed(DateOnly today)
     {
-        var startOfCurrentPeriod = new DateTime(today.Year, today.Month, 1);
-        return startOfCurrentPeriod.Date <= Date;
+        var startOfCurrentPeriod = new DateOnly(today.Year, today.Month, 1);
+        return startOfCurrentPeriod <= Date;
     }
 
     public static bool IsPeriodEnd(int currentPeriod, int? bookClosingDay, DeviatingPeriodSettings deviatingPeriodSettings)

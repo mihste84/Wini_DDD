@@ -7,7 +7,7 @@ public class InsertNewBookingCommand
     {
         public InsertNewBookingValidator()
         {
-            RuleFor(_ => _.BookingDate).GreaterThan(new DateTime(2000, 1, 1));
+            RuleFor(_ => _.BookingDate).NotEmpty();
             RuleFor(_ => _.Rows).Must(_ => _?.Length <= 1000).WithMessage("Number of rows cannot be greater than 1000.");
         }
     }
@@ -39,7 +39,7 @@ public class InsertNewBookingCommand
                     default,
                     new BookingStatus(WiniStatus.Saved, now, user),
                     new Commissioner(user),
-                    new BookingDate(request.BookingDate ?? now),
+                    new BookingDate(request.BookingDate ?? new DateOnly(now.Year, now.Month, now.Day)),
                     new TextToE1(request.TextToE1 ?? ""),
                     request.IsReversed ?? false,
                     new LedgerType(request.LedgerType ?? Ledgers.AA)
@@ -61,7 +61,7 @@ public class InsertNewBookingCommand
             {
                 return new ValidationErrorResult(ex.Errors);
             }
-            catch (Exception ex) when (ex is DomainLogicException or NotFoundException)
+            catch (Exception ex) when (ex is DomainLogicException or NotFoundException or ArgumentException or ArgumentNullException)
             {
                 return new Error<string>(ex.Message);
             }

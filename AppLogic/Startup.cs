@@ -8,11 +8,9 @@ public static class Startup
         {
             cfg.RegisterServicesFromAssembly(typeof(InsertNewBookingCommand).Assembly);
             cfg.AddOpenBehavior(typeof(AuthenticationBehaviour<,>));
-            //cfg.AddOpenBehavior(typeof(RequestValidationBehaviour<,>));
         });
 
         services.AddScoped<IDateTimeService, DateTimeService>();
-        //services.AddValidatorsFromAssemblyContaining<InsertHelloCommand>();
 
         services.AddScoped<IBookingValidationService, BookingValidationService>();
     }

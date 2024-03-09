@@ -49,7 +49,6 @@ public class RecipientMessageTests
     [Fact]
     public void Add_New_RecipientMessage_To_Booking()
     {
-        var createdDate = new DateTime(2024, 1, 1);
         var booking = CreateNewBookingAndRecipientMessage(GetAuthService().Object);
 
         Assert.Single(booking.Messages);
@@ -61,11 +60,9 @@ public class RecipientMessageTests
     [Fact]
     public void Edit_RecipientMessage()
     {
-        var createdDate = new DateTime(2024, 1, 1);
         var authService = GetAuthService();
         var booking = CreateNewBookingAndRecipientMessage(authService.Object);
 
-        var messageToEdit = booking.Messages[0];
         booking.EditRecipientMessage("Test edit", "XMIHST", authService.Object);
 
         Assert.Single(booking.Messages);
@@ -105,7 +102,6 @@ public class RecipientMessageTests
     public void Fail_To_Add_New_RecipientMessage_Not_Commissioner()
     {
         var authService = GetAuthService("XMIHST");
-        var createdDate = new DateTime(2024, 1, 1);
 
         var ex = Assert.Throws<DomainLogicException>(() => CreateNewBookingAndRecipientMessage(authService.Object));
 
@@ -118,7 +114,6 @@ public class RecipientMessageTests
     {
         var authService = GetAuthService("MIHSTE");
         var booking = new Booking(default, new Commissioner(authService.Object.GetUserId()));
-        var createdDate = new DateTime(2024, 1, 1);
         var ex = Assert.Throws<DomainLogicException>(() => booking.AddNewRecipientMessage("Test", "XMIHST", authService.Object));
 
         Assert.NotNull(ex);

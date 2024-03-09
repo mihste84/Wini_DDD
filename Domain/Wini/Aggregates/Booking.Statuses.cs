@@ -105,7 +105,7 @@ public partial class Booking
         BookingStatus.CanChangeStatusToSaved();
 
         var userId = authenticationService.GetUserId();
-        if (!(userId == Commissioner.UserId || Rows.Any(_ => _.Authorizer.UserId == userId) || authorizationService.IsAdmin()))
+        if (!(userId == Commissioner.UserId || Rows.Exists(_ => _.Authorizer.UserId == userId) || authorizationService.IsAdmin()))
         {
             throw new DomainLogicException($"Only admins, commissioners or authorizers can change status to {WiniStatus.Saved}.");
         }

@@ -3,7 +3,7 @@ namespace Domain.Wini.Enums;
 [Flags]
 public enum BookingPermissions
 {
-    Unknown = 0,
+    None = 0,
     BookingRead = 1,
     BookingWrite = 2,
     AccountingUser = 4,

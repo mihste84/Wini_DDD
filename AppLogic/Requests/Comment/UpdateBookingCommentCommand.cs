@@ -24,9 +24,9 @@ public class UpdateBookingCommentCommand : IRequest<OneOf<Result<SqlResult>, Val
         IAuthenticationService authenticationService,
         IAuthorizationService authorizationService,
         ITransactionScopeManager transactionManager,
-        ILogger<UpdateBookingCommentCommand.UpdateBookingCommentHandler> logger
-        )
-                : IRequestHandler<UpdateBookingCommentCommand, OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
+        ILogger<UpdateBookingCommentHandler> logger
+    )
+    : IRequestHandler<UpdateBookingCommentCommand, OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
     {
         public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>> Handle(
             UpdateBookingCommentCommand request,
@@ -71,7 +71,7 @@ public class UpdateBookingCommentCommand : IRequest<OneOf<Result<SqlResult>, Val
             {
                 return new ValidationErrorResult(ex.Errors);
             }
-            catch (Exception ex) when (ex is DomainLogicException or NotFoundException)
+            catch (Exception ex) when (ex is DomainLogicException or NotFoundException or ArgumentException or ArgumentNullException)
             {
                 return new Error<string>(ex.Message);
             }

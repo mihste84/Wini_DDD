@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Domain.Wini.Entities;
 
 public class BookingStatus
@@ -5,7 +7,7 @@ public class BookingStatus
     public WiniStatus Status { get; private set; }
     public DateTime Updated { get; private set; }
     public User UpdatedBy { get; private set; }
-    public readonly List<BookingStatus> StatusHistory = [];
+    public List<BookingStatus> StatusHistory { get; } = [];
 
     public BookingStatus(WiniStatus status, DateTime updated, string userId)
     {
@@ -135,7 +137,14 @@ public class BookingStatus
     public BookingStatus Copy()
     => new(
         Status,
-        new DateTime(Updated.Year, Updated.Month, Updated.Day, Updated.Hour, Updated.Minute, Updated.Second, Updated.Millisecond),
+        new DateTime(Updated.Year,
+                     Updated.Month,
+                     Updated.Day,
+                     Updated.Hour,
+                     Updated.Minute,
+                     Updated.Second,
+                     Updated.Millisecond,
+                     DateTimeKind.Utc),
         UpdatedBy.UserId!
     );
 }

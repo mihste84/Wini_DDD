@@ -18,9 +18,9 @@ public static class CommonTestValues
     public static Booking GetBooking(string commissioner = "XMIHST", WiniStatus status = WiniStatus.Saved)
     => new(
         new IdValue<int>(1),
-        new BookingStatus(status, new DateTime(2023, 3, 20, 23, 0, 0), commissioner),
+        new BookingStatus(status, new DateTime(2023, 3, 20, 23, 0, 0, DateTimeKind.Utc), commissioner),
         new Commissioner(commissioner),
-        new BookingDate(new DateTime(2023, 3, 22)),
+        new BookingDate(new DateOnly(2023, 3, 22)),
         new TextToE1("Test"),
         true,
         new LedgerType(Ledgers.GP),
@@ -28,15 +28,15 @@ public static class CommonTestValues
         [],
         [],
         [],
-        new DateTime(2023, 3, 20, 23, 0, 0)
+        new DateTime(2023, 3, 20, 23, 0, 0, DateTimeKind.Utc)
     );
 
     public static Booking GetBooking(List<BookingRow> rows, string commissioner = "XMIHST", WiniStatus status = WiniStatus.Saved, Ledgers ledger = Ledgers.GP)
     => new(
         new IdValue<int>(1),
-        new BookingStatus(status, new DateTime(2023, 3, 20, 23, 0, 0), commissioner),
+        new BookingStatus(status, new DateTime(2023, 3, 20, 23, 0, 0, DateTimeKind.Utc), commissioner),
         new Commissioner(commissioner),
-        new BookingDate(new DateTime(2023, 3, 22)),
+        new BookingDate(new DateOnly(2023, 3, 22)),
         new TextToE1("Test"),
         true,
         new LedgerType(ledger),
@@ -44,6 +44,6 @@ public static class CommonTestValues
         [],
         [],
         [],
-        new DateTime(2023, 3, 20, 23, 0, 0)
+        new DateTime(2023, 3, 20, 23, 0, 0, DateTimeKind.Utc)
     );
 }

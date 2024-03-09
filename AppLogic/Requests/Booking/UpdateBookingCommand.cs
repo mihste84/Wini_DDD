@@ -12,7 +12,6 @@ public class UpdateBookingCommand
         public UpdateBookingValidator()
         {
             RuleFor(_ => _.BookingId).GreaterThan(0);
-            RuleFor(_ => _.BookingDate).GreaterThan(new DateTime(2000, 1, 1));
             RuleFor(_ => _.RowVersion).NotEmpty();
             RuleFor(_ => _.RowNumbersToDelete).NotNull();
         }
@@ -23,7 +22,7 @@ public class UpdateBookingCommand
         IAuthenticationService authenticationService,
         IAuthorizationService authorizationService,
         ITransactionScopeManager transactionManager,
-        ILogger<UpdateBookingCommand.UpdateBookingHandler> logger
+        ILogger<UpdateBookingHandler> logger
         )
         : IRequestHandler<UpdateBookingCommand, OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, ForbiddenResult, NotFound, Unknown>>
     {
@@ -89,7 +88,7 @@ public class UpdateBookingCommand
             {
                 return new ValidationErrorResult(ex.Errors);
             }
-            catch (Exception ex) when (ex is DomainLogicException or NotFoundException)
+            catch (Exception ex) when (ex is DomainLogicException or NotFoundException or ArgumentException or ArgumentNullException)
             {
                 return new Error<string>(ex.Message);
             }

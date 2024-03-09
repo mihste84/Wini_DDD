@@ -22,12 +22,12 @@ public class UpdateBookingStatusCommand
         IMasterdataRepository masterDataRepo,
         IAuthenticationService authenticationService,
         IAuthorizationService authorizationService,
-        ILogger<UpdateBookingStatusCommand.UpdateBookingStatusHandler> logger,
+        ILogger<UpdateBookingStatusHandler> logger,
         IDateTimeService dateTimeService,
         ITransactionScopeManager transactionManager,
         IBookingValidationService validationService
-        )
-                : IRequestHandler<UpdateBookingStatusCommand, OneOf<Result<SqlResult>, ConflictResult, ValidationErrorResult, Error<string>, ForbiddenResult, NotFound, Unknown>>
+    )
+    : IRequestHandler<UpdateBookingStatusCommand, OneOf<Result<SqlResult>, ConflictResult, ValidationErrorResult, Error<string>, ForbiddenResult, NotFound, Unknown>>
     {
         public async Task<OneOf<Result<SqlResult>, ConflictResult, ValidationErrorResult, Error<string>, ForbiddenResult, NotFound, Unknown>> Handle(
             UpdateBookingStatusCommand request,
@@ -73,7 +73,7 @@ public class UpdateBookingStatusCommand
             {
                 return new ValidationErrorResult(ex.Errors);
             }
-            catch (Exception ex) when (ex is DomainLogicException or NotFoundException)
+            catch (Exception ex) when (ex is DomainLogicException or NotFoundException or ArgumentException or ArgumentNullException)
             {
                 return new Error<string>(ex.Message);
             }

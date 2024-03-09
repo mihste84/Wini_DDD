@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Antiforgery;
+
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
 
@@ -18,6 +20,7 @@ if (builder.Environment.IsEnvironment("IntegrationTests"))
     builder.Services.AddSingleton<IAuthorizerValidationService, TestAuthorizerValidationService>();
     builder.Services.AddSingleton<IBookingPeriodValidationService, TestBookingPeriodValidationService>();
     builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();
+    builder.Services.AddScoped<IAttachmentService, TestAttachmentService>();
 }
 builder.Services.Configure<CookieAuthenticationOptions>(o => o.LoginPath = PathString.Empty);
 
@@ -28,6 +31,7 @@ builder.Services.AddProblemDetails();
 var connectionString = builder.Configuration.GetConnectionString("WiniDb");
 builder.Services.AddDatabaseServices(connectionString);
 builder.Services.AddAppLogicAndDomainServices();
+builder.Services.AddAntiforgery();
 
 var app = builder.Build();
 
@@ -39,19 +43,26 @@ if (isDevelopment)
 
 app.UseRouting();
 
-// app.UseAuthentication();
-// app.UseAuthorization();
-
 app.UsePathBase(new PathString("/api"));
-
+app.MapGet("/antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
+{
+    var tokens = forgeryService.GetAndStoreTokens(context);
+    var xsrfToken = tokens.RequestToken!;
+    return Results.Content(xsrfToken);
+});
 app.MapGet("/booking/{id}", BookingEndpoints.GetAsync);
 app.MapPatch("/booking/{id}", BookingEndpoints.PatchAsync);
 app.MapDelete("/booking/{id}", BookingEndpoints.DeleteAsync);
 app.MapPost("/booking", BookingEndpoints.PostAsync);
 app.MapPatch("/booking/{id}/comment", CommentEndpoints.PatchAsync);
+app.MapPost("/booking/{id}/comment", CommentEndpoints.PostAsync);
+app.MapDelete("/booking/{id}/comment", CommentEndpoints.DeleteAsync);
 app.MapPatch("/booking/{id}/recipient", RecipientMessageEndpoints.PatchAsync);
-
-app.MapPatch("/bookingstatus/{id}", BookingStatusEndpoints.PatchAsync);
+app.MapPost("/booking/{id}/recipient", RecipientMessageEndpoints.PostAsync);
+app.MapDelete("/booking/{id}/recipient", RecipientMessageEndpoints.DeleteAsync);
+app.MapPost("/booking/{id}/attachment", AttachmentEndpoints.PostAsync).DisableAntiforgery(); // Cant get antiforgery token to work...
+app.MapDelete("/booking/{id}/attachment", AttachmentEndpoints.DeleteAsync);
+app.MapPatch("/booking/{id}/status/", BookingStatusEndpoints.PatchAsync);
 
 app.MapGet("/companies", CompanyEndpoints.GetAllCompaniesAsync);
 

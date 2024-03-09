@@ -41,7 +41,8 @@
         "bradlc.vscode-tailwindcss",
         "chiadem.cs2ts-vscode-extension",
         "formulahendry.dotnet-test-explorer",
-        "aliasadidev.nugetpackagemanagergui"
+        "aliasadidev.nugetpackagemanagergui",
+        "SonarSource.sonarlint-vscode"
       ]
     }
   },

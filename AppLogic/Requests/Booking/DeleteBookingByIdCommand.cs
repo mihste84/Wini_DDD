@@ -16,7 +16,7 @@ public class DeleteBookingByIdCommand : IRequest<OneOf<Success, ValidationErrorR
         IBookingRepository repo,
         IAuthenticationService authenticationService,
         IAuthorizationService authorizationService,
-        ILogger<DeleteBookingByIdCommand.DeleteBookingByIdHandler> logger
+        ILogger<DeleteBookingByIdHandler> logger
         )
         : IRequestHandler<DeleteBookingByIdCommand, OneOf<Success, ValidationErrorResult, Error<string>, ForbiddenResult, NotFound, Unknown>>
     {
@@ -58,7 +58,7 @@ public class DeleteBookingByIdCommand : IRequest<OneOf<Success, ValidationErrorR
             {
                 return new ValidationErrorResult(ex.Errors);
             }
-            catch (Exception ex) when (ex is DomainLogicException or NotFoundException)
+            catch (Exception ex) when (ex is DomainLogicException or NotFoundException or ArgumentException or ArgumentNullException)
             {
                 return new Error<string>(ex.Message);
             }

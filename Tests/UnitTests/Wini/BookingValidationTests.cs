@@ -98,7 +98,10 @@ public class BookingValidationTests
         var authenticationService = new Mock<IAuthenticationService>();
         authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
 
-        booking.EditBookingHeader(new BookingHeaderModel(DateTime.UtcNow, "", true, Ledgers.AA), authenticationService.Object);
+        var now = DateTime.UtcNow;
+        booking.EditBookingHeader(
+            new BookingHeaderModel(DateOnly.FromDateTime(now), "", true, Ledgers.AA), authenticationService.Object
+        );
 
         var validationService = GetBookingValidationService();
 
@@ -441,7 +444,10 @@ public class BookingValidationTests
         var authenticationService = new Mock<IAuthenticationService>();
         authenticationService.Setup(_ => _.GetUserId()).Returns(booking.Commissioner.UserId!);
 
-        booking.EditBookingHeader(new BookingHeaderModel(DateTime.UtcNow, "Test", true, Ledgers.AA), authenticationService.Object);
+        var now = DateTime.UtcNow;
+        booking.EditBookingHeader(
+            new BookingHeaderModel(DateOnly.FromDateTime(now), "Test", true, Ledgers.AA), authenticationService.Object
+        );
 
         var validationService = GetBookingValidationService();
 

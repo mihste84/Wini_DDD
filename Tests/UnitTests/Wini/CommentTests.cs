@@ -5,7 +5,7 @@ public class CommentTests
     [Fact]
     public void Add_New_Comment()
     {
-        var createdDate = new DateTime(2024, 1, 1);
+        var createdDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var booking = CreateNewBookingAndComment(GetAuthService().Object, createdDate);
 
         Assert.Single(booking.Comments);
@@ -17,7 +17,7 @@ public class CommentTests
     [Fact]
     public void Edit_Comment()
     {
-        var createdDate = new DateTime(2024, 1, 1);
+        var createdDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var authService = GetAuthService();
         var booking = CreateNewBookingAndComment(authService.Object, createdDate);
 
@@ -42,7 +42,7 @@ public class CommentTests
     public void Delete_Comment()
     {
         var authService = GetAuthService();
-        var createdDate = new DateTime(2024, 1, 1);
+        var createdDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         var booking = CreateNewBookingAndComment(authService.Object, createdDate);
         var commentToDelete = booking.Comments[0];
@@ -62,7 +62,7 @@ public class CommentTests
     public void Fail_To_Add_New_Comment_Not_Commissioner()
     {
         var authService = GetAuthService("XMIHST");
-        var createdDate = new DateTime(2024, 1, 1);
+        var createdDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         var ex = Assert.Throws<DomainLogicException>(() => CreateNewBookingAndComment(authService.Object, createdDate));
 
@@ -75,7 +75,7 @@ public class CommentTests
     {
         var authService = GetAuthService("MIHSTE");
         var booking = new Booking(default, new Commissioner(authService.Object.GetUserId()));
-        var createdDate = new DateTime(2024, 1, 1);
+        var createdDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var ex = Assert.Throws<DomainLogicException>(() => booking.AddNewComment("Test", createdDate, authService.Object));
 
         Assert.NotNull(ex);

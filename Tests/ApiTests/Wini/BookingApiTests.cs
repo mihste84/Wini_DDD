@@ -1,6 +1,6 @@
 namespace Tests.ApiTests.Wini;
 
-[Order(3)]
+[Order(2)]
 public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
 {
     private readonly TestBase _testBase = testBase;
@@ -31,7 +31,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         Assert.Equal(Ledgers.AA, (Ledgers)booking.LedgerType.GetValueOrDefault());
         Assert.Equal("", booking.TextToE1);
         Assert.False(booking.Reversed);
-        Assert.Equal(DateTime.UtcNow.Date, booking.BookingDate);
+        Assert.Equal(DateTime.UtcNow.Date, booking.BookingDate!.Value);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         };
         var command = new InsertNewBookingCommand
         {
-            BookingDate = new DateTime(2024, 1, 1),
+            BookingDate = new DateOnly(2024, 1, 1),
             IsReversed = true,
             LedgerType = Ledgers.GP,
             TextToE1 = "Test",
@@ -82,7 +82,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         Assert.True(content.Id > 0);
         Assert.Equal(content.Id, booking.Id);
         Assert.Equal(content.RowVersion, booking.RowVersion);
-        Assert.Equal(command.BookingDate, booking.BookingDate);
+        Assert.Equal(command.BookingDate, DateOnly.FromDateTime(booking.BookingDate!.Value));
         Assert.Equal(command.TextToE1, booking.TextToE1);
         Assert.Equal(command.IsReversed, booking.Reversed);
         Assert.Equal(WiniStatus.Saved, (WiniStatus)booking.Status.GetValueOrDefault());
@@ -150,7 +150,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         };
         var command = new UpdateBookingCommand
         {
-            BookingDate = new DateTime(2024, 3, 2),
+            BookingDate = new DateOnly(2024, 3, 2),
             IsReversed = false,
             LedgerType = Ledgers.AA,
             TextToE1 = "Test edit",
@@ -174,7 +174,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         Assert.True(content.Id > 0);
         Assert.Equal(content.Id, booking.Id);
         Assert.Equal(content.RowVersion, booking.RowVersion);
-        Assert.Equal(command.BookingDate, booking.BookingDate);
+        Assert.Equal(command.BookingDate, DateOnly.FromDateTime(booking.BookingDate!.Value));
         Assert.Equal(command.TextToE1, booking.TextToE1);
         Assert.Equal(command.IsReversed, booking.Reversed);
         Assert.Equal(WiniStatus.Saved, (WiniStatus)booking.Status.GetValueOrDefault());
@@ -278,7 +278,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             Status = WiniStatus.Cancelled
         };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync("/api/bookingstatus/" + sqlResult.Id, command);
+        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -311,7 +311,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             Status = WiniStatus.SendError
         };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync("/api/bookingstatus/" + sqlResult.Id, command);
+        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -345,7 +345,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             Status = WiniStatus.Saved
         };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync("/api/bookingstatus/" + sqlResult.Id, command);
+        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -379,7 +379,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             Status = WiniStatus.ToBeSent
         };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync("/api/bookingstatus/" + sqlResult.Id, command);
+        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -414,7 +414,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             Status = WiniStatus.ToBeAuthorized
         };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync("/api/bookingstatus/" + sqlResult.Id, command);
+        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -453,7 +453,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             Status = WiniStatus.NotAuthorizedOnTime
         };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync("/api/bookingstatus/" + sqlResult.Id, command);
+        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -488,7 +488,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             Status = WiniStatus.Sent
         };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync("/api/bookingstatus/" + sqlResult.Id, command);
+        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -525,7 +525,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
     private static Services.DatabaseDapper.Models.Booking GetBooking(WiniStatus status, string createdBy = TestAuthenticationService.UserId)
     => new()
     {
-        BookingDate = new DateTime(2024, 1, 1),
+        BookingDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
         Created = DateTime.UtcNow,
         CreatedBy = createdBy,
         LedgerType = (short)Ledgers.AA,

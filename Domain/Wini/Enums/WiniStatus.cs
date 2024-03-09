@@ -1,6 +1,5 @@
 namespace Domain.Wini.Enums;
 
-[Flags]
 public enum WiniStatus
 {
     Saved,
