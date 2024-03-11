@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -12,17 +13,25 @@ if (isDevelopment)
     });
 }
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+builder.Services.AddAuthorization();
+
 if (builder.Environment.IsEnvironment("IntegrationTests"))
 {
     builder.Services.AddScoped<IAuthenticationService, TestAuthenticationService>();
     builder.Services.AddScoped<Domain.Wini.Interfaces.IAuthorizationService, TestAuthorizationService>();
-    builder.Services.AddSingleton<IAuthorizationHandler, AllowAnonymous>();
     builder.Services.AddSingleton<IAuthorizerValidationService, TestAuthorizerValidationService>();
     builder.Services.AddSingleton<IBookingPeriodValidationService, TestBookingPeriodValidationService>();
     builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();
     builder.Services.AddScoped<IAttachmentService, TestAttachmentService>();
 }
-builder.Services.Configure<CookieAuthenticationOptions>(o => o.LoginPath = PathString.Empty);
+else
+{
+    builder.Services
+        .AddAuthorizationBuilder()
+        .AddDefaultPolicy("default", _ => _.RequireAuthenticatedUser());
+}
 
 builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
 
@@ -31,25 +40,15 @@ builder.Services.AddProblemDetails();
 var connectionString = builder.Configuration.GetConnectionString("WiniDb");
 builder.Services.AddDatabaseServices(connectionString);
 builder.Services.AddAppLogicAndDomainServices();
-builder.Services.AddAntiforgery();
 
 var app = builder.Build();
 
 if (isDevelopment)
 {
-    app.UseDeveloperExceptionPage();
     app.UseHttpLogging();
 }
 
-app.UseRouting();
-
 app.UsePathBase(new PathString("/api"));
-app.MapGet("/antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
-{
-    var tokens = forgeryService.GetAndStoreTokens(context);
-    var xsrfToken = tokens.RequestToken!;
-    return Results.Content(xsrfToken);
-});
 app.MapGet("/booking/{id}", BookingEndpoints.GetAsync);
 app.MapPatch("/booking/{id}", BookingEndpoints.PatchAsync);
 app.MapDelete("/booking/{id}", BookingEndpoints.DeleteAsync);
@@ -67,5 +66,4 @@ app.MapPatch("/booking/{id}/status/", BookingStatusEndpoints.PatchAsync);
 app.MapGet("/companies", CompanyEndpoints.GetAllCompaniesAsync);
 
 app.Run();
-
 public partial class Program;

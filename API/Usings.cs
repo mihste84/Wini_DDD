@@ -7,7 +7,6 @@ global using Domain.Wini.Interfaces;
 global using API.Services;
 global using API.Endpoints;
 global using API.Models;
-global using Microsoft.AspNetCore.Authentication.Cookies;
 global using AppLogic.Startup;
 global using AppLogic.Requests;
 global using AppLogic.Models;
