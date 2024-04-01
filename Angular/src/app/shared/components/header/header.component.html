@@ -1,0 +1,41 @@
+<header class="flex h-full items-center justify-start px-4 text-white z-50">
+  <h1 class="text-xl">  <app-nav-link link="/home" [linkText]="title" [showSideNav]="true" />
+    </h1>
+  <app-nav-link link="/e1/" linkText="E1 bookings" [showSideNav]="true" />
+  <app-nav-link link="/lh/" linkText="Lighthouse bookings" [showSideNav]="true" />
+  <section class="flex-auto"></section>
+  <ng-container>
+    <span
+      [popper]="notificationList"
+      [popperPreventOverflow]="true"
+      popperApplyClass="bg-white"
+      [popperPlacement]="popperBottom"
+      class="relative cursor-pointer text-black">
+      <fa-icon
+        [icon]="notifications.getNotificationCount() ? faLightbulbSolid : faLightbulbRegular"
+        class="text-white"
+        size="lg" />
+    </span>
+    <span
+      [popper]="userList"
+      [popperPreventOverflow]="true"
+      popperApplyClass="bg-white"
+      [popperPlacement]="popperBottom"
+      class="relative text-black ml-4 cursor-pointer">
+      <fa-icon [icon]="faUser" class="text-white" size="lg" />
+    </span>
+  </ng-container>
+</header>
+
+<popper-content #userList>
+  <ul>
+    <li class="pb-2 text-gray-500">{{ user?.userName }}</li>
+    <li class="text-gray-500">{{ user?.name }}</li>
+  </ul>
+</popper-content>
+
+<popper-content #notificationList>
+  <div class="w-96 max-h-96 overflow-auto z-50">
+    <app-notification-list />
+  </div>
+</popper-content>

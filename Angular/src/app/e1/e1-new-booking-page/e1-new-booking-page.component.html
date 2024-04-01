@@ -1,0 +1,34 @@
+<form class="p-2 flex flex-col h-full" [formGroup]="form">
+  <section class="flex flex-col items-startflex-wrap border rounded-sm p-2 max-w-xl mb-2">
+    <h5 class="mb-2">New E1 Booking</h5>
+    <app-e1-booking-header formControlName="header" />
+  </section>
+  <section class="mb-2 flex-auto border relative flex flex-col rounded-sm">
+    <app-e1-booking-row-table formControlName="rows" />
+  </section>
+
+  <section class="mb-2 p-2 border rounded-sm">import</section>
+
+  <section class="mb-2 py-2 flex flex-row items-start">
+    <button
+      [disabled]="form.invalid"
+      (click)="validateBooking()"
+      type="button"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70">
+      Validate
+    </button>
+    <button
+      [disabled]="form.invalid"
+      type="button"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-70">
+      Save
+    </button>
+    <button
+      [disabled]="form.invalid"
+      type="button"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-70">
+      Save and close
+    </button>
+    <button type="button" class="h-8 text-sm leading-4 border me-2 p-2 bg-red-600 text-white rounded-md hover:bg-red-700">Close</button>
+  </section>
+</form>

@@ -1,0 +1,185 @@
+<app-modal #sharedModal></app-modal>
+
+<ng-container [formGroup]="form">
+  <div class="text-end p-2">
+    <button
+      type="button"
+      (click)="toggleCostObjects()"
+      class="me-2 h-8 text-sm leading-4 border p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+      {{ showAllCostObjects ? "Hide" : "Show" }} cost objects
+    </button>
+
+    <button
+      type="button"
+      (click)="addNewRow()"
+      class="h-8 text-sm leading-4 border p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+      Add new row
+    </button>
+  </div>
+
+  <div class="w-full overflow-auto flex-auto">
+    <table class="table-auto">
+      <thead class="border-t border-b bg-gray-200 text-sm">
+        <tr>
+          <th class="text-start px-2 border-r whitespace-nowrap">#</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">Business unit</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">Account</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">Subsidiary</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">Subledger</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">Subledger type</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">Cost object 1</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">CO 1 type</th>
+          @if(showAllCostObjects) {
+          <th class="text-start px-2 border-r whitespace-nowrap">Cost object 2</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">CO 2 type</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">Cost object 3</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">CO 3 type</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">Cost object 4</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">CO 4 type</th>
+          }
+          <th class="text-start px-2 border-r whitespace-nowrap">Amount</th>
+          <th class="text-start px-2 border-r whitespace-nowrap text-blue-500 pointer cursor-pointer">Currency</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">Exchange rate</th>
+          <th class="text-start px-2 border-r whitespace-nowrap text-blue-500 cursor-pointer">Authorizer</th>
+          <th class="text-start px-2 border-r whitespace-nowrap">Remark</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody class="text-sm" formArrayName="rows">
+        @for (control of rows.controls; let i = $index; track i) {
+        <tr [formGroupName]="i" class="align-top">
+          <td class="text-center px-1 border-r">
+            {{ i + 1 }}
+          </td>
+          <td class="px-1 border-r py-0.5 align-middle">
+            <input type="text" formControlName="businessUnit" name="businessUnit" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('businessUnit')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 12 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="account" name="account" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('account')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 6 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="subsidiary" name="subsidiary" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('subsidiary')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 8 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="subledger" name="subledger" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('subledger')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 8 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="subledgerType" name="subledgerType" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('subledgerType')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 1 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="costObject1" name="costObject1" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('costObject1')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 12 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="costObjectType1" name="costObjectType1" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('costObjectType1')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 1 chars</small>
+            }
+          </td>
+          @if(showAllCostObjects) {
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="costObject2" name="costObject2" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('costObject2')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 12 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="costObjectType2" name="costObjectType2" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('costObjectType2')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 1 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="costObject3" name="costObject3" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('costObject3')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 12 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="costObjectType3" name="costObjectType3" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('costObjectType3')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 1 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="costObject4" name="costObject4" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('costObject4')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 12 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="costObjectType4" name="costObjectType4" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('costObjectType4')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 1 chars</small>
+            }
+          </td>
+          }
+
+          <td class="px-1 border-r py-0.5">
+            <input
+              type="number"
+              formControlName="amount"
+              name="amount"
+              class="border rounded-md h-6 text-sm p-1 w-40 text-end"
+              step="0.01" />
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="currencyCode" name="currencyCode" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('currencyCode')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 3 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input
+              type="number"
+              formControlName="exchangeRate"
+              name="exchangeRate"
+              class="border rounded-md h-6 text-sm p-1 w-full text-end"
+              step="0.000001" />
+            @if (control.get('exchangeRate')?.hasError('min')) {
+            <small class="text-red-500 whitespace-nowrap">Negative value not allowed</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="authorizer" name="authorizer" class="border rounded-md h-6 text-sm p-1 w-full" />
+            @if (control.get('authorizer')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 200 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <input type="text" formControlName="remark" name="remark" class="border rounded-md h-6 text-sm p-1 w-48" />
+            @if (control.get('remark')?.hasError('maxlength')) {
+            <small class="text-red-500 whitespace-nowrap">Max length is 30 chars</small>
+            }
+          </td>
+          <td class="px-1 border-r py-0.5">
+            <fa-icon (click)="onRemoveRowCallback(i)" class="cursor-pointer text-red-600 hover:text-red-700" [icon]="faTrash" />
+          </td>
+        </tr>
+        }
+        <tr class="border-t">
+          <td [attr.colspan]="showAllCostObjects ? 14 : 8"></td>
+          <td class="text-end">{{ amountSum | number : "1.2" }}</td>
+          <td colspan="99"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</ng-container>

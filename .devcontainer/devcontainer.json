@@ -42,7 +42,8 @@
         "chiadem.cs2ts-vscode-extension",
         "formulahendry.dotnet-test-explorer",
         "aliasadidev.nugetpackagemanagergui",
-        "SonarSource.sonarlint-vscode"
+        "SonarSource.sonarlint-vscode",
+        "Angular.ng-template"
       ]
     }
   },

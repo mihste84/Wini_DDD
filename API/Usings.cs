@@ -15,3 +15,6 @@ global using Microsoft.AspNetCore.Http;
 global using Domain.Wini.Values;
 global using Domain.Models;
 global using Domain.Wini.Aggregates;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using Microsoft.AspNetCore.Authorization.Policy;
+global using Microsoft.Identity.Web;

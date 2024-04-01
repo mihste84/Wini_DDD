@@ -127,7 +127,7 @@ public partial class Booking
 
     public (bool IsValid, IEnumerable<ValidationError>? Errors) ValidateValues(IEnumerable<Company> companies)
     {
-        var validator = new BookingValidator(companies);
+        var validator = new BookingValidator(companies, BookingId == default);
         var res = validator.Validate(this);
 
         return (res.IsValid, res.Errors?.Select(_ => new ValidationError(_)));

@@ -1,0 +1,31 @@
+<section class="flex flex-col" [ngClass]="{ 'h-full': !isSmallScreen }">
+  @switch (urlType) { @case('e1') {
+  <section class="flex-auto">
+    <nav [ngClass]="{ 'flex flex-wrap justify-evenly': isSmallScreen }">
+      <app-nav-link link="/e1/new" linkText="New booking" [showSideNav]="showSideNav" [icon]="faPlus" />
+      <app-nav-link link="/e1/search" linkText="Search bookings" [showSideNav]="showSideNav" [icon]="faMagnifyingGlass" />
+      <app-nav-link link="/e1/import" linkText="Import bookings" [showSideNav]="showSideNav" [icon]="faFileImport" />
+    </nav>
+  </section>
+  } @case('lh') {
+  <section class="flex-auto">
+    <nav [ngClass]="{ 'flex flex-wrap justify-evenly': isSmallScreen }">
+      <app-nav-link link="/lh/new" linkText="New booking" [showSideNav]="showSideNav" [icon]="faPlus" />
+      <app-nav-link link="/lh/search" linkText="Search bookings" [showSideNav]="showSideNav" [icon]="faMagnifyingGlass" />
+    </nav>
+  </section>
+  } }
+
+  <section>
+    <div
+      *ngIf="!isSmallScreen"
+      (click)="onToggleSideNav.emit()"
+      class="py-2 flex cursor-pointer items-center justify-start"
+      [ngClass]="{ 'px-4': showSideNav, 'px-1': !showSideNav }">
+      <span class="w-8 text-center" [ngClass]="{ 'pr-2': showSideNav, 'pr-0': !showSideNav }">
+        <fa-icon [icon]="showSideNav ? faAnglesLeft : faAnglesRight" size="lg" />
+      </span>
+      <span *ngIf="showSideNav">Toggle side menu</span>
+    </div>
+  </section>
+</section>

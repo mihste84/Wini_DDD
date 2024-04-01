@@ -1,9 +1,15 @@
 namespace Domain.Wini.Validators;
 public class BookingValidator : AbstractValidator<Booking>
 {
-    public BookingValidator(IEnumerable<Company> companies)
+    public BookingValidator(IEnumerable<Company> companies, bool isNewBooking = false)
     {
-        RuleFor(_ => _.BookingId).SetValidator(new BookingIdValidator());
+        if (!isNewBooking) {
+            RuleFor(_ => _.BookingId).SetValidator(new BookingIdValidator());
+            RuleFor(_ => _.BookingStatus)
+                .Must(_ => _.Status != WiniStatus.New)
+                .WithMessage("Status cannot be 'New'.");
+        }
+
         RuleFor(_ => _.Commissioner).SetValidator(new UserValidator(true, "Commissioner"));
         RuleFor(_ => _.Header).SetValidator(new BookingHeaderValidator());
         RuleFor(_ => _.Rows).NotEmpty().WithMessage("Booking must contain rows.");

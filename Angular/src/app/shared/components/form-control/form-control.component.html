@@ -1,0 +1,15 @@
+<div class="mb-2 text-right">
+  <div class="flex items-center">
+    <label [for]="name" class="me-2 text-sm">{{ label }}</label>
+    <div class="flex-auto"></div>
+    <ng-content select="[input]"></ng-content>
+  </div>
+  <app-form-error [control]="control">
+    <ng-content required select="[required]"></ng-content>
+    <ng-content maxlength select="[maxlength]"></ng-content>
+    <ng-content minlength select="[minlength]"></ng-content>
+    <ng-content pattern select="[pattern]"></ng-content>
+    <ng-content min select="[min]"></ng-content>
+    <ng-content max select="[max]"></ng-content>
+  </app-form-error>
+</div>

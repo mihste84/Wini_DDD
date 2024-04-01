@@ -1,0 +1,6 @@
+@for (item of activeNotifications; track item.id) {
+  <article  class="mb-2 w-96 rounded border border-gray-400 shadow-sm">
+    <app-notification-card [notification]="item" (onRemove)="removeNotificationCallback($event)" />
+  </article>
+}
+

@@ -1,8 +1,10 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Identity.Web;
-
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
+var corsOrigin = builder.Configuration["CorsOrigin"];
+var connectionString = builder.Configuration.GetConnectionString("WiniDb");
+
+ArgumentNullException.ThrowIfNullOrWhiteSpace(corsOrigin);
+ArgumentNullException.ThrowIfNullOrWhiteSpace(connectionString);
 
 if (isDevelopment)
 {
@@ -15,7 +17,9 @@ if (isDevelopment)
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
-builder.Services.AddAuthorization();
+builder.Services
+    .AddAuthorizationBuilder()
+    .AddDefaultPolicy("default", _ => _.RequireAuthenticatedUser());
 
 if (builder.Environment.IsEnvironment("IntegrationTests"))
 {
@@ -25,19 +29,25 @@ if (builder.Environment.IsEnvironment("IntegrationTests"))
     builder.Services.AddSingleton<IBookingPeriodValidationService, TestBookingPeriodValidationService>();
     builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();
     builder.Services.AddScoped<IAttachmentService, TestAttachmentService>();
-}
-else
+    builder.Services.AddSingleton<IPolicyEvaluator, DisableAuthenticationPolicyEvaluator>();
+} 
+else 
 {
-    builder.Services
-        .AddAuthorizationBuilder()
-        .AddDefaultPolicy("default", _ => _.RequireAuthenticatedUser());
+    builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+    builder.Services.AddScoped<Domain.Wini.Interfaces.IAuthorizationService, TestAuthorizationService>();
+    builder.Services.AddSingleton<IAuthorizerValidationService, TestAuthorizerValidationService>();
+    builder.Services.AddSingleton<IBookingPeriodValidationService, TestBookingPeriodValidationService>();
+    builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();
+    builder.Services.AddScoped<IAttachmentService, TestAttachmentService>();
 }
 
 builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
 
 builder.Services.AddProblemDetails();
+builder.Services.AddCors(_ => _
+    .AddDefaultPolicy(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins(corsOrigin).AllowCredentials())
+);
 
-var connectionString = builder.Configuration.GetConnectionString("WiniDb");
 builder.Services.AddDatabaseServices(connectionString);
 builder.Services.AddAppLogicAndDomainServices();
 
@@ -46,24 +56,30 @@ var app = builder.Build();
 if (isDevelopment)
 {
     app.UseHttpLogging();
+    app.UseDeveloperExceptionPage();
 }
 
-app.UsePathBase(new PathString("/api"));
-app.MapGet("/booking/{id}", BookingEndpoints.GetAsync);
-app.MapPatch("/booking/{id}", BookingEndpoints.PatchAsync);
-app.MapDelete("/booking/{id}", BookingEndpoints.DeleteAsync);
-app.MapPost("/booking", BookingEndpoints.PostAsync);
-app.MapPatch("/booking/{id}/comment", CommentEndpoints.PatchAsync);
-app.MapPost("/booking/{id}/comment", CommentEndpoints.PostAsync);
-app.MapDelete("/booking/{id}/comment", CommentEndpoints.DeleteAsync);
-app.MapPatch("/booking/{id}/recipient", RecipientMessageEndpoints.PatchAsync);
-app.MapPost("/booking/{id}/recipient", RecipientMessageEndpoints.PostAsync);
-app.MapDelete("/booking/{id}/recipient", RecipientMessageEndpoints.DeleteAsync);
-app.MapPost("/booking/{id}/attachment", AttachmentEndpoints.PostAsync).DisableAntiforgery(); // Cant get antiforgery token to work...
-app.MapDelete("/booking/{id}/attachment", AttachmentEndpoints.DeleteAsync);
-app.MapPatch("/booking/{id}/status/", BookingStatusEndpoints.PatchAsync);
+app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapGet("/companies", CompanyEndpoints.GetAllCompaniesAsync);
+app.MapGet("api/booking/{id}", BookingEndpoints.GetAsync).RequireAuthorization();
+app.MapPatch("api/booking/{id}", BookingEndpoints.PatchAsync).RequireAuthorization();
+app.MapDelete("api/booking/{id}", BookingEndpoints.DeleteAsync).RequireAuthorization();
+app.MapPost("api/booking", BookingEndpoints.PostAsync).RequireAuthorization();
+app.MapPatch("api/booking/{id}/comment", CommentEndpoints.PatchAsync).RequireAuthorization();
+app.MapPost("api/booking/{id}/comment", CommentEndpoints.PostAsync).RequireAuthorization();
+app.MapDelete("api/booking/{id}/comment", CommentEndpoints.DeleteAsync).RequireAuthorization();
+app.MapPatch("api/booking/{id}/recipient", RecipientMessageEndpoints.PatchAsync).RequireAuthorization();
+app.MapPost("api/booking/{id}/recipient", RecipientMessageEndpoints.PostAsync).RequireAuthorization();
+app.MapDelete("api/booking/{id}/recipient", RecipientMessageEndpoints.DeleteAsync).RequireAuthorization();
+app.MapPost("api/booking/{id}/attachment", AttachmentEndpoints.PostAsync).DisableAntiforgery().RequireAuthorization(); // Cant get antiforgery token to work...
+app.MapDelete("api/booking/{id}/attachment", AttachmentEndpoints.DeleteAsync).RequireAuthorization();
+app.MapPatch("api/booking/{id}/status", BookingStatusEndpoints.PatchAsync).RequireAuthorization();
+app.MapPatch("api/booking/{id}/validate", ValidationEndpoints.ValidateByIdAsync).RequireAuthorization();
+app.MapPost("api/booking/validate", ValidationEndpoints.ValidateNewAsync).RequireAuthorization();
+
+app.MapGet("api/masterdata", MasterDataEndpoints.GetAllCompaniesAsync).RequireAuthorization();
 
 app.Run();
 public partial class Program;

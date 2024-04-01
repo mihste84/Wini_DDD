@@ -1,0 +1,17 @@
+<article
+  class="bg-white flex max-h-fit cursor-default flex-col items-stretch border-l-4 p-1 ps-2 {{
+    getClassByType(notification?.type)
+  }}"
+>
+  <h4 class="mb-1 flex items-start text-sm">
+    @if(notification?.title)  {
+      <span >{{ notification?.title }}</span>
+    }
+    <div class="flex-auto"></div>
+    <span class="w-4 cursor-pointer hover:stroke-gray-500" (click)="removeNotification()">X</span>
+  </h4>
+  <p class="flex-auto text-xs font-light line-clamp-3 mb-2" [title]="notification?.message">
+    {{ notification?.message }}
+  </p>
+  <small class="text-right text-xs font-thin">{{ notification?.created | date : "yyyy-MM-dd hh:mm:ss" }}</small>
+</article>

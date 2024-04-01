@@ -1,6 +1,6 @@
 namespace API.Endpoints;
 
-public static class CompanyEndpoints
+public static class MasterDataEndpoints
 {
     public static async Task<IResult> GetAllCompaniesAsync(IMediator mediator)
     {
