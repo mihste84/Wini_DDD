@@ -1,31 +1,25 @@
 <ng-container [formGroup]="form">
   <div class="flex justify-start items-start flex-wrap">
     <app-form-control name="bookingDate" label="Booking date:" [control]="form.controls['bookingDate']" class="me-3">
-      <input input type="date" formControlName="bookingDate" id="bookingDate" class="border rounded-md h-8 text-sm p-1 max-w-xs" />
+      <input input type="date" formControlName="bookingDate" id="bookingDate" class="border rounded-md h-8 text-sm p-1" />
       <small required>Booking date is required</small>
     </app-form-control>
 
-    <app-form-control name="textToE1" label="Text to E1:" [control]="form.controls['textToE1']" class="-me-3">
-      <input input type="text" formControlName="textToE1" id="textToE1" class="border rounded-md h-8 text-sm p-1 max-w-xs" />
+    <app-form-control name="textToE1" label="Text to E1:" [control]="form.controls['textToE1']" class="me-3">
+      <input input type="text" formControlName="textToE1" id="textToE1" class="border rounded-md h-8 text-sm p-1" />
       <small maxlength>Maximum length is 30 chars</small>
     </app-form-control>
-  </div>
-  <div class="flex justify-start items-start flex-wrap">
+
     <app-form-control name="isReversed" label="Reversed booking:" [control]="form.controls['isReversed']" class="me-3">
-      <input
-        input
-        id="isReversed"
-        type="checkbox"
-        class="rounded-md h-8 text-sm p-1 max-w-xs"
-        name="isReversed"
-        formControlName="isReversed" />
+      <input input id="isReversed" type="checkbox" class="rounded-md h-8 text-sm p-1" name="isReversed" formControlName="isReversed" />
     </app-form-control>
 
     <app-form-control name="ledgerType" label="Ledger type:" [control]="form.controls['ledgerType']" class="me-3">
-      <select input class="border rounded-md h-8 text-sm p-1 max-w-xs" id="ledgerType" formControlName="ledgerType">
+      <select input class="border rounded-md h-8 text-sm p-1" id="ledgerType" formControlName="ledgerType">
         <option [value]="0">AA</option>
         <option [value]="1">CA</option>
       </select>
     </app-form-control>
   </div>
+  <div class="flex justify-start items-start flex-wrap"></div>
 </ng-container>

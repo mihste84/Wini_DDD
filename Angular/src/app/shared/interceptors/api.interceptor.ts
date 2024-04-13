@@ -11,7 +11,6 @@ export class ApiInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const apiReq = request.clone({
       url: environment.apiConfig.uri + request.url,
-      withCredentials: true,
     });
     this.loadingService.startLoading();
     return next.handle(apiReq).pipe(finalize(() => this.loadingService.stopLoading()));

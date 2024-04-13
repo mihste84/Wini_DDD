@@ -1,23 +1,27 @@
 <app-modal #sharedModal></app-modal>
 
-<ng-container [formGroup]="form">
-  <div class="text-end p-2">
-    <button
-      type="button"
-      (click)="toggleCostObjects()"
-      class="me-2 h-8 text-sm leading-4 border p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
-      {{ showAllCostObjects ? "Hide" : "Show" }} cost objects
-    </button>
+<section [formGroup]="form" class="h-full flex flex-col">
+  <section class="text-end p-2 flex items-center">
+    <b>Rows for accounting codes</b>
+    <div class="flex-auto"></div>
+    <div>
+      <button
+        type="button"
+        (click)="toggleCostObjects()"
+        class="me-2 h-8 text-sm leading-4 border p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+        {{ showAllCostObjects ? "Hide" : "Show" }} cost objects
+      </button>
 
-    <button
-      type="button"
-      (click)="addNewRow()"
-      class="h-8 text-sm leading-4 border p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
-      Add new row
-    </button>
-  </div>
+      <button
+        type="button"
+        (click)="onAddNewRowClick()"
+        class="h-8 text-sm leading-4 border p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+        Add new row
+      </button>
+    </div>
+  </section>
 
-  <div class="w-full overflow-auto flex-auto">
+  <section class="w-full overflow-auto flex-1">
     <table class="table-auto">
       <thead class="border-t border-b bg-gray-200 text-sm">
         <tr>
@@ -42,15 +46,43 @@
           <th class="text-start px-2 border-r whitespace-nowrap">Exchange rate</th>
           <th class="text-start px-2 border-r whitespace-nowrap text-blue-500 cursor-pointer">Authorizer</th>
           <th class="text-start px-2 border-r whitespace-nowrap">Remark</th>
+          @if(isNewBooking) {
           <th></th>
+          } @else {
+          <th title="Toggle mark all rows for deletion">
+            <div class="px-1"><input [formControl]="selectAllToDelete" type="checkbox" /></div>
+          </th>
+          }
         </tr>
       </thead>
       <tbody class="text-sm" formArrayName="rows">
-        @for (control of rows.controls; let i = $index; track i) {
-        <tr [formGroupName]="i" class="align-top">
-          <td class="text-center px-1 border-r">
-            {{ i + 1 }}
+        @for (control of rows.controls; let i = $index; track control.value.id) {
+        <tr [formGroupName]="i" class="align-middle">
+          @if(isValidationError(control.value.rowNumber)) {
+          <td class="text-center px-1 border-r bg-red-500">
+            <span
+              class="text-white cursor-pointer"
+              [popper]="error"
+              [popperTrigger]="popperTrigger"
+              [popperPreventOverflow]="true"
+              popperApplyClass="bg-white"
+              [popperPlacement]="popperplacement"
+              ><b>{{ i + 1 }}</b></span
+            >
+            <popper-content #error>
+              <h6 class="w-auto text-start text-nowrap underline mb-1">Errors row #{{ i + 1 }}</h6>
+
+              @for(error of getValidationErrors(control.value.rowNumber); track $index) {
+              <p class="w-auto text-start text-nowrap">
+                {{ error }}
+              </p>
+              }
+            </popper-content>
           </td>
+          } @else {
+          <td class="text-center px-1 border-r text-nowrap">{{ i + 1 }} @if(isDevelopment) { ({{ control.value.rowNumber }}) }</td>
+          }
+
           <td class="px-1 border-r py-0.5 align-middle">
             <input type="text" formControlName="businessUnit" name="businessUnit" class="border rounded-md h-6 text-sm p-1 w-full" />
             @if (control.get('businessUnit')?.hasError('maxlength')) {
@@ -136,9 +168,10 @@
             <input
               type="number"
               formControlName="amount"
+              appFormatAmount
               name="amount"
-              class="border rounded-md h-6 text-sm p-1 w-40 text-end"
-              step="0.01" />
+              step="0.01"
+              class="border rounded-md h-6 text-sm p-1 w-40 text-end" />
           </td>
           <td class="px-1 border-r py-0.5">
             <input type="text" formControlName="currencyCode" name="currencyCode" class="border rounded-md h-6 text-sm p-1 w-full" />
@@ -150,6 +183,8 @@
             <input
               type="number"
               formControlName="exchangeRate"
+              appFormatAmount
+              [decimalNo]="7"
               name="exchangeRate"
               class="border rounded-md h-6 text-sm p-1 w-full text-end"
               step="0.000001" />
@@ -169,9 +204,22 @@
             <small class="text-red-500 whitespace-nowrap">Max length is 30 chars</small>
             }
           </td>
+          @if(control.value.isNew) {
           <td class="px-1 border-r py-0.5">
-            <fa-icon (click)="onRemoveRowCallback(i)" class="cursor-pointer text-red-600 hover:text-red-700" [icon]="faTrash" />
+            <fa-icon
+              (click)="onRemoveRowClick(control.value?.rowNumber, i + 1)"
+              class="cursor-pointer text-red-600 hover:text-red-700"
+              [icon]="faTrash" />
           </td>
+          } @else {
+          <td class="px-1 border-r py-0.5 text-center">
+            <input type="checkbox" formControlName="toDelete" />
+          </td>
+          }
+        </tr>
+        } @empty {
+        <tr>
+          <td class="p-2 border-r" colspan="99">No rows added</td>
         </tr>
         }
         <tr class="border-t">
@@ -181,5 +229,5 @@
         </tr>
       </tbody>
     </table>
-  </div>
-</ng-container>
+  </section>
+</section>

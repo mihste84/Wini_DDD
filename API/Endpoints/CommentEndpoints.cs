@@ -1,15 +1,26 @@
+
 namespace API.Endpoints;
 
 public static class CommentEndpoints
 {
-    public static async Task<IResult> PostAsync([FromRoute] int? id, [FromBody] CommentInput model, IMediator mediator)
+    public static async Task<IResult> PostAsync(
+        [FromRoute] int? id,
+        [FromHeader(Name = "RowVersion")] string? rowVersionString,
+        [FromBody] CommentInput model,
+        IMediator mediator)
     {
-        var command = new UpdateBookingCommentCommand {
+        if (!Converters.TryConvertStringBase64ToBytes(rowVersionString, out var rowVersion))
+        {
+            return new BaseFormatErrorRespons("RowVersion header cannot be converted to byte array.");
+        }
+
+        var command = new UpdateBookingCommentCommand
+        {
             Action = Domain.Wini.Events.CrudAction.Added,
             BookingId = id,
             Created = model.Created,
             Value = model.Value,
-            RowVersion = model.RowVersion
+            RowVersion = rowVersion
         };
 
         var res = await mediator.Send(command);
@@ -17,26 +28,32 @@ public static class CommentEndpoints
         return res.Match(
             success => Results.Created("api/booking/" + success.Value.Id, success.Value),
             validationError => new BaseErrorResponse(validationError.Value),
-            _ => new BaseErrorResponse(409, "Update conflict", "Item has already been updated by another user."),
+            _ => new BaseConflictResponse(),
             error => new BaseErrorResponse(400, "Domain error", error.Value),
-            _ => Results.NotFound(),
-            _ => Results.Forbid(),
-            _ => new BaseErrorResponse(
-                500,
-                "Database error",
-                "A database error occurred when trying to add comment. Check the logs for details."
-            )
+            _ => new BaseNotFoundResponse(),
+            _ => new BaseForbiddenResponse(),
+            _ => new BaseDatabaseErrorResponse()
         );
     }
 
-    public static async Task<IResult> PatchAsync([FromRoute] int? id, [FromBody] CommentInput model, IMediator mediator)
+    public static async Task<IResult> PatchAsync(
+        [FromRoute] int? id,
+        [FromHeader(Name = "RowVersion")] string? rowVersionString,
+        [FromBody] CommentInput model,
+        IMediator mediator)
     {
-        var command = new UpdateBookingCommentCommand {
+        if (!Converters.TryConvertStringBase64ToBytes(rowVersionString, out var rowVersion))
+        {
+            return new BaseFormatErrorRespons("RowVersion header cannot be converted to byte array.");
+        }
+
+        var command = new UpdateBookingCommentCommand
+        {
             Action = Domain.Wini.Events.CrudAction.Edited,
             BookingId = id,
             Created = model.Created,
             Value = model.Value,
-            RowVersion = model.RowVersion
+            RowVersion = rowVersion
         };
 
         var res = await mediator.Send(command);
@@ -44,26 +61,28 @@ public static class CommentEndpoints
         return res.Match(
             success => Results.Ok(success.Value),
             validationError => new BaseErrorResponse(validationError.Value),
-            _ => new BaseErrorResponse(409, "Update conflict", "Item has already been updated by another user."),
+            _ => new BaseConflictResponse(),
             error => new BaseErrorResponse(400, "Domain error", error.Value),
-            _ => Results.NotFound(),
-            _ => Results.Forbid(),
-            _ => new BaseErrorResponse(
-                500,
-                "Database error",
-                "A database error occurred when trying to update comment. Check the logs for details."
-            )
+            _ => new BaseNotFoundResponse(),
+            _ => new BaseForbiddenResponse(),
+            _ => new BaseDatabaseErrorResponse()
         );
     }
 
     public static async Task<IResult> DeleteAsync(
         [FromRoute] int? id,
-        [FromQuery] byte[] rowVersion,
+        [FromHeader(Name = "RowVersion")] string? rowVersionString,
         [FromQuery] DateTime? created,
         IMediator mediator
     )
     {
-        var command = new UpdateBookingCommentCommand {
+        if (!Converters.TryConvertStringBase64ToBytes(rowVersionString, out var rowVersion))
+        {
+            return new BaseFormatErrorRespons("RowVersion header cannot be converted to byte array.");
+        }
+
+        var command = new UpdateBookingCommentCommand
+        {
             Action = Domain.Wini.Events.CrudAction.Deleted,
             BookingId = id,
             Created = created,
@@ -75,15 +94,11 @@ public static class CommentEndpoints
         return res.Match(
             success => Results.Ok(success.Value),
             validationError => new BaseErrorResponse(validationError.Value),
-            _ => new BaseErrorResponse(409, "Update conflict", "Item has already been updated by another user."),
+            _ => new BaseConflictResponse(),
             error => new BaseErrorResponse(400, "Domain error", error.Value),
-            _ => Results.NotFound(),
-            _ => Results.Forbid(),
-            _ => new BaseErrorResponse(
-                500,
-                "Database error",
-                "A database error occurred when trying to add comment. Check the logs for details."
-            )
+            _ => new BaseNotFoundResponse(),
+            _ => new BaseForbiddenResponse(),
+            _ => new BaseDatabaseErrorResponse()
         );
     }
 }

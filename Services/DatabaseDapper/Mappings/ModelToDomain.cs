@@ -2,15 +2,15 @@ namespace Services.DatabaseDapper.Mappings;
 
 public static class DomainToModel
 {
-   public static Models.RecipientMessage MapToModel(RecipientMessage message, string user)
-    => new()
-    {
-        BookingId = message.BookingId.Value,
-        Value = message.Message,
-        Recipient = message.Recipient.UserId,
-        CreatedBy = user
-        //Id = id,
-    };
+    public static Models.RecipientMessage MapToModel(RecipientMessage message, string user)
+     => new()
+     {
+         BookingId = message.BookingId.Value,
+         Value = message.Message,
+         Recipient = message.Recipient.UserId,
+         CreatedBy = user
+         //Id = id,
+     };
 
     public static Models.Comment MapToModel(Comment comment, string user)
     => new()
@@ -41,6 +41,7 @@ public static class DomainToModel
         Status = (short)booking.BookingStatus.Status,
         CreatedBy = booking.Commissioner.UserId,
         UpdatedBy = user,
+        Updated = booking.BookingStatus.Updated,
         Id = booking.BookingId?.Value
     };
 

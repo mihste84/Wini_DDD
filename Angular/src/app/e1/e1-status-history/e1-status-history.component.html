@@ -1,0 +1,18 @@
+<table class="table-auto text-sm">
+  <thead class="border-t border-b bg-gray-200 text-sm">
+    <tr>
+      <th class="text-start px-2 border-r whitespace-nowrap">Status</th>
+      <th class="text-start px-2 border-r whitespace-nowrap">Updated date</th>
+      <th class="text-start px-2 border-r whitespace-nowrap">Updated by</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (status of statuses; let i = $index; track status.updated) {
+    <tr>
+      <td class="px-2 border-r whitespace-nowrap">{{ getStatus(status.status) }}</td>
+      <td class="px-2 border-r whitespace-nowrap">{{ status.updated | date : "yyyy-MM-dd HH:mm:ss" }}</td>
+      <td class="px-2 border-r whitespace-nowrap">{{ status.updatedBy }}</td>
+    </tr>
+    }
+  </tbody>
+</table>

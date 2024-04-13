@@ -421,7 +421,7 @@ public class BookingTests
 
         Assert.Equal(WiniStatus.Cancelled, booking.BookingStatus.Status);
         Assert.Single(booking.DomainEvents);
-        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status.Status == WiniStatus.Cancelled);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status.Status == WiniStatus.Saved);
     }
 
     [Fact]
@@ -495,7 +495,7 @@ public class BookingTests
         var allRowUnauthorized = booking.Rows.TrueForAll(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
         Assert.NotEmpty(booking.DomainEvents);
-        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.SendError);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.ToBeSent);
         Assert.NotNull(statusEvent);
     }
 
@@ -576,11 +576,9 @@ public class BookingTests
                                              new DateTime(2023, 3, 23, 23, 1, 0, DateTimeKind.Local));
 
         Assert.Equal(WiniStatus.Saved, booking.BookingStatus.Status);
-        var hasHistorySaved = booking.BookingStatus.StatusHistory.Exists(_ => _.Status == WiniStatus.NotAuthorizedOnTime);
-        Assert.True(hasHistorySaved);
         Assert.Equal(2, booking.DomainEvents.Count);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status.Status == WiniStatus.ToBeAuthorized);
         Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status.Status == WiniStatus.NotAuthorizedOnTime);
-        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status.Status == WiniStatus.Saved);
     }
 
     [Fact]
@@ -689,12 +687,10 @@ public class BookingTests
         booking.SetSavedStatus(authenticationService.Object, authorizationService.Object);
 
         Assert.Equal(WiniStatus.Saved, booking.BookingStatus.Status);
-        var hasHistorySaved = booking.BookingStatus.StatusHistory.Exists(_ => _.Status == WiniStatus.ToBeSent);
-        Assert.True(hasHistorySaved);
         var allRowUnauthorized = booking.Rows.TrueForAll(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
         Assert.NotEmpty(booking.DomainEvents);
-        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.Saved);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.ToBeSent);
         Assert.NotNull(statusEvent);
     }
 
@@ -747,7 +743,7 @@ public class BookingTests
         var allRowUnauthorized = booking.Rows.TrueForAll(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
         Assert.NotEmpty(booking.DomainEvents);
-        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.Saved);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.ToBeSent);
         Assert.NotNull(statusEvent);
     }
 
@@ -800,7 +796,7 @@ public class BookingTests
         var allRowUnauthorized = booking.Rows.TrueForAll(_ => !_.Authorizer.HasAuthorized);
         Assert.True(allRowUnauthorized);
         Assert.NotEmpty(booking.DomainEvents);
-        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.Saved);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.ToBeSent);
         Assert.NotNull(statusEvent);
     }
 
@@ -832,11 +828,11 @@ public class BookingTests
         var authenticationService = new Mock<IAuthenticationService>();
         authenticationService.Setup(_ => _.GetUserId()).Returns(commissioner);
 
-        var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.Saved);
+        var booking = CommonTestValues.GetBooking(commissioner, WiniStatus.Sent);
 
         var ex = Assert.Throws<DomainLogicException>(() => booking.SetSavedStatus(authenticationService.Object, authorizationService.Object));
 
-        Assert.Equal("Status cannot be Sent, Saved or Cancelled", ex.Message);
+        Assert.Equal("Status cannot be Sent or Cancelled", ex.Message);
         Assert.Equal("Saved", ex.AttemptedValue);
         Assert.Equal("Status", ex.PropertyName);
     }
@@ -882,10 +878,8 @@ public class BookingTests
         await booking.SetToBeAuthorizedStatusAsync(authenticationService.Object, validationService, _companies);
 
         Assert.Equal(WiniStatus.ToBeAuthorized, booking.BookingStatus.Status);
-        var hasHistorySaved = booking.BookingStatus.StatusHistory.Exists(_ => _.Status == WiniStatus.Saved);
-        Assert.True(hasHistorySaved);
         Assert.Single(booking.DomainEvents);
-        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status.Status == WiniStatus.ToBeAuthorized);
+        Assert.Contains(booking.DomainEvents, _ => ((WiniStatusEvent)_).Status.Status == WiniStatus.Saved);
     }
 
     [Fact]
@@ -1029,10 +1023,8 @@ public class BookingTests
         );
 
         Assert.Equal(WiniStatus.ToBeSent, booking.BookingStatus.Status);
-        var hasHistorySaved = booking.BookingStatus.StatusHistory.Exists(_ => _.Status == WiniStatus.ToBeAuthorized);
-        Assert.True(hasHistorySaved);
         Assert.NotEmpty(booking.DomainEvents);
-        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.ToBeSent);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.ToBeAuthorized);
         Assert.NotNull(statusEvent);
     }
 
@@ -1197,12 +1189,10 @@ public class BookingTests
         );
 
         Assert.Equal(WiniStatus.ToBeSent, booking.BookingStatus.Status);
-        var hasHistorySaved = booking.BookingStatus.StatusHistory.Exists(_ => _.Status == WiniStatus.ToBeAuthorized);
-        Assert.True(hasHistorySaved);
         Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer1 && _.Authorizer.HasAuthorized);
         Assert.Contains(booking.Rows, _ => _.Authorizer.UserId == authorizer2 && _.Authorizer.HasAuthorized);
         Assert.NotEmpty(booking.DomainEvents);
-        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.ToBeSent);
+        var statusEvent = booking.DomainEvents.SingleOrDefault(_ => _ is WiniStatusEvent evt && evt.Status.Status == WiniStatus.ToBeAuthorized);
         Assert.NotNull(statusEvent);
     }
 

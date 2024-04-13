@@ -1,3 +1,4 @@
 export enum Ledger {
-    AA, CA
+  AA,
+  CA,
 }

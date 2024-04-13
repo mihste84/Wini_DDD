@@ -17,20 +17,6 @@ public partial class Booking
         return true;
     }
 
-    public void EditBookingHeader(BookingHeaderModel model, IAuthenticationService authenticationService)
-    {
-        VerifyIfBookingIsEditable(authenticationService.GetUserId());
-
-        Header = new BookingHeader(
-            model.BookingDate,
-            model.TextToE1,
-            model.IsReversed,
-            model.LedgerType
-        );
-
-        BookingStatus.SaveStatusHistory(); // Save history on update
-    }
-
     public void AddNewRow(BookingRowModel row, IAuthenticationService authenticationService)
     {
         VerifyIfBookingIsEditable(authenticationService.GetUserId());

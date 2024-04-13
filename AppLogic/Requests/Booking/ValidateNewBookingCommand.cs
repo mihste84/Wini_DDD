@@ -1,7 +1,7 @@
 namespace AppLogic.Requests;
 
 public class ValidateNewBookingCommand
-: BookingInput, IRequest<OneOf<Result<BookingValidationResultModel>, ForbiddenResult, Unknown>>
+: BookingInput, IRequest<OneOf<Result<BookingValidationResultModel>, ForbiddenResult, Unknown, Error<string>>>
 {
     public class ValidateNewBookingHandler(
         IBookingValidationService bookingValidationService,
@@ -10,9 +10,9 @@ public class ValidateNewBookingCommand
         IAuthenticationService authenticationService,
         ILogger<ValidateNewBookingHandler> logger
     )
-    : IRequestHandler<ValidateNewBookingCommand, OneOf<Result<BookingValidationResultModel>, ForbiddenResult, Unknown>>
+    : IRequestHandler<ValidateNewBookingCommand, OneOf<Result<BookingValidationResultModel>, ForbiddenResult, Unknown, Error<string>>>
     {
-        public async Task<OneOf<Result<BookingValidationResultModel>, ForbiddenResult, Unknown>> Handle(
+        public async Task<OneOf<Result<BookingValidationResultModel>, ForbiddenResult, Unknown, Error<string>>> Handle(
             ValidateNewBookingCommand request,
             CancellationToken cancellationToken
         )
@@ -22,7 +22,8 @@ public class ValidateNewBookingCommand
                 return new ForbiddenResult();
             }
 
-            try {
+            try
+            {
                 var user = authenticationService.GetUserId();
                 var booking = new Booking(
                     default,
@@ -42,14 +43,21 @@ public class ValidateNewBookingCommand
                 var result = await bookingValidationService.ValidateAsync(booking, companies);
 
                 return new Result<BookingValidationResultModel>(result);
-            } catch (AccountingValidationException ex) {
+            }
+            catch (AccountingValidationException ex)
+            {
                 logger.LogError(ex, "Failed to validate with accounting system.");
                 return new Unknown();
-            } catch (AuthorizerValidationException ex) {
+            }
+            catch (AuthorizerValidationException ex)
+            {
                 logger.LogError(ex, "Failed to validate with authorizer system.");
                 return new Unknown();
-            } catch (DomainValidationException ex) { // Catch validation errors when booking is created
-                var result = new BookingValidationResultModel {
+            }
+            catch (DomainValidationException ex)
+            { // Catch validation errors when booking is created
+                var result = new BookingValidationResultModel
+                {
                     Message = "Booking values are not valid.",
                     IsValid = false,
                     Errors = ex.Errors
@@ -57,10 +65,15 @@ public class ValidateNewBookingCommand
 
                 return new Result<BookingValidationResultModel>(result);
             }
+            catch (FormatException ex)
+            {
+                logger.LogError(ex, "Failed to parse booking values.");
+                return new Error<string>(ex.Message);
+            }
         }
 
         private BookingRow MapFromModel(BookingRowModel model)
-        => new (
+        => new(
             model.RowNumber,
             new BusinessUnit(model.BusinessUnit),
             new Account(model.Account, model.Subsidiary),

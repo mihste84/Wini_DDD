@@ -61,7 +61,7 @@ public class InsertNewBookingCommand
             {
                 return new ValidationErrorResult(ex.Errors);
             }
-            catch (Exception ex) when (ex is DomainLogicException or NotFoundException or ArgumentException or ArgumentNullException)
+            catch (Exception ex) when (ex is DomainLogicException or FormatException or NotFoundException or ArgumentException or ArgumentNullException)
             {
                 return new Error<string>(ex.Message);
             }

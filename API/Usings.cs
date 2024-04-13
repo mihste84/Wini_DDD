@@ -18,3 +18,4 @@ global using Domain.Wini.Aggregates;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Authorization.Policy;
 global using Microsoft.Identity.Web;
+global using API.Utils;

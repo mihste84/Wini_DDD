@@ -161,7 +161,10 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             BookingId = sqlResult.Id,
             RowVersion = sqlResult.RowVersion
         };
-        var res = await _testBase.HttpClient.PatchAsJsonAsync("/api/booking/" + sqlResult.Id, command);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, "/api/booking/" + sqlResult.Id);
+        request.Content = JsonContent.Create(command);
+        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -169,8 +172,10 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
 
         var booking = await _testBase.QuerySingleAsync<Services.DatabaseDapper.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         var rows = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingRow>("SELECT * FROM dbo.BookingRows ORDER BY RowNumber")).ToArray();
+        var logs = (await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs")).ToArray();
         Assert.NotNull(booking);
         Assert.NotEmpty(rows);
+        Assert.Single(logs);
         Assert.True(content.Id > 0);
         Assert.Equal(content.Id, booking.Id);
         Assert.Equal(content.RowVersion, booking.RowVersion);
@@ -217,6 +222,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         Assert.Equal(rowToInsert.Subledger, rows[1].Subledger);
         Assert.Equal(rowToInsert.SubledgerType, rows[1].SubledgerType);
         Assert.Equal(rowToInsert.Subsidiary, rows[1].Subsidiary);
+        Assert.Contains(logs, _ => _.Status == (short)WiniStatus.Saved);
     }
 
     [Fact]
@@ -247,7 +253,11 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             RowVersion = sqlResult.RowVersion
         };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync("/api/booking/" + sqlResult.Id, command);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, "/api/booking/" + sqlResult.Id);
+        request.Content = JsonContent.Create(command);
+        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
+
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -294,7 +304,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             .ToArray();
         Assert.NotEmpty(logs);
         Assert.Equal(WiniStatus.Cancelled, (WiniStatus)booking.Status!);
-        Assert.Contains(logs, _ => _.Status == booking.Status);
+        Assert.Contains(logs, _ => _.Status == (short)WiniStatus.Saved);
     }
 
     [Fact]
@@ -327,7 +337,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
         Assert.Equal(WiniStatus.SendError, (WiniStatus)booking.Status!);
-        Assert.Contains(logs, _ => _.Status == booking.Status);
+        Assert.Contains(logs, _ => _.Status == (short)WiniStatus.ToBeSent);
         Assert.All(rows, _ => Assert.False(_.IsAuthorized));
     }
 
@@ -361,7 +371,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
         Assert.Equal(WiniStatus.Saved, (WiniStatus)booking.Status!);
-        Assert.Contains(logs, _ => _.Status == booking.Status);
+        Assert.Contains(logs, _ => _.Status == (short)WiniStatus.ToBeSent);
         Assert.All(rows, _ => Assert.False(_.IsAuthorized));
     }
 
@@ -395,7 +405,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
         Assert.Equal(WiniStatus.ToBeSent, (WiniStatus)booking.Status!);
-        Assert.Contains(logs, _ => _.Status == booking.Status);
+        Assert.Contains(logs, _ => _.Status == (short)WiniStatus.ToBeAuthorized);
         Assert.Contains(rows, _ => _.IsAuthorized == true && _.RowNumber == 1);
         Assert.Contains(rows, _ => _.IsAuthorized == false && _.RowNumber == 2);
     }
@@ -430,7 +440,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
         Assert.Equal(WiniStatus.ToBeAuthorized, (WiniStatus)booking.Status!);
-        Assert.Contains(logs, _ => _.Status == booking.Status);
+        Assert.Contains(logs, _ => _.Status == (short)WiniStatus.Saved);
         Assert.All(rows, _ => Assert.False(_.IsAuthorized));
     }
 
@@ -469,7 +479,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
         Assert.Equal(WiniStatus.Saved, (WiniStatus)booking.Status!);
-        Assert.Contains(logs, _ => _.Status == booking.Status);
+        Assert.Contains(logs, _ => _.Status == (short)WiniStatus.ToBeAuthorized);
         Assert.Contains(logs, _ => _.Status == (short)WiniStatus.NotAuthorizedOnTime);
         Assert.All(rows, _ => Assert.False(_.IsAuthorized));
     }
@@ -502,7 +512,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             .ToArray();
         Assert.NotEmpty(logs);
         Assert.Equal(WiniStatus.Sent, (WiniStatus)booking.Status!);
-        Assert.Contains(logs, _ => _.Status == booking.Status);
+        Assert.Contains(logs, _ => _.Status == (short)WiniStatus.ToBeSent);
     }
 
     [Fact]

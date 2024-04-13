@@ -2,7 +2,7 @@ namespace Services.DatabaseDapper.Repositories;
 
 public class BookingRepository(ConnectionFactory factory) : IBookingRepository
 {
-    public async Task<(Booking Booking, byte[] RowVersion)?> GetBookingIdAsync(int? id, bool includeRows = true)
+    public async Task<(Booking Booking, byte[] RowVersion, int[]? DeletedRows)?> GetBookingIdAsync(int? id, bool includeRows = true)
     {
         using var conn = factory.CreateConnection();
         conn.Open();
@@ -21,10 +21,12 @@ public class BookingRepository(ConnectionFactory factory) : IBookingRepository
         var logs = await mapper.ReadAsync<Models.BookingStatusLog>();
         var attachments = await mapper.ReadAsync<Models.Attachment>();
         var rows = includeRows ? await mapper.ReadAsync<Models.BookingRow>() : [];
+        var deletedRows = includeRows ? await mapper.ReadAsync<int>() : [];
 
         return (
             ModelToDomain.MapToDomainModel(booking, rows, comments, messages, logs, attachments),
-            booking.RowVersion.GetValue(nameof(booking.RowVersion))
+            booking.RowVersion.GetValue(nameof(booking.RowVersion)),
+            deletedRows?.ToArray()
         );
     }
 
@@ -142,7 +144,8 @@ public class BookingRepository(ConnectionFactory factory) : IBookingRepository
     {
         var attachemntsToInsert = events
             .Where(_ => _!.Action == CrudAction.Added)
-            .Select(_ => new {
+            .Select(_ => new
+            {
                 CreatedBy = user,
                 BookingId = _.Attachment.BookingId!.Value,
                 _.Attachment.Content.ContentType,

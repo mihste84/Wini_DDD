@@ -1,0 +1,20 @@
+<section class="flex flex-col w-96">
+  <label for="comment">Comment:</label>
+  <textarea rows="3" [formControl]="form" name="comment" id="comment" class="border border-slate-300 p-2 mb-2"></textarea>
+
+  <div class="text-end">
+    <button
+      type="button"
+      (click)="onCancel.emit()"
+      class="h-8 text-sm leading-4 border p-2 me-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-70">
+      Cancel
+    </button>
+    <button
+      [disabled]="form.invalid || form.pristine"
+      type="button"
+      (click)="onSubmit()"
+      class="h-8 text-sm leading-4 border p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70">
+      Submit
+    </button>
+  </div>
+</section>

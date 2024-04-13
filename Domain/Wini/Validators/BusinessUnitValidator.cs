@@ -1,16 +1,17 @@
 namespace Domain.Wini.Validators;
 public class BusinessUnitValidator : AbstractValidator<BusinessUnit>
 {
-    public BusinessUnitValidator()
+    public BusinessUnitValidator(bool isRequired = true)
     {
-        RuleFor(_ => _).Custom((bu, ctx) =>
-        {
-            if (!(bu.ToString()?.Length > 12))
-            {
-                return;
-            }
+        RuleFor(_ => _.ToString()).MaximumLength(12).WithName("Business unit");
 
-            ctx.AddFailure("Business Unit", "BusinessUnit max length is 12 characters");
-        });
+        When(
+            _ => isRequired,
+            () =>
+            {
+                RuleFor(_ => _.ToString())
+                    .NotEmpty()
+                    .WithName("Business unit");
+            });
     }
 }

@@ -1,6 +1,6 @@
 import { APP_INITIALIZER, ApplicationConfig, inject } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import {
   IPublicClientApplication,
   PublicClientApplication,
@@ -56,13 +56,12 @@ function MSALInstanceFactory(loggerService = inject(LoggerService)): IPublicClie
       cacheLocation: BrowserCacheLocation.SessionStorage,
     },
     system: {
-      allowNativeBroker: false, // Disables WAM Broker
       loggerOptions: {
         loggerCallback: (logLevel: LogLevel, message: string) => {
           loggerService.log(message, getSeverityFromLogLevel(logLevel));
         },
-        logLevel: LogLevel.Info,
-        piiLoggingEnabled: false,
+        logLevel: LogLevel.Error,
+        piiLoggingEnabled: true,
       },
     },
   });
@@ -107,7 +106,6 @@ export const appConfig: ApplicationConfig = {
       deps: [AuthService],
       multi: true,
     },
-    provideRouter(routes),
     {
       provide: HTTP_INTERCEPTORS,
       useClass: MsalInterceptor,
@@ -128,6 +126,7 @@ export const appConfig: ApplicationConfig = {
     MsalService,
     MsalGuard,
     MsalBroadcastService,
-
+    provideHttpClient(withInterceptorsFromDi()),
+    provideRouter(routes, withComponentInputBinding()),
   ],
 };

@@ -3,7 +3,8 @@ public class BookingValidator : AbstractValidator<Booking>
 {
     public BookingValidator(IEnumerable<Company> companies, bool isNewBooking = false)
     {
-        if (!isNewBooking) {
+        if (!isNewBooking)
+        {
             RuleFor(_ => _.BookingId).SetValidator(new BookingIdValidator());
             RuleFor(_ => _.BookingStatus)
                 .Must(_ => _.Status != WiniStatus.New)

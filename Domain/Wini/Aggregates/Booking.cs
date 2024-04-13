@@ -79,6 +79,23 @@ public partial class Booking
         throw new DomainValidationException($"Failed to validate booking {BookingId?.Value}.", errors);
     }
 
+
+    public void EditBookingHeader(BookingHeaderModel model, IAuthenticationService authenticationService)
+    {
+        var user = authenticationService.GetUserId();
+        VerifyIfBookingIsEditable(user);
+
+        Header = new BookingHeader(
+            model.BookingDate,
+            model.TextToE1,
+            model.IsReversed,
+            model.LedgerType
+        );
+
+        var status = BookingStatus.TryChangeStatus(WiniStatus.Saved, user);
+        DomainEvents.Add(new WiniStatusEvent(status));
+    }
+
     public (bool CanDelete, string? Reason) CanDeleteBooking(
         IAuthenticationService authenticationService,
         IAuthorizationService authorizationService)

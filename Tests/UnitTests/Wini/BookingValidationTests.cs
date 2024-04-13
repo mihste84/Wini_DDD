@@ -110,8 +110,10 @@ public class BookingValidationTests
         Assert.NotNull(res);
         Assert.False(res.IsValid);
         Assert.NotNull(res.Errors);
-        Assert.Equal(7, res.Errors.Count());
+        Assert.Equal(9, res.Errors.Count());
         Assert.Contains(res.Errors, _ => _.PropertyName == "Header.TextToE1.Text" && _.Message == "'TextToE1' must not be empty.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "'Business unit' must not be empty.");
+        Assert.Contains(res.Errors, _ => _.PropertyName == "#2" && _.Message == "'Business unit' must not be empty.");
         Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "'Account' must not be empty.");
         Assert.Contains(res.Errors, _ => _.PropertyName == "#2" && _.Message == "'Account' must not be empty.");
         Assert.Contains(res.Errors, _ => _.PropertyName == "#1" && _.Message == "'Amount' must not be equal to '0'.");

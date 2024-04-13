@@ -30,7 +30,6 @@ public class WiniStatusTests
 
     [Theory]
     [InlineData(WiniStatus.Sent)]
-    [InlineData(WiniStatus.Saved)]
     [InlineData(WiniStatus.Cancelled)]
     public void Fail_To_Set_Wini_Status_Saved(WiniStatus status)
     {
@@ -38,7 +37,7 @@ public class WiniStatusTests
 
         var ex = Assert.Throws<DomainLogicException>(() => bookingStatus.TryChangeStatus(WiniStatus.Saved, User));
 
-        Assert.Equal("Status cannot be Sent, Saved or Cancelled", ex.Message);
+        Assert.Equal("Status cannot be Sent or Cancelled", ex.Message);
         Assert.Equal(WiniStatus.Saved.ToString(), ex.AttemptedValue);
         Assert.Equal("Status", ex.PropertyName);
         Assert.Empty(bookingStatus.StatusHistory);

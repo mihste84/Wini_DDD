@@ -1,0 +1,16 @@
+<section class="text-right" class="w-96">
+  <p class="mb-2">{{ message }}</p>
+  <app-form-control name="form" label="Value: " [control]="form" class="mb-2">
+    <input input type="text" [formControl]="form" id="form" class="border rounded-md h-8 text-sm p-1 max-w-xs" />
+    <small maxlength>Maximum length is {{ maxLength }} chars</small>
+    <small required>Value is required</small>
+  </app-form-control>
+  <button class="border rounded-md px-2 py-1 bg-red-500 text-white me-2" type="button" (click)="onCancel.emit()">Cancel</button>
+  <button
+    [disabled]="form.invalid"
+    class="border rounded-md px-2 py-1 bg-green-500 text-white hover:opacity-70"
+    (click)="onSubmit()"
+    type="button">
+    Submit
+  </button>
+</section>

@@ -1,0 +1,36 @@
+<app-modal #sharedModal></app-modal>
+
+<section class="flex flex-col w-full text-sm">
+  <section class="mb-2 p-2 border rounded-sm h-36 overflow-y-auto">
+    @for (comment of getComments(); track comment.created) { @if($index != 0) {
+    <hr class="my-2" />
+    }
+    <article class="flex flex-col">
+      <p>{{ comment.value }}</p>
+      <div class="flex items-center justify-end">
+        <small>{{ comment.created | date : "yyyy-MM-dd HH:mm:ss" }}</small>
+        <fa-icon class="cursor-pointer text-red-600 hover:text-red-400 ms-3" (click)="onDeleteClick(comment)" [icon]="faTrash" />
+        <fa-icon class="cursor-pointer text-blue-600 hover:text-blue-400 ms-1" (click)="onCommentEdit.emit(comment)" [icon]="faPencil" />
+      </div>
+    </article>
+    } @empty {
+    <article>
+      <h5>No comments added to booking.</h5>
+    </article>
+    }
+  </section>
+  <section class="flex flex-col">
+    <label for="comment">Comment:</label>
+    <textarea rows="3" [formControl]="form" name="comment" id="comment" class="border border-slate-300 p-2 mb-2"></textarea>
+
+    <div class="text-end">
+      <button
+        [disabled]="form.invalid || loading || form.pristine"
+        type="button"
+        (click)="onSubmit()"
+        class="h-8 text-sm leading-4 border p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70">
+        Submit
+      </button>
+    </div>
+  </section>
+</section>

@@ -8,7 +8,7 @@ public static class MasterDataEndpoints
 
         return res.Match(
             success => Results.Ok(success.Value),
-            _ => Results.NotFound()
+            _ => new BaseNotFoundResponse()
         );
     }
 }

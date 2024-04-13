@@ -20,7 +20,7 @@ public record BusinessUnit
         Costcenter = GetCostcenter(businessUnit);
         Product = GetProduct(businessUnit);
 
-        var validator = new BusinessUnitValidator();
+        var validator = new BusinessUnitValidator(false);
         var result = validator.Validate(this);
         if (result.IsValid)
         {

@@ -30,8 +30,8 @@ if (builder.Environment.IsEnvironment("IntegrationTests"))
     builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();
     builder.Services.AddScoped<IAttachmentService, TestAttachmentService>();
     builder.Services.AddSingleton<IPolicyEvaluator, DisableAuthenticationPolicyEvaluator>();
-} 
-else 
+}
+else
 {
     builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
     builder.Services.AddScoped<Domain.Wini.Interfaces.IAuthorizationService, TestAuthorizationService>();
@@ -44,9 +44,7 @@ else
 builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
 
 builder.Services.AddProblemDetails();
-builder.Services.AddCors(_ => _
-    .AddDefaultPolicy(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins(corsOrigin).AllowCredentials())
-);
+builder.Services.AddCors();
 
 builder.Services.AddDatabaseServices(connectionString);
 builder.Services.AddAppLogicAndDomainServices();
@@ -59,7 +57,7 @@ if (isDevelopment)
     app.UseDeveloperExceptionPage();
 }
 
-app.UseCors();
+app.UseCors(_ => _.AllowAnyHeader().AllowAnyMethod().WithOrigins(corsOrigin).AllowCredentials());
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -76,7 +74,7 @@ app.MapDelete("api/booking/{id}/recipient", RecipientMessageEndpoints.DeleteAsyn
 app.MapPost("api/booking/{id}/attachment", AttachmentEndpoints.PostAsync).DisableAntiforgery().RequireAuthorization(); // Cant get antiforgery token to work...
 app.MapDelete("api/booking/{id}/attachment", AttachmentEndpoints.DeleteAsync).RequireAuthorization();
 app.MapPatch("api/booking/{id}/status", BookingStatusEndpoints.PatchAsync).RequireAuthorization();
-app.MapPatch("api/booking/{id}/validate", ValidationEndpoints.ValidateByIdAsync).RequireAuthorization();
+app.MapGet("api/booking/{id}/validate", ValidationEndpoints.ValidateByIdAsync).RequireAuthorization();
 app.MapPost("api/booking/validate", ValidationEndpoints.ValidateNewAsync).RequireAuthorization();
 
 app.MapGet("api/masterdata", MasterDataEndpoints.GetAllCompaniesAsync).RequireAuthorization();

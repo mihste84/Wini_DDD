@@ -17,8 +17,10 @@ public static class AttachmentEndpoints
             _.ContentType
         ));
 
-        try {
-            var command = new InsertAttachmentsCommand{
+        try
+        {
+            var command = new InsertAttachmentsCommand
+            {
                 BookingId = id,
                 RowVersion = input?.RowVersion,
                 Files = files
@@ -28,18 +30,15 @@ public static class AttachmentEndpoints
             return res.Match(
                 success => Results.Created("api/booking/" + success.Value.Id, success.Value),
                 validationError => new BaseErrorResponse(validationError.Value),
-                _ => new BaseErrorResponse(409, "Update conflict", "Item has already been updated by another user."),
+                _ => new BaseConflictResponse(),
                 error => new BaseErrorResponse(400, "Domain error", error.Value),
-                _ => Results.NotFound(),
-                _ => Results.Forbid(),
-                _ => new BaseErrorResponse(
-                    500,
-                    "Database error",
-                    "A database error occurred when trying to upload attachments. Check the logs for details."
-                )
+                _ => new BaseNotFoundResponse(),
+                _ => new BaseForbiddenResponse(),
+                _ => new BaseDatabaseErrorResponse()
             );
         }
-        finally {
+        finally
+        {
             await DisposeAllStreamsAsync(files);
         }
     }
@@ -51,7 +50,8 @@ public static class AttachmentEndpoints
         IMediator mediator
     )
     {
-        var command = new DeleteAttachmentCommand {
+        var command = new DeleteAttachmentCommand
+        {
             BookingId = id,
             RowVersion = rowVersion,
             FileName = fileName
@@ -62,25 +62,22 @@ public static class AttachmentEndpoints
         return res.Match(
             success => Results.Ok(success.Value),
             validationError => new BaseErrorResponse(validationError.Value),
-            _ => new BaseErrorResponse(409, "Update conflict", "Item has already been updated by another user."),
+            _ => new BaseConflictResponse(),
             error => new BaseErrorResponse(400, "Domain error", error.Value),
-            _ => Results.NotFound(),
-            _ => Results.Forbid(),
-            _ => new BaseErrorResponse(
-                500,
-                "Database error",
-                "A database error occurred when trying to delete attachment. Check the logs for details."
-            )
+            _ => new BaseNotFoundResponse(),
+            _ => new BaseForbiddenResponse(),
+            _ => new BaseDatabaseErrorResponse()
         );
     }
 
-    private static async Task DisposeAllStreamsAsync(IEnumerable<UploadedAttachmentInput>? files) {
+    private static async Task DisposeAllStreamsAsync(IEnumerable<UploadedAttachmentInput>? files)
+    {
         if (files == default)
         {
             return;
         }
 
-        foreach(var file in files)
+        foreach (var file in files)
         {
             await file.Content!.DisposeAsync();
         }

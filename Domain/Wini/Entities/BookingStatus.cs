@@ -24,16 +24,21 @@ public class BookingStatus
         StatusHistory = statusHistory;
     }
 
-    public void SaveStatusHistory() => StatusHistory.Add(Copy());
+    public BookingStatus SaveStatusHistory()
+    {
+        var currentStatus = Copy();
+        StatusHistory.Add(currentStatus);
+        return currentStatus;
+    }
 
     public void CanChangeStatusToSaved()
     {
-        if (!(Status is WiniStatus.Sent or WiniStatus.Saved or WiniStatus.Cancelled))
+        if (!(Status is WiniStatus.Sent or WiniStatus.Cancelled))
         {
             return;
         }
 
-        throw new DomainLogicException(nameof(Status), WiniStatus.Saved.ToString(), "Status cannot be Sent, Saved or Cancelled");
+        throw new DomainLogicException(nameof(Status), WiniStatus.Saved.ToString(), "Status cannot be Sent or Cancelled");
     }
 
     public void CanChangeStatusToSendError()
@@ -125,13 +130,13 @@ public class BookingStatus
                 throw new ArgumentException("Unknown Wini status", nameof(status));
         }
 
-        SaveStatusHistory();
+        var oldStatus = SaveStatusHistory();
         var now = DateTime.UtcNow;
         Status = status;
         Updated = now;
         UpdatedBy = new User(userId);
 
-        return new BookingStatus(status, now, userId);
+        return oldStatus;
     }
 
     public BookingStatus Copy()

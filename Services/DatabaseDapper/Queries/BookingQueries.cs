@@ -18,7 +18,8 @@ public static class BookingQueries
         WHERE BookingId = @BookingId;
 
         SELECT * FROM dbo.BookingStatusLogs
-        WHERE BookingId = @BookingId;
+        WHERE BookingId = @BookingId
+        ORDER BY Created DESC;
 
         SELECT * FROM dbo.Attachments
         WHERE BookingId = @BookingId;
@@ -30,12 +31,16 @@ public static class BookingQueries
         SELECT * FROM dbo.BookingRows
         WHERE BookingId = @BookingId AND IsDeleted = 0
         ORDER BY RowNumber;
+
+        SELECT RowNumber FROM dbo.BookingRows
+        WHERE BookingId = @BookingId AND IsDeleted = 1
+        ORDER BY RowNumber;
     """;
 
     public const string Insert = """
-        INSERT INTO dbo.Bookings (Status, BookingDate, TextToE1, Reversed, LedgerType, UpdatedBy, CreatedBy)
+        INSERT INTO dbo.Bookings (Status, BookingDate, TextToE1, Reversed, LedgerType, Updated, UpdatedBy, CreatedBy)
         OUTPUT INSERTED.[Id], INSERTED.RowVersion
-        VALUES(@Status, @BookingDate, @TextToE1, @Reversed, @LedgerType, @UpdatedBy, @CreatedBy)
+        VALUES(@Status, @BookingDate, @TextToE1, @Reversed, @LedgerType, @Updated, @UpdatedBy, @CreatedBy)
     """;
 
     public const string SelectRowVersionById =
@@ -49,7 +54,8 @@ public static class BookingQueries
             TextToE1 = @TextToE1,
             Reversed = @Reversed,
             LedgerType = @LedgerType,
-            UpdatedBy = @UpdatedBy
+            UpdatedBy = @UpdatedBy,
+            Updated = @Updated
         OUTPUT INSERTED.[Id], INSERTED.RowVersion
         WHERE Id = @Id
     """;
@@ -57,6 +63,7 @@ public static class BookingQueries
     public const string UpdateStatus = """
         UPDATE dbo.Bookings
         SET Status = @Status,
+            Updated = @Updated,
             UpdatedBy = @UpdatedBy
         OUTPUT INSERTED.[Id], INSERTED.RowVersion
         WHERE Id = @Id

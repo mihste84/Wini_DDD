@@ -1,0 +1,43 @@
+<section class="flex flex-col text-sm">
+  <div class="flex flex-col mb-2">
+    <label for="pastedImport" class="me-2">Import pasted rows: </label>
+    <textarea rows="5" [formControl]="pastedImport" name="pastedImport" id="pastedImport" class="border border-slate-300 p-2"></textarea>
+  </div>
+  <div class="mb-2 flex items-center">
+    <label for="importFile" class="me-2">Import template file: </label>
+    <input
+      (change)="importFromFile($event.target)"
+      accept=".txt,.csv"
+      (click)="fileImport.reset()"
+      input
+      type="file"
+      class=""
+      [formControl]="fileImport"
+      id="importFile" />
+  </div>
+  <div class="flex items-center">
+    <button
+      type="button"
+      [disabled]="!pastedImport.value"
+      (click)="importFromPastedText()"
+      class="h-8 leading-4 border me-2 p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-70">
+      Import data
+    </button>
+    <a class="me-2 underline text-blue-600" href="#">Booking Import Template</a>
+    <fa-icon
+      [popper]="info"
+      [popperTrigger]="popperTrigger"
+      [popperPreventOverflow]="true"
+      popperApplyClass="bg-white"
+      [popperPlacement]="popperplacement"
+      [icon]="faQuestionCircle"
+      class="text-lg cursor-pointer"></fa-icon>
+    <popper-content #info>
+      <p class="w-96">
+        Import booking rows by uploading template which can be downloaded from link "Booking Import Template", or by copying rows from excel
+        and pasting into textbox above. Template columns names should not be changed.<br /><br />
+        When importing with copy/paste the order of the values must be same as import template.
+      </p>
+    </popper-content>
+  </div>
+</section>

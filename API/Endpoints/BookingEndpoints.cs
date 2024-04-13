@@ -9,8 +9,8 @@ public static class BookingEndpoints
         return res.Match(
             result => Results.Ok(result.Value),
             validationError => new BaseErrorResponse(validationError.Value),
-            _ => Results.Forbid(),
-            _ => Results.NotFound()
+            _ => new BaseForbiddenResponse(),
+            _ => new BaseNotFoundResponse()
         );
     }
 
@@ -22,32 +22,34 @@ public static class BookingEndpoints
             success => Results.Created("api/booking/" + success.Value.Id, success.Value),
             validationError => new BaseErrorResponse(validationError.Value),
             error => new BaseErrorResponse(400, "Domain error", error.Value),
-            _ => Results.Forbid(),
-            _ => new BaseErrorResponse(
-                500,
-                "Database error",
-                "A database error occurred when trying to insert new booking. Check the logs for details."
-            )
+            _ => new BaseForbiddenResponse(),
+            _ => new BaseDatabaseErrorResponse()
         );
     }
 
-    public static async Task<IResult> PatchAsync([FromRoute] int? id, [FromBody] UpdateBookingCommand command, IMediator mediator)
+    public static async Task<IResult> PatchAsync(
+        [FromRoute] int? id,
+        [FromHeader(Name = "RowVersion")] string? rowVersion,
+        [FromBody] UpdateBookingCommand command,
+        IMediator mediator)
     {
+        if (!Converters.TryConvertStringBase64ToBytes(rowVersion, out var bytes))
+        {
+            return new BaseFormatErrorRespons("RowVersion header cannot be converted to byte array.");
+        }
+
         command.BookingId = id;
+        command.RowVersion = bytes;
         var res = await mediator.Send(command);
 
         return res.Match(
             success => Results.Ok(success.Value),
             validationError => new BaseErrorResponse(validationError.Value),
-            _ => new BaseErrorResponse(409, "Update conflict", "Item has already been updated by another user."),
+            _ => new BaseConflictResponse(),
             error => new BaseErrorResponse(400, "Domain error", error.Value),
-            _ => Results.Forbid(),
-            _ => Results.NotFound(),
-            _ => new BaseErrorResponse(
-                500,
-                "Database error",
-                "A database error occurred when trying to update booking. Check the logs for details."
-            )
+            _ => new BaseForbiddenResponse(),
+            _ => new BaseNotFoundResponse(),
+            _ => new BaseDatabaseErrorResponse()
         );
     }
 
@@ -59,13 +61,9 @@ public static class BookingEndpoints
             _ => Results.NoContent(),
             validationError => new BaseErrorResponse(validationError.Value),
             error => new BaseErrorResponse(400, "Domain error", error.Value),
-            _ => Results.Forbid(),
-            _ => Results.NotFound(),
-            _ => new BaseErrorResponse(
-                500,
-                "Database error",
-                "A database error occurred when trying to delete booking. Check the logs for details."
-            )
+            _ => new BaseForbiddenResponse(),
+            _ => new BaseNotFoundResponse(),
+            _ => new BaseDatabaseErrorResponse()
         );
     }
 }

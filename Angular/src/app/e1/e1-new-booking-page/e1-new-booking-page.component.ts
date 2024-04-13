@@ -1,25 +1,26 @@
-import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, effect } from '@angular/core';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { CommonModule } from '@angular/common';
 import { E1BookingHeaderComponent } from '../e1-booking-header/e1-booking-header.component';
-import { E1BookingRowTableComponent } from '../e1-booking-row-table/e1-booking-row-table.component';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Ledger } from '../models/ledger';
-import { NewE1BookingRow } from '../models/types';
+import { BookingRowImport, BookingValidationResult, E1BookingInput, E1BookingRow, SqlResult, E1BookingHeader } from '../models/types';
+import { BannerType, MsgBannerComponent } from '../../shared/components/msg-banner/msg-banner.component';
+import { E1ImportRowsComponent } from '../e1-import-rows/e1-import-rows.component';
+import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { LoadingService } from '../../shared/services/loading.service';
+import { Router } from '@angular/router';
+import { NotificationService, NotificationType } from '../../shared/services/notification.service';
+import { E1BookingService } from '../services/e1-booking.service';
+import { E1BookingRowTableComponent } from '../e1-booking-row-table/e1-booking-row-table.component';
+import { getFormattedDateString } from '../../shared/utils/date.utils';
 
-interface NewE1BookingForm {
-  header: {
-    bookingDate?: string;
-    textToE1?: string;
-    isReversed: boolean;
-    ledgerType: Ledger;
-  },
-  rows?: NewE1BookingRow[]
+interface E1BookingInputForm {
+  header: E1BookingHeader;
+  rows?: E1BookingRow[];
 }
 
 @Component({
@@ -28,60 +29,148 @@ interface NewE1BookingForm {
   imports: [
     ReactiveFormsModule,
     FormControlComponent,
-    FontAwesomeModule,
     ModalComponent,
     CommonModule,
     E1BookingHeaderComponent,
     E1BookingRowTableComponent,
-    HttpClientModule
+    MsgBannerComponent,
+    E1ImportRowsComponent,
+    FontAwesomeModule,
   ],
   templateUrl: './e1-new-booking-page.component.html',
   styleUrl: './e1-new-booking-page.component.css',
 })
 export class E1NewBookingPageComponent {
-  public form: FormGroup;
-  public faTrash = faTrash;
-  public amountSum = 0;
+  public form!: FormGroup;
+  public header: FormGroup;
+  public rows!: FormArray;
+  public validationResult?: BookingValidationResult;
+  public types = BannerType;
+  public importIcon = faPlus;
+  public showImport = false;
+  public loading = false;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
-    this.form = fb.group({
-      header: undefined,
-      rows: this.fb.array([
-        this.getFormRow()
-      ]),
+  constructor(
+    private fb: FormBuilder,
+    private bookingService: E1BookingService,
+    private router: Router,
+    private notifications: NotificationService,
+    loadingService: LoadingService
+  ) {
+    this.header = fb.group({
+      bookingDate: [getFormattedDateString(new Date()), [Validators.required]],
+      textToE1: ['', [Validators.maxLength(30)]],
+      isReversed: [false],
+      ledgerType: [Ledger.AA],
+    });
+
+    this.initForm([
+      E1BookingRowTableComponent.getFormRow({ rowNumber: 1, isNew: true }),
+      E1BookingRowTableComponent.getFormRow({ rowNumber: 2, isNew: true }),
+    ]);
+
+    effect(() => {
+      this.loading = loadingService.isLoading();
     });
   }
 
-  public getFormRow(businessUnit?: string, currencyCode?: string) {
-    return this.fb.group({
-      businessUnit: [businessUnit, Validators.maxLength(12)],
-      account: ['', Validators.maxLength(6)],
-      subsidiary: ['', Validators.maxLength(8)],
-      subledger: ['', Validators.maxLength(8)],
-      subledgerType: ['', Validators.maxLength(1)],
-      costObject1: ['', Validators.maxLength(12)],
-      costObjectType1: ['', Validators.maxLength(1)],
-      costObject2: ['', Validators.maxLength(12)],
-      costObjectType2: ['', Validators.maxLength(1)],
-      costObject3: ['', Validators.maxLength(12)],
-      costObjectType3: ['', Validators.maxLength(1)],
-      costObject4: ['', Validators.maxLength(12)],
-      costObjectType4: ['', Validators.maxLength(1)],
-      remark: ['', Validators.maxLength(30)],
-      authorizer: ['', Validators.maxLength(200)],
-      amount: [0],
-      currencyCode: [currencyCode, Validators.maxLength(3)],
-      exchangeRate: [0, Validators.min(0)],
+  public toggeShowImportClick() {
+    this.showImport = !this.showImport;
+    this.importIcon = this.showImport ? faMinus : faPlus;
+  }
+
+  public async validateBookingClick() {
+    if (this.form.invalid || this.loading) return;
+
+    const body = this.getBookingFromForm();
+
+    const req = this.bookingService.validateBooking(body);
+    this.validationResult = await firstValueFrom(req);
+  }
+
+  public onBannerDissmissCallback() {
+    this.validationResult = undefined;
+  }
+
+  public onImportRowsCallback(rows: BookingRowImport[]) {
+    if (!rows?.length) return;
+
+    const newRows = rows.map((row, i) => {
+      const mappedRow = this.mapImportToRow(row, i + 1);
+      return E1BookingRowTableComponent.getFormRow(mappedRow);
+    });
+
+    this.initForm(newRows);
+  }
+
+  public async saveBookingClick() {
+    const result = await this.saveBooking();
+    this.router.navigate(['e1/booking/' + result?.id]);
+  }
+
+  public async saveAndCloseBookingClick() {
+    await this.saveBooking();
+    this.closeClick();
+  }
+
+  public closeClick() {
+    this.router.navigate(['e1/search']);
+  }
+
+  private async saveBooking() {
+    if (this.form.invalid || this.loading) return;
+
+    const body = this.getBookingFromForm();
+
+    const req = this.bookingService.insertNewBooking(body);
+    const result = await firstValueFrom(req);
+    this.notifications.addNotification(`New booking with ID #${result?.id} created.`, 'Booking created', NotificationType.Info);
+    return result;
+  }
+
+  private initForm(rows: FormGroup[]) {
+    this.rows = this.fb.array(rows);
+    this.form = this.fb.group({
+      header: this.header,
+      rows: this.rows,
     });
   }
 
-  public async validateBooking() {
-    if (this.form.invalid) return;
-    const value = this.form.value as NewE1BookingForm;
-    const body = {...value.header, rows: value.rows };
-    console.log(body)
-    //const req = this.http.post('booking/validate', body);
-    //const res = await firstValueFrom(req);
-    //console.log(res);
+  private getBookingFromForm() {
+    const value = this.form.value as E1BookingInputForm;
+    return {
+      ...value.header,
+      ledgerType: Number(value.header.ledgerType),
+      rows: value.rows,
+    } as E1BookingInput;
+  }
+
+  private mapImportToRow(imp: BookingRowImport, index: number): E1BookingRow {
+    const debit = Number(imp.debit?.replace(',', '.'));
+    const credit = Number(imp.credit?.replace(',', '.'));
+    const amount = !isNaN(debit) && debit > 0 ? debit : !isNaN(credit) && credit > 0 ? credit * -1 : credit;
+    const exchangeRate = Number(imp.exchangeRate?.replace(',', '.'));
+
+    return {
+      rowNumber: index,
+      account: imp.account,
+      amount: isNaN(amount) ? 0 : amount,
+      authorizer: imp.authorizer,
+      businessUnit: imp.businessUnit,
+      costObject1: imp.costObject,
+      costObject2: imp.costObject2,
+      costObject3: imp.costObject3,
+      costObject4: imp.costObject4,
+      costObjectType1: imp.costObjectType,
+      costObjectType2: imp.costObjectType2,
+      costObjectType3: imp.costObjectType3,
+      costObjectType4: imp.costObjectType4,
+      currencyCode: imp.currency,
+      exchangeRate: isNaN(exchangeRate) ? 0 : exchangeRate,
+      remark: imp.remark,
+      subledger: imp.subledger,
+      subledgerType: imp.subledgerType,
+      subsidiary: imp.subsidiary,
+    };
   }
 }

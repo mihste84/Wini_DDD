@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { e1ExistingBookingResolver } from './e1-existing-booking.resolver'
+import { e1ExistingBookingResolver } from './e1-existing-booking.resolver';
 
 export const e1Routes: Routes = [
   {

@@ -1,6 +1,6 @@
 namespace API.Models;
 
-public class BaseErrorResponse : IResult
+public record BaseErrorResponse : IResult
 {
     private readonly int _statusCode;
     private readonly string _title;
@@ -31,10 +31,11 @@ public class BaseErrorResponse : IResult
     {
         var problemDetails = new ProblemDetails
         {
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1", // TODO: Change this to a link to your error documentation
             Status = _statusCode,
             Title = _title,
             Detail = _detail,
-            Instance = httpContext.Request.Path
+            Instance = httpContext.Request.Path,
         };
 
         if (_errors?.Any() == true)

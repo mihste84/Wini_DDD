@@ -73,7 +73,7 @@ public class UpdateBookingStatusCommand
             {
                 return new ValidationErrorResult(ex.Errors);
             }
-            catch (Exception ex) when (ex is DomainLogicException or NotFoundException or ArgumentException or ArgumentNullException)
+            catch (Exception ex) when (ex is DomainLogicException or NotFoundException or ArgumentException or ArgumentNullException or FormatException)
             {
                 return new Error<string>(ex.Message);
             }

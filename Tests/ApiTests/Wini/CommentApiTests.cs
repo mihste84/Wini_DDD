@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using System.Web;
 
 namespace Tests.ApiTests.Wini;
@@ -12,9 +14,13 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
     {
         await _testBase.ResetDbAsync();
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
-        var command = new CommentInput(DateTime.UtcNow, "TEST", sqlResult.RowVersion);
+        var command = new CommentInput(DateTime.UtcNow, "TEST");
 
-        var res = await _testBase.HttpClient.PostAsJsonAsync($"/api/booking/{sqlResult.Id}/comment", command);
+        _testBase.HttpClient.DefaultRequestHeaders.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/booking/{sqlResult.Id}/comment");
+        request.Content = JsonContent.Create(command);
+        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -46,9 +52,13 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
             }
         };
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default, comments);
-        var command = new CommentInput(DateTime.UtcNow, "TEST", sqlResult.RowVersion);
+        var command = new CommentInput(DateTime.UtcNow, "TEST");
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/comment", command);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/comment");
+        request.Content = JsonContent.Create(command);
+        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
+
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -81,10 +91,14 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
             }
         };
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default, comments);
-        var rowVersion = "rowVersion=" + string.Join("&rowVersion=", sqlResult.RowVersion!);
-        var res = await _testBase.HttpClient.DeleteAsync(
-            $"/api/booking/{sqlResult.Id}/comment?{rowVersion}&created={HttpUtility.UrlEncode(createdDate.ToString("yyyy-MM-dd HH:mm:ss.fffffff"))}"
+
+        using var request = new HttpRequestMessage(
+            HttpMethod.Delete,
+            $"/api/booking/{sqlResult.Id}/comment?created={HttpUtility.UrlEncode(createdDate.ToString("yyyy-MM-dd HH:mm:ss.fffffff"))}"
         );
+        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
+
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();

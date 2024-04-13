@@ -15,6 +15,6 @@ export const environment = {
   },
   apiConfig: {
     scopes: ['api://cf4ed072-f4df-4552-8b42-cdbcc9a2802d/Bookings.Write', 'api://cf4ed072-f4df-4552-8b42-cdbcc9a2802d/Bookings.Read'],
-    uri: 'https://localhost:7206/api/',
+    uri: 'http://localhost:5299/api/',
   },
 };

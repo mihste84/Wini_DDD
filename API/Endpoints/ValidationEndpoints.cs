@@ -8,12 +8,9 @@ public static class ValidationEndpoints
 
         return res.Match(
             success => Results.Ok(success.Value),
-            _ => Results.Forbid(),
-            _ => new BaseErrorResponse(
-                500,
-                "External validation service error",
-                "A error occurred when validating with external services. Check the logs for details."
-            )
+            _ => new BaseForbiddenResponse(),
+            _ => new BaseDatabaseErrorResponse(),
+            error => new BaseErrorResponse(400, "Format error", error.Value)
         );
     }
 
@@ -23,13 +20,10 @@ public static class ValidationEndpoints
 
         return res.Match(
             success => Results.Ok(success.Value),
-            _ => Results.NotFound(),
-            _ => Results.Forbid(),
-            _ => new BaseErrorResponse(
-                500,
-                "External validation service error",
-                "A error occurred when validating with external services. Check the logs for details."
-            )
+            _ => new BaseNotFoundResponse(),
+            _ => new BaseForbiddenResponse(),
+            _ => new BaseDatabaseErrorResponse(),
+            error => new BaseErrorResponse(400, "Format error", error.Value)
         );
     }
 
