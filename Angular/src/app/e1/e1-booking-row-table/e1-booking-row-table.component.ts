@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, FormArray, FormGroup, FormControl, Validators } from '@angular/forms';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
 import { BookingValidationError, E1BookingRow } from '../models/types';
@@ -32,8 +32,9 @@ import { environment } from '../../../environments/environment';
   styleUrl: './e1-booking-row-table.component.css',
 })
 export class E1BookingRowTableComponent implements OnDestroy, OnInit {
-  @Input() public rows!: FormArray;
-  @Input() public form!: FormGroup;
+  @Input({ required: true }) public rows!: FormArray;
+  @Input({ required: true }) public form!: FormGroup;
+  @Input({ required: true }) public loading = false;
   @Input() public isNewBooking = true;
   @Input() public validationErrors?: BookingValidationError[];
 
@@ -59,11 +60,13 @@ export class E1BookingRowTableComponent implements OnDestroy, OnInit {
     return this.validationErrors.some((_) => _.propertyName.replace('#', '') === index.toString());
   }
 
-  public toggleCostObjects() {
+  public toggleCostObjectsClick() {
     this.showAllCostObjects = !this.showAllCostObjects;
   }
 
   public onRemoveRowClick(rowNumber: number, index: number) {
+    if (this.loading) return;
+
     if (!this.sharedModal) throw new Error('Shared modal is not initialized.');
     const ref = this.sharedModal.showModalWithComponent(
       ConfirmComponent,
@@ -84,6 +87,8 @@ export class E1BookingRowTableComponent implements OnDestroy, OnInit {
   }
 
   public onCopyCallback(name: string, maxLength: number, controlName: string) {
+    if (this.loading) return;
+
     if (!this.sharedModal) throw new Error('Shared modal is not initialized.');
     const ref = this.sharedModal.showModalWithComponent(
       E1CopyValueComponent,
@@ -101,7 +106,7 @@ export class E1BookingRowTableComponent implements OnDestroy, OnInit {
       controlsToSet?.forEach((control) => {
         control.get(controlName)?.setValue(ret);
       });
-
+      this.form.markAsDirty();
       this.sharedModal!.hideModal();
     });
 
@@ -111,8 +116,11 @@ export class E1BookingRowTableComponent implements OnDestroy, OnInit {
   }
 
   public onAddNewRowClick() {
+    if (this.loading) return;
+
     const initValues = this.getLastCurrencyAndBusinessUnit();
     this.rows?.push(E1BookingRowTableComponent.getFormRow(initValues));
+    this.selectAllToDelete.setValue(false);
     this.form.markAsDirty();
   }
 
@@ -144,6 +152,15 @@ export class E1BookingRowTableComponent implements OnDestroy, OnInit {
     });
   }
 
+  public static getNextRowNumberForNewRow(rows: E1BookingRow[], maxRowNumber: number) {
+    rows
+      .filter((_) => _.isNew)
+      .forEach(() => {
+        maxRowNumber = maxRowNumber + 1;
+      });
+    return maxRowNumber + 1;
+  }
+
   private reorderNewRows() {
     let maxRowNumber = this.form.get('maxRowNumber')?.value ?? 0;
 
@@ -155,19 +172,10 @@ export class E1BookingRowTableComponent implements OnDestroy, OnInit {
       });
   }
 
-  private getNextRowNumberForNewRow() {
-    let maxRowNumber = (this.form.get('maxRowNumber')?.value as number) ?? 0;
-
-    this.rows?.controls
-      .filter((_) => _.get('isNew')?.value)
-      .forEach(() => {
-        maxRowNumber = maxRowNumber + 1;
-      });
-    return maxRowNumber + 1;
-  }
-
   private getLastCurrencyAndBusinessUnit() {
-    const rowNumber = this.getNextRowNumberForNewRow();
+    const maxRowNumber = (this.form.get('maxRowNumber')?.value as number) ?? 0;
+
+    const rowNumber = E1BookingRowTableComponent.getNextRowNumberForNewRow(this.rows.value, maxRowNumber);
     if (!this.rows?.length) return { isNew: true, rowNumber: rowNumber };
 
     const lastRow = this.rows.value?.slice(-1) as E1BookingRow[];
@@ -204,6 +212,9 @@ export class E1BookingRowTableComponent implements OnDestroy, OnInit {
             control.get('toDelete')?.setValue(value);
           });
           this.form.markAsDirty();
+        }),
+        this.rows.valueChanges.subscribe((value: E1BookingRow[]) => {
+          if (!value.length) this.selectAllToDelete.setValue(false);
         })
       );
     }

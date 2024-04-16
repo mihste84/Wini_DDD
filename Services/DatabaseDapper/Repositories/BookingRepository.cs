@@ -2,6 +2,21 @@ namespace Services.DatabaseDapper.Repositories;
 
 public class BookingRepository(ConnectionFactory factory) : IBookingRepository
 {
+    public async Task<Attachment?> GetAttachmentAsync(int bookingId, string name)
+    {
+        using var conn = factory.CreateConnection();
+        conn.Open();
+
+        var attachment = await conn.QueryFirstOrDefaultAsync<Models.Attachment>(
+            AttachmentQueries.SelectByBookingIdAndName,
+            new { BookingId = bookingId, Name = name });
+        if (attachment == default)
+        {
+            return default;
+        }
+
+        return ModelToDomain.MapToDomainModel(attachment);
+    }
     public async Task<(Booking Booking, byte[] RowVersion, int[]? DeletedRows)?> GetBookingIdAsync(int? id, bool includeRows = true)
     {
         using var conn = factory.CreateConnection();

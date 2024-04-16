@@ -1,5 +1,3 @@
-using System.Text;
-using System.Text.Json;
 using System.Web;
 
 namespace Tests.ApiTests.Wini;
@@ -19,7 +17,6 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
         _testBase.HttpClient.DefaultRequestHeaders.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
         using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/booking/{sqlResult.Id}/comment");
         request.Content = JsonContent.Create(command);
-        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
         var res = await _testBase.HttpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
 
@@ -96,7 +93,6 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
             HttpMethod.Delete,
             $"/api/booking/{sqlResult.Id}/comment?created={HttpUtility.UrlEncode(createdDate.ToString("yyyy-MM-dd HH:mm:ss.fffffff"))}"
         );
-        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
         var res = await _testBase.HttpClient.SendAsync(request);
 
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);

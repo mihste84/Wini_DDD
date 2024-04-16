@@ -10,7 +10,7 @@
       <div class="flex items-center justify-end">
         <small>{{ comment.created | date : "yyyy-MM-dd HH:mm:ss" }}</small>
         <fa-icon class="cursor-pointer text-red-600 hover:text-red-400 ms-3" (click)="onDeleteClick(comment)" [icon]="faTrash" />
-        <fa-icon class="cursor-pointer text-blue-600 hover:text-blue-400 ms-1" (click)="onCommentEdit.emit(comment)" [icon]="faPencil" />
+        <fa-icon class="cursor-pointer text-blue-600 hover:text-blue-400 ms-1" (click)="onEditClick(comment)" [icon]="faPencil" />
       </div>
     </article>
     } @empty {

@@ -17,7 +17,7 @@ export class E1CommentEditComponent implements OnInit {
 
   public form = new FormControl('', [Validators.required, Validators.maxLength(300)]);
 
-  public onSubmit() {
+  public onSubmitClick() {
     if (this.form.invalid) return;
 
     this.onEditComment.emit(this.form.value ?? '');

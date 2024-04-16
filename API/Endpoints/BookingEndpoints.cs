@@ -21,7 +21,7 @@ public static class BookingEndpoints
         return res.Match(
             success => Results.Created("api/booking/" + success.Value.Id, success.Value),
             validationError => new BaseErrorResponse(validationError.Value),
-            error => new BaseErrorResponse(400, "Domain error", error.Value),
+            error => new BaseDomainErrorResponse(error.Value),
             _ => new BaseForbiddenResponse(),
             _ => new BaseDatabaseErrorResponse()
         );
@@ -35,7 +35,7 @@ public static class BookingEndpoints
     {
         if (!Converters.TryConvertStringBase64ToBytes(rowVersion, out var bytes))
         {
-            return new BaseFormatErrorRespons("RowVersion header cannot be converted to byte array.");
+            return new BaseFormatErrorResponse("RowVersion header cannot be converted to byte array.");
         }
 
         command.BookingId = id;
@@ -46,7 +46,7 @@ public static class BookingEndpoints
             success => Results.Ok(success.Value),
             validationError => new BaseErrorResponse(validationError.Value),
             _ => new BaseConflictResponse(),
-            error => new BaseErrorResponse(400, "Domain error", error.Value),
+            error => new BaseDomainErrorResponse(error.Value),
             _ => new BaseForbiddenResponse(),
             _ => new BaseNotFoundResponse(),
             _ => new BaseDatabaseErrorResponse()
@@ -60,7 +60,7 @@ public static class BookingEndpoints
         return res.Match(
             _ => Results.NoContent(),
             validationError => new BaseErrorResponse(validationError.Value),
-            error => new BaseErrorResponse(400, "Domain error", error.Value),
+            error => new BaseDomainErrorResponse(error.Value),
             _ => new BaseForbiddenResponse(),
             _ => new BaseNotFoundResponse(),
             _ => new BaseDatabaseErrorResponse()

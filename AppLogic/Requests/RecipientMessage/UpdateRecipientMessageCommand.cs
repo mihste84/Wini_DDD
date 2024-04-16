@@ -1,18 +1,16 @@
 namespace AppLogic.Requests;
 
-public class UpdateRecipientMessageCommand : IRequest<OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
+public class UpdateRecipientMessageCommand : IRequest<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
 {
     public int? BookingId { get; set; }
     public CrudAction? Action { get; set; }
     public string? Value { get; set; }
     public string? Recipient { get; set; }
-    public byte[]? RowVersion { get; set; }
 
     public class UpdateRecipientMessageValidator : AbstractValidator<UpdateRecipientMessageCommand>
     {
         public UpdateRecipientMessageValidator()
         {
-            RuleFor(_ => _.RowVersion).NotEmpty();
             RuleFor(_ => _.Recipient).NotEmpty();
             RuleFor(_ => _.Action).NotEmpty();
             When(_ => _.Action != CrudAction.Deleted, () => RuleFor(_ => _.Value).NotEmpty());
@@ -27,9 +25,9 @@ public class UpdateRecipientMessageCommand : IRequest<OneOf<Result<SqlResult>, V
         ITransactionScopeManager transactionManager,
         ILogger<UpdateRecipientMessageHandler> logger
     )
-    : IRequestHandler<UpdateRecipientMessageCommand, OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
+    : IRequestHandler<UpdateRecipientMessageCommand, OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
     {
-        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>> Handle(
+        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>> Handle(
             UpdateRecipientMessageCommand request,
             CancellationToken cancellationToken)
         {
@@ -49,11 +47,6 @@ public class UpdateRecipientMessageCommand : IRequest<OneOf<Result<SqlResult>, V
                 if (res == default)
                 {
                     return new NotFound();
-                }
-
-                if (!res.Value.RowVersion.SequenceEqual(request.RowVersion!))
-                {
-                    return new ConflictResult();
                 }
 
                 UpdateRecipientMessageByAction(request.Action, res.Value.Booking, request.Recipient!, request.Value!);

@@ -1,5 +1,15 @@
 import { Component, Input, OnInit, ViewChild, effect } from '@angular/core';
-import { BookingValidationResult, E1Booking, E1BookingHeader, E1BookingRow, E1Comment, E1Status } from '../models/types';
+import {
+  BookingRowImport,
+  BookingValidationResult,
+  E1Attachment,
+  E1Booking,
+  E1BookingHeader,
+  E1BookingRow,
+  E1Comment,
+  E1RecipientMessage,
+  E1Status,
+} from '../models/types';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
@@ -24,6 +34,9 @@ import { E1CommentsComponent } from '../e1-comments/e1-comments.component';
 import { E1CommentService } from '../services/e1-comment.service';
 import { E1CommentEditComponent } from '../e1-comment-edit/e1-comment-edit.component';
 import { getFormattedDateTimeString } from '../../shared/utils/date.utils';
+import { E1AttachmentsComponent } from '../e1-attachments/e1-attachments.component';
+import { E1AttachmentService } from '../services/e1-attachment.service';
+import { E1RecipientsComponent } from '../e1-recipients/e1-recipients.component';
 
 interface E1BookingForm {
   header: E1BookingHeader;
@@ -50,6 +63,8 @@ interface E1BookingForm {
     ConfirmComponent,
     E1CommentsComponent,
     E1CommentEditComponent,
+    E1AttachmentsComponent,
+    E1RecipientsComponent,
   ],
   templateUrl: './e1-booking-page.component.html',
   styleUrl: './e1-booking-page.component.css',
@@ -69,12 +84,15 @@ export class E1BookingPageComponent implements OnInit {
   public bookingId!: number;
   public rowVersion!: string;
   public statusHistory: E1Status[] = [];
+  public recipientMessages: E1RecipientMessage[] = [];
+  public attachments: E1Attachment[] = [];
   public comments: E1Comment[] = [];
   public toggleStates: any = {
     history: { value: false, icon: faPlus },
     import: { value: false, icon: faPlus },
     comments: { value: false, icon: faPlus },
     recipients: { value: false, icon: faPlus },
+    attachments: { value: false, icon: faPlus },
   };
 
   constructor(
@@ -83,6 +101,7 @@ export class E1BookingPageComponent implements OnInit {
     private bookingService: E1BookingService,
     private commentsService: E1CommentService,
     private notifications: NotificationService,
+    private attachmentsService: E1AttachmentService,
     private authService: AuthService,
     loadingService: LoadingService
   ) {
@@ -149,7 +168,7 @@ export class E1BookingPageComponent implements OnInit {
   }
 
   public async commentCreateCallback(comment: E1Comment) {
-    const req = this.commentsService.insertNewComment(this.bookingId, this.rowVersion, comment);
+    const req = this.commentsService.insertNewComment(this.bookingId, comment);
     const result = await firstValueFrom(req);
     this.rowVersion = result.rowVersion;
 
@@ -158,34 +177,62 @@ export class E1BookingPageComponent implements OnInit {
   }
 
   public async commentDeleteCallback(comment: E1Comment) {
-    const req = this.commentsService.deleteComment(this.bookingId, this.rowVersion, comment);
+    const req = this.commentsService.deleteComment(this.bookingId, comment);
     const result = await firstValueFrom(req);
     this.rowVersion = result.rowVersion;
 
     this.comments = this.comments.filter((_) => _ !== comment);
   }
 
-  public async commentEditCallback(comment: E1Comment) {
+  public async commentEditCallback(comment: { original: E1Comment; newValue: string }) {
+    const editedComment = { created: comment.original.created, value: comment.newValue };
+    const req = this.commentsService.editComment(this.bookingId, editedComment);
+    const result = await firstValueFrom(req);
+    this.rowVersion = result.rowVersion;
+
+    editedComment.created = getFormattedDateTimeString(new Date());
+    this.comments = this.comments.map((_) => (_ === comment.original ? editedComment : _));
+  }
+
+  public importRowsCallback(rows: BookingRowImport[]) {
+    if (!rows?.length || this.loading) return;
+
+    const maxRowNumber = (this.form.get('maxRowNumber')?.value as number) ?? 0;
+
+    rows.forEach((row) => {
+      const rowNumber = E1BookingRowTableComponent.getNextRowNumberForNewRow(this.rows.value, maxRowNumber);
+      const e1Row = E1ImportRowsComponent.mapImportToRow(row, rowNumber);
+      this.rows.push(E1BookingRowTableComponent.getFormRow(e1Row));
+    });
+    this.form.markAsDirty();
+  }
+
+  public async uploadAttachmentCallback(files: FileList) {
+    const req = this.attachmentsService.uploadAttachment(this.bookingId, files);
+    const result = await firstValueFrom(req);
+    this.rowVersion = result.rowVersion;
+
+    this.notifications.addNotification('Attachments uploaded.', `Attachment uploaded to booking ${this.bookingId}.`, NotificationType.Info);
+    const filesToAdd = Array.from(files).map((file) => ({ name: file.name, size: file.size, contentType: file.type, path: '' }));
+    this.attachments = [...this.attachments, ...filesToAdd];
+  }
+
+  public async deleteAttachmentCallback(attachment: E1Attachment) {
+    const req = this.attachmentsService.deleteComment(this.bookingId, attachment.name);
+    const result = await firstValueFrom(req);
+    this.rowVersion = result.rowVersion;
+
+    this.notifications.addNotification(
+      'Attachments uploaded.',
+      `Attachment "${attachment.name}" deleted on booking ${this.bookingId}.`,
+      NotificationType.Info
+    );
+    this.attachments = this.attachments.filter((_) => _ !== attachment);
+  }
+
+  public async viewFileCallback(attachment: E1Attachment) {
     if (this.loading) return;
-
-    if (!this.sharedModal) throw new Error('Shared modal is not initialized.');
-    const ref = this.sharedModal.showModalWithComponent(E1CommentEditComponent, [{ name: 'comment', value: comment }], 'Edit comment');
-
-    ref.instance.onEditComment.subscribe(async (value: string) => {
-      const editComment = { ...comment, value };
-      const req = this.commentsService.editComment(this.bookingId, this.rowVersion, editComment);
-      const result = await firstValueFrom(req);
-      this.rowVersion = result.rowVersion;
-
-      editComment.created = getFormattedDateTimeString(new Date()); // Return from backend to show more accurate time
-      this.comments = this.comments.map((_) => (_ === comment ? editComment : _));
-
-      this.sharedModal!.hideModal();
-    });
-
-    ref.instance.onCancel.subscribe(() => {
-      this.sharedModal!.hideModal();
-    });
+    this.attachmentsService.downloadFile(this.bookingId, attachment.name);
   }
 
   private updateStatuses() {
@@ -237,6 +284,8 @@ export class E1BookingPageComponent implements OnInit {
     this.bookingId = this.booking.bookingId;
     this.rowVersion = this.booking.rowVersion;
     this.statusHistory = this.booking.statusHistory;
+    this.attachments = this.booking.attachments;
+    this.recipientMessages = this.booking.messages;
     this.comments = this.booking.comments;
     const rows = this.booking.rows.map((row) => E1BookingRowTableComponent.getFormRow(row));
     this.initForm(this.booking.maxRowNumber, rows);

@@ -21,7 +21,12 @@
     <app-e1-booking-header [form]="header" />
   </section>
   <section class="mb-2 flex-auto border relative rounded-sm">
-    <app-e1-booking-row-table class="h-full" [rows]="rows" [form]="form" [validationErrors]="validationResult?.errors" />
+    <app-e1-booking-row-table
+      class="h-full"
+      [loading]="loading"
+      [rows]="rows"
+      [form]="form"
+      [validationErrors]="validationResult?.errors" />
   </section>
 
   <section class="mb-2 p-2 border rounded-sm">

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { E1BookingRowTableComponent } from './E1BookingRowTableComponent';
+import { E1BookingRowTableComponent } from './e1-booking-row-table.component';
 
 describe('E1BookingRowTableComponent', () => {
   let component: E1BookingRowTableComponent;

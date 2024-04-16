@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
-import { BookingRowImport } from '../models/types';
+import { BookingRowImport, E1BookingRow } from '../models/types';
 import csv from 'csvtojson';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
@@ -127,6 +127,36 @@ export class E1ImportRowsComponent {
 
     this.onRowsImported.emit(rows);
     this.resetControls();
+  }
+
+  public static mapImportToRow(imp: BookingRowImport, index: number): E1BookingRow {
+    const debit = Number(imp.debit?.replace(',', '.'));
+    const credit = Number(imp.credit?.replace(',', '.'));
+    const amount = !isNaN(debit) && debit > 0 ? debit : !isNaN(credit) && credit > 0 ? credit * -1 : credit;
+    const exchangeRate = Number(imp.exchangeRate?.replace(',', '.'));
+
+    return {
+      rowNumber: index,
+      account: imp.account,
+      amount: isNaN(amount) ? 0 : amount,
+      authorizer: imp.authorizer,
+      businessUnit: imp.businessUnit,
+      costObject1: imp.costObject,
+      costObject2: imp.costObject2,
+      costObject3: imp.costObject3,
+      costObject4: imp.costObject4,
+      costObjectType1: imp.costObjectType,
+      costObjectType2: imp.costObjectType2,
+      costObjectType3: imp.costObjectType3,
+      costObjectType4: imp.costObjectType4,
+      currencyCode: imp.currency,
+      exchangeRate: isNaN(exchangeRate) ? 0 : exchangeRate,
+      remark: imp.remark,
+      subledger: imp.subledger,
+      subledgerType: imp.subledgerType,
+      subsidiary: imp.subsidiary,
+      isNew: true,
+    };
   }
 
   private resetControls() {

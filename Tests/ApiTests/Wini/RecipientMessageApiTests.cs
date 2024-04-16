@@ -10,7 +10,7 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
     {
         await _testBase.ResetDbAsync();
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
-        var command = new RecipientMessageInput("XMIHST", "TEST", sqlResult.RowVersion);
+        var command = new RecipientMessageInput("XMIHST", "TEST");
 
         var res = await _testBase.HttpClient.PostAsJsonAsync($"/api/booking/{sqlResult.Id}/recipient", command);
         Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
@@ -47,7 +47,7 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
         };
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default, default, messages);
 
-        var command = new RecipientMessageInput("XMIHST", "TEST", sqlResult.RowVersion);
+        var command = new RecipientMessageInput("XMIHST", "TEST");
 
         var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/recipient", command);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
@@ -87,9 +87,8 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
         };
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default, default, messages);
 
-        var rowVersion = "rowVersion=" + string.Join("&rowVersion=", sqlResult.RowVersion!);
         var res = await _testBase.HttpClient.DeleteAsync(
-            $"/api/booking/{sqlResult.Id}/recipient?{rowVersion}&recipient=XMIHST"
+            $"/api/booking/{sqlResult.Id}/recipient?recipient=XMIHST"
         );
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 

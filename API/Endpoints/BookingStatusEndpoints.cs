@@ -11,7 +11,7 @@ public static class BookingStatusEndpoints
             success => Results.Ok(success.Value),
             _ => new BaseConflictResponse(),
             validationError => new BaseErrorResponse(validationError.Value),
-            error => new BaseErrorResponse(400, "Domain error", error.Value),
+            error => new BaseDomainErrorResponse(error.Value),
             _ => new BaseForbiddenResponse(),
             _ => new BaseNotFoundResponse(),
             _ => new BaseDatabaseErrorResponse()

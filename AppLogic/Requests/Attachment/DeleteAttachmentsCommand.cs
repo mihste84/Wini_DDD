@@ -1,17 +1,15 @@
 
 namespace AppLogic.Requests;
 
-public class DeleteAttachmentCommand : IRequest<OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
+public class DeleteAttachmentCommand : IRequest<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
 {
     public int? BookingId { get; set; }
-    public byte[]? RowVersion { get; set; }
     public string? FileName { get; set; }
     public class DeleteAttachmentsValidator : AbstractValidator<DeleteAttachmentCommand>
     {
         public DeleteAttachmentsValidator()
         {
             RuleFor(_ => _.BookingId).NotEmpty();
-            RuleFor(_ => _.RowVersion).NotEmpty();
             RuleFor(_ => _.FileName).NotEmpty().MaximumLength(200);
         }
     }
@@ -23,9 +21,9 @@ public class DeleteAttachmentCommand : IRequest<OneOf<Result<SqlResult>, Validat
         ITransactionScopeManager transactionManager,
         ILogger<DeleteAttachmentsHandler> logger
     )
-    : IRequestHandler<DeleteAttachmentCommand, OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
+    : IRequestHandler<DeleteAttachmentCommand, OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
     {
-        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>> Handle(
+        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>> Handle(
             DeleteAttachmentCommand request,
             CancellationToken cancellationToken
         )
@@ -46,11 +44,6 @@ public class DeleteAttachmentCommand : IRequest<OneOf<Result<SqlResult>, Validat
                 if (res == default)
                 {
                     return new NotFound();
-                }
-
-                if (!res.Value.RowVersion.SequenceEqual(request.RowVersion!))
-                {
-                    return new ConflictResult();
                 }
 
                 var booking = res.Value.Booking;

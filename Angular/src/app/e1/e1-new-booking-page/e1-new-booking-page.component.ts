@@ -96,7 +96,7 @@ export class E1NewBookingPageComponent {
     if (!rows?.length) return;
 
     const newRows = rows.map((row, i) => {
-      const mappedRow = this.mapImportToRow(row, i + 1);
+      const mappedRow = E1ImportRowsComponent.mapImportToRow(row, i + 1);
       return E1BookingRowTableComponent.getFormRow(mappedRow);
     });
 
@@ -143,34 +143,5 @@ export class E1NewBookingPageComponent {
       ledgerType: Number(value.header.ledgerType),
       rows: value.rows,
     } as E1BookingInput;
-  }
-
-  private mapImportToRow(imp: BookingRowImport, index: number): E1BookingRow {
-    const debit = Number(imp.debit?.replace(',', '.'));
-    const credit = Number(imp.credit?.replace(',', '.'));
-    const amount = !isNaN(debit) && debit > 0 ? debit : !isNaN(credit) && credit > 0 ? credit * -1 : credit;
-    const exchangeRate = Number(imp.exchangeRate?.replace(',', '.'));
-
-    return {
-      rowNumber: index,
-      account: imp.account,
-      amount: isNaN(amount) ? 0 : amount,
-      authorizer: imp.authorizer,
-      businessUnit: imp.businessUnit,
-      costObject1: imp.costObject,
-      costObject2: imp.costObject2,
-      costObject3: imp.costObject3,
-      costObject4: imp.costObject4,
-      costObjectType1: imp.costObjectType,
-      costObjectType2: imp.costObjectType2,
-      costObjectType3: imp.costObjectType3,
-      costObjectType4: imp.costObjectType4,
-      currencyCode: imp.currency,
-      exchangeRate: isNaN(exchangeRate) ? 0 : exchangeRate,
-      remark: imp.remark,
-      subledger: imp.subledger,
-      subledgerType: imp.subledgerType,
-      subsidiary: imp.subsidiary,
-    };
   }
 }

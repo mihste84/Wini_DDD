@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
 var corsOrigin = builder.Configuration["CorsOrigin"];
@@ -5,6 +7,11 @@ var connectionString = builder.Configuration.GetConnectionString("WiniDb");
 
 ArgumentNullException.ThrowIfNullOrWhiteSpace(corsOrigin);
 ArgumentNullException.ThrowIfNullOrWhiteSpace(connectionString);
+
+builder.Services.Configure<KestrelServerOptions>(options =>
+{
+    options.Limits.MaxRequestBodySize = InsertAttachmentsCommand.MaxFileSize;
+});
 
 if (isDevelopment)
 {
@@ -73,6 +80,7 @@ app.MapPost("api/booking/{id}/recipient", RecipientMessageEndpoints.PostAsync).R
 app.MapDelete("api/booking/{id}/recipient", RecipientMessageEndpoints.DeleteAsync).RequireAuthorization();
 app.MapPost("api/booking/{id}/attachment", AttachmentEndpoints.PostAsync).DisableAntiforgery().RequireAuthorization(); // Cant get antiforgery token to work...
 app.MapDelete("api/booking/{id}/attachment", AttachmentEndpoints.DeleteAsync).RequireAuthorization();
+app.MapGet("api/booking/{id}/attachment", AttachmentEndpoints.GetAsync).RequireAuthorization();
 app.MapPatch("api/booking/{id}/status", BookingStatusEndpoints.PatchAsync).RequireAuthorization();
 app.MapGet("api/booking/{id}/validate", ValidationEndpoints.ValidateByIdAsync).RequireAuthorization();
 app.MapPost("api/booking/validate", ValidationEndpoints.ValidateNewAsync).RequireAuthorization();

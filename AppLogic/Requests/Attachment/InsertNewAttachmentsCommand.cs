@@ -1,8 +1,9 @@
 
 namespace AppLogic.Requests;
 
-public class InsertAttachmentsCommand : IRequest<OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
+public class InsertAttachmentsCommand : IRequest<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
 {
+    public const int MaxFileSize = 1024 * 1024 * 5; // 5 MB
     public int? BookingId { get; set; }
     public byte[]? RowVersion { get; set; }
     public IEnumerable<UploadedAttachmentInput>? Files { get; set; }
@@ -11,7 +12,6 @@ public class InsertAttachmentsCommand : IRequest<OneOf<Result<SqlResult>, Valida
         public InsertAttachmentsValidator()
         {
             RuleFor(_ => _.BookingId).NotEmpty();
-            RuleFor(_ => _.RowVersion).NotEmpty();
             RuleFor(_ => _.Files).NotEmpty();
             RuleFor(_ => _.Files)
                 .NotEmpty()
@@ -26,27 +26,26 @@ public class InsertAttachmentsCommand : IRequest<OneOf<Result<SqlResult>, Valida
     {
         public UploadedAttachmentInputValidator()
         {
-            RuleFor(_ => _.Content).NotEmpty();
+            RuleFor(_ => _.Path).NotEmpty();
             RuleFor(_ => _.ContentType).NotEmpty();
-            RuleFor(_ => _.FileName).NotEmpty();
+            RuleFor(_ => _.FileName).MaximumLength(300).NotEmpty();
             RuleFor(_ => _.Length)
                 .NotEmpty()
-                .LessThanOrEqualTo(1024 * 1024 * 5)
+                .LessThanOrEqualTo(MaxFileSize)
                 .WithMessage(_ => $"File {_.FileName} has size greater than 5MB."); // 5 MB
         }
     }
 
     public class InsertAttachmentsHandler(
         IBookingRepository bookingRepo,
-        IAttachmentService attachmentService,
         IAuthenticationService authenticationService,
         IAuthorizationService authorizationService,
         ITransactionScopeManager transactionManager,
         ILogger<InsertAttachmentsHandler> logger
     )
-    : IRequestHandler<InsertAttachmentsCommand, OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
+    : IRequestHandler<InsertAttachmentsCommand, OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
     {
-        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>> Handle(
+        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>> Handle(
             InsertAttachmentsCommand request,
             CancellationToken cancellationToken
         )
@@ -69,24 +68,14 @@ public class InsertAttachmentsCommand : IRequest<OneOf<Result<SqlResult>, Valida
                     return new NotFound();
                 }
 
-                if (!res.Value.RowVersion.SequenceEqual(request.RowVersion!))
-                {
-                    return new ConflictResult();
-                }
-
                 var booking = res.Value.Booking;
 
-                foreach(var file in request.Files!) {
-                    var (success, path) = await attachmentService.SaveAttachmentAsync(file);
-                    if (!success) {
-                        logger.LogError("Failed to upload attachment '{FileName}'.", file.FileName);
-                        return new Error<string>($"Failed to upload attachment '{file.FileName}'.");
-                    }
-
+                foreach (var file in request.Files!)
+                {
                     booking.AddNewAttachment(
                         file.FileName!,
                         file.ContentType!,
-                        path,
+                        file.Path!,
                         file.Length!.Value,
                         authenticationService
                     );

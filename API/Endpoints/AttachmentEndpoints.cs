@@ -1,59 +1,67 @@
-namespace API.Endpoints;
+using AppLogig.Requests;
 
-public record AttachmentInput(byte[] RowVersion, IFormFileCollection? UploadedFiles);
+namespace API.Endpoints;
 
 public static class AttachmentEndpoints
 {
     public static async Task<IResult> PostAsync(
         [FromRoute] int? id,
-        [FromForm] AttachmentInput? input,
+        [FromForm] IFormFileCollection? uploadedFiles,
+        IAttachmentService attachmentService,
         IMediator mediator
     )
     {
-        var files = input?.UploadedFiles?.Select(_ => new UploadedAttachmentInput(
-            _.OpenReadStream(),
-            _.FileName,
-            _.Length,
-            _.ContentType
-        ));
-
-        try
+        if (uploadedFiles == default)
         {
-            var command = new InsertAttachmentsCommand
-            {
-                BookingId = id,
-                RowVersion = input?.RowVersion,
-                Files = files
-            };
-            var res = await mediator.Send(command);
-
-            return res.Match(
-                success => Results.Created("api/booking/" + success.Value.Id, success.Value),
-                validationError => new BaseErrorResponse(validationError.Value),
-                _ => new BaseConflictResponse(),
-                error => new BaseErrorResponse(400, "Domain error", error.Value),
-                _ => new BaseNotFoundResponse(),
-                _ => new BaseForbiddenResponse(),
-                _ => new BaseDatabaseErrorResponse()
-            );
+            return new BaseErrorResponse(400, "No files uploaded", "At least one file must be uploaded");
         }
-        finally
+        if (uploadedFiles.Count > 5)
         {
-            await DisposeAllStreamsAsync(files);
+            return new BaseErrorResponse(400, "Too many files", "Cannot upload more than 5 files.");
         }
+
+        var files = new List<UploadedAttachmentInput>();
+        foreach (var file in uploadedFiles)
+        {
+            using var stream = file.OpenReadStream();
+            var uploadResult = await attachmentService.SaveAttachmentAsync(stream, file.Name);
+            if (!uploadResult.Success)
+                return new BaseErrorResponse(500, "Error saving file", $"An error occurred while saving file {file.Name}.");
+
+            files.Add(new UploadedAttachmentInput(
+                file.FileName,
+                file.Length,
+                file.ContentType,
+                uploadResult.Path
+            ));
+        }
+
+        var command = new InsertAttachmentsCommand
+        {
+            BookingId = id,
+            Files = files
+        };
+        var res = await mediator.Send(command);
+
+        return res.Match(
+            success => Results.Created("api/booking/" + success.Value.Id, success.Value),
+            validationError => new BaseErrorResponse(validationError.Value),
+            error => new BaseDomainErrorResponse(error.Value),
+            _ => new BaseNotFoundResponse(),
+            _ => new BaseForbiddenResponse(),
+            _ => new BaseDatabaseErrorResponse()
+        );
     }
 
     public static async Task<IResult> DeleteAsync(
         [FromRoute] int? id,
         [FromQuery] string? fileName,
-        [FromQuery] byte[]? rowVersion,
         IMediator mediator
     )
     {
         var command = new DeleteAttachmentCommand
         {
             BookingId = id,
-            RowVersion = rowVersion,
             FileName = fileName
         };
 
@@ -62,24 +70,45 @@ public static class AttachmentEndpoints
         return res.Match(
             success => Results.Ok(success.Value),
             validationError => new BaseErrorResponse(validationError.Value),
-            _ => new BaseConflictResponse(),
-            error => new BaseErrorResponse(400, "Domain error", error.Value),
+            error => new BaseDomainErrorResponse(error.Value),
             _ => new BaseNotFoundResponse(),
             _ => new BaseForbiddenResponse(),
             _ => new BaseDatabaseErrorResponse()
         );
     }
 
-    private static async Task DisposeAllStreamsAsync(IEnumerable<UploadedAttachmentInput>? files)
+    public static async Task<IResult> GetAsync(
+        [FromRoute] int? id,
+        [FromQuery] string? fileName,
+        IAttachmentService attachmentService,
+        IMediator mediator
+    )
     {
-        if (files == default)
+        var command = new GetAttachmentByNameQuery
         {
-            return;
+            BookingId = id,
+            FileName = fileName
+        };
+
+        var res = await mediator.Send(command);
+
+        if (!res.IsT0)
+        {
+            return res.Match(
+                _ => Results.NoContent(),
+                validationError => new BaseErrorResponse(validationError.Value),
+                _ => new BaseNotFoundResponse(),
+                _ => new BaseForbiddenResponse(),
+                _ => new BaseDatabaseErrorResponse()
+            );
+        }
+        var attachmentDto = res.AsT0;
+        var file = await attachmentService.GetAttachmentAsync(attachmentDto.Value.Path);
+        if (file == default)
+        {
+            return new BaseNotFoundResponse();
         }
 
-        foreach (var file in files)
-        {
-            await file.Content!.DisposeAsync();
-        }
+        return Results.File(file, attachmentDto.Value.ContentType, attachmentDto.Value.Name);
     }
 }

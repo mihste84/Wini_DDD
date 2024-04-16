@@ -22,10 +22,10 @@
     <section class="flex items-center mb-2">
       <h5 class="">Current booking: {{ booking.bookingId }} [{{ getStatusName() }}]</h5>
       <div class="flex-auto"></div>
-      <span class="text-sm"
-        >Last updated: {{ updatedDate | date : "yyyy-MM-dd HH:mm:ss" }}
-        <i class="block overflow-hidden overflow-ellipsis max-w-48">{{ updatedBy }}</i></span
-      >
+      <span class="text-sm">
+        Last updated: {{ updatedDate | date : "yyyy-MM-dd HH:mm:ss" }}
+        <i class="block overflow-hidden overflow-ellipsis max-w-48">{{ updatedBy }}</i>
+      </span>
     </section>
     <section class="mb-2">
       <app-e1-booking-header [form]="header" />
@@ -49,7 +49,7 @@
         <app-e1-status-history [statuses]="statusHistory" />
       </section>
       } @if (toggleStates.comments.value) {
-      <section class="mt-4 max-2xl:w-96 me-2">
+      <section class="mt-4 max-w-96 w-full me-2">
         <app-e1-comments
           [comments]="comments"
           (onCommentEdit)="commentEditCallback($event)"
@@ -57,7 +57,9 @@
           (onCommentDeleted)="commentDeleteCallback($event)" />
       </section>
       } @if (toggleStates.recipients.value) {
-      <section class="mt-4">Recipients</section>
+      <section class="mt-4">
+        <app-e1-recipients [recipients]="recipientMessages" [loading]="loading" />
+      </section>
       }
     </div>
   </section>
@@ -67,6 +69,7 @@
       [isNewBooking]="false"
       [rows]="rows"
       [form]="form"
+      [loading]="loading"
       [validationErrors]="validationResult?.errors" />
   </section>
 
@@ -80,7 +83,25 @@
       <a class="text-blue-600" target="_blank" href="http://coa.radix1.ifint.biz/web/coaweb/">Accountplan - top Sweden</a>
     </section>
     @if(toggleStates.import.value) {
-    <div class="mt-2"></div>
+    <div class="mt-2">
+      <app-e1-import-rows (onRowsImported)="importRowsCallback($event)" />
+    </div>
+    }
+  </section>
+  <section class="mb-2 p-2 border rounded-sm">
+    <span (click)="toggle('attachments')" class="text-blue-600 cursor-pointer text-sm">
+      <fa-icon [icon]="toggleStates.attachments.icon" class="me-1" />
+      Attachments ({{ attachments.length }})
+    </span>
+    @if(toggleStates.attachments.value) {
+    <div class="mt-2">
+      <app-e1-attachments
+        [attachments]="attachments"
+        [loading]="loading"
+        (onViewAttachment)="viewFileCallback($event)"
+        (onDeleteAttachment)="deleteAttachmentCallback($event)"
+        (onUploadAttachment)="uploadAttachmentCallback($event)" />
+    </div>
     }
   </section>
 

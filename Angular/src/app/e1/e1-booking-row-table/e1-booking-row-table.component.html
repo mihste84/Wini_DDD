@@ -7,13 +7,15 @@
     <div>
       <button
         type="button"
-        (click)="toggleCostObjects()"
+        [disabled]="loading"
+        (click)="toggleCostObjectsClick()"
         class="me-2 h-8 text-sm leading-4 border p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
         {{ showAllCostObjects ? "Hide" : "Show" }} cost objects
       </button>
 
       <button
         type="button"
+        [disabled]="loading"
         (click)="onAddNewRowClick()"
         class="h-8 text-sm leading-4 border p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
         Add new row
@@ -25,6 +27,13 @@
     <table class="table-auto">
       <thead class="border-t border-b bg-gray-200 text-sm">
         <tr>
+          @if(isNewBooking) {
+          <th></th>
+          } @else {
+          <th title="Toggle mark all rows for deletion">
+            <div class="px-1"><input [formControl]="selectAllToDelete" type="checkbox" /></div>
+          </th>
+          }
           <th class="text-start px-2 border-r whitespace-nowrap">#</th>
           <th class="text-start px-2 border-r whitespace-nowrap">Business unit</th>
           <th class="text-start px-2 border-r whitespace-nowrap">Account</th>
@@ -42,23 +51,35 @@
           <th class="text-start px-2 border-r whitespace-nowrap">CO 4 type</th>
           }
           <th class="text-start px-2 border-r whitespace-nowrap">Amount</th>
-          <th class="text-start px-2 border-r whitespace-nowrap text-blue-500 pointer cursor-pointer">Currency</th>
-          <th class="text-start px-2 border-r whitespace-nowrap">Exchange rate</th>
-          <th class="text-start px-2 border-r whitespace-nowrap text-blue-500 cursor-pointer">Authorizer</th>
-          <th class="text-start px-2 border-r whitespace-nowrap">Remark</th>
-          @if(isNewBooking) {
-          <th></th>
-          } @else {
-          <th title="Toggle mark all rows for deletion">
-            <div class="px-1"><input [formControl]="selectAllToDelete" type="checkbox" /></div>
+          <th
+            class="text-start px-2 border-r whitespace-nowrap text-blue-500 pointer cursor-pointer"
+            (click)="onCopyCallback('currency', 3, 'currencyCode')">
+            Currency
           </th>
-          }
+          <th class="text-start px-2 border-r whitespace-nowrap">Exchange rate</th>
+          <th
+            class="text-start px-2 border-r whitespace-nowrap text-blue-500 cursor-pointer"
+            (click)="onCopyCallback('authorizer', 200, 'authorizer')">
+            Authorizer
+          </th>
+          <th class="text-start px-2 border-r whitespace-nowrap">Remark</th>
         </tr>
       </thead>
       <tbody class="text-sm" formArrayName="rows">
         @for (control of rows.controls; let i = $index; track control.value.id) {
-        <tr [formGroupName]="i" class="align-middle">
-          @if(isValidationError(control.value.rowNumber)) {
+        <tr [formGroupName]="i" class="align-middle" [ngClass]="{ 'opacity-60': control.get('toDelete')?.value }">
+          @if(control.value.isNew) {
+          <td class="px-1 border-r py-0.5">
+            <fa-icon
+              (click)="onRemoveRowClick(control.value?.rowNumber, i + 1)"
+              class="cursor-pointer text-red-600 hover:text-red-700"
+              [icon]="faTrash" />
+          </td>
+          } @else {
+          <td class="px-1 border-r py-0.5 text-center">
+            <input type="checkbox" formControlName="toDelete" />
+          </td>
+          } @if(isValidationError(control.value.rowNumber)) {
           <td class="text-center px-1 border-r bg-red-500">
             <span
               class="text-white cursor-pointer"
@@ -204,18 +225,6 @@
             <small class="text-red-500 whitespace-nowrap">Max length is 30 chars</small>
             }
           </td>
-          @if(control.value.isNew) {
-          <td class="px-1 border-r py-0.5">
-            <fa-icon
-              (click)="onRemoveRowClick(control.value?.rowNumber, i + 1)"
-              class="cursor-pointer text-red-600 hover:text-red-700"
-              [icon]="faTrash" />
-          </td>
-          } @else {
-          <td class="px-1 border-r py-0.5 text-center">
-            <input type="checkbox" formControlName="toDelete" />
-          </td>
-          }
         </tr>
         } @empty {
         <tr>
@@ -223,7 +232,7 @@
         </tr>
         }
         <tr class="border-t">
-          <td [attr.colspan]="showAllCostObjects ? 14 : 8"></td>
+          <td [attr.colspan]="showAllCostObjects ? 15 : 9"></td>
           <td class="text-end">{{ amountSum | number : "1.2" }}</td>
           <td colspan="99"></td>
         </tr>

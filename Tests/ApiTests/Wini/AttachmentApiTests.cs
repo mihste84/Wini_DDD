@@ -18,10 +18,6 @@ public sealed class AttachmentApiTests(TestBase testBase) : IClassFixture<TestBa
             { GetStreamContent("TestFiles/Test2.txt", "text/plain"), "uploadedFiles", "Test2.txt" }
         };
 
-        foreach(var item in sqlResult.RowVersion!)
-        {
-            formData.Add(new StringContent(item.ToString()), "rowVersion");
-        }
         var res = await _testBase.HttpClient.PostAsync($"api/booking/{sqlResult.Id}/attachment", formData);
         Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -37,6 +33,37 @@ public sealed class AttachmentApiTests(TestBase testBase) : IClassFixture<TestBa
         Assert.Contains(attachments, _ => _.ContentType == "text/plain" && _.Name == "Test2.txt");
     }
 
+
+    [Fact]
+    public async Task Get_Attachment_Async()
+    {
+        await _testBase.ResetDbAsync();
+        var attachments = new[] {
+            new Services.DatabaseDapper.Models.Attachment {
+                Created = DateTime.UtcNow,
+                CreatedBy = "MIHSTE",
+                Name = "Test1.txt",
+                ContentType = "text/plain",
+                Path = "path/to/file",
+                Size = 1234
+            },
+            new Services.DatabaseDapper.Models.Attachment {
+                Created = DateTime.UtcNow,
+                CreatedBy = "MIHSTE",
+                Name = "Test2.txt",
+                ContentType = "text/plain",
+                Path = "path/to/file",
+                Size = 1234
+            },
+        };
+        var sqlResult = await _testBase.SeedBaseBookingAsync(default, default, default, default, attachments);
+
+        var res = await _testBase.HttpClient.GetAsync($"api/booking/{sqlResult.Id}/attachment?FileName={attachments[0].Name}");
+        Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
+
+    }
+
+
     [Fact]
     public async Task Fail_To_Insert_New_Attachments_File_Too_Large_Async()
     {
@@ -50,10 +77,6 @@ public sealed class AttachmentApiTests(TestBase testBase) : IClassFixture<TestBa
             { GetStreamContent("TestFiles/TooLargeFile.txt", "text/plain"), "uploadedFiles", "TooLargeFile.txt" }
         };
 
-        foreach(var item in sqlResult.RowVersion!)
-        {
-            formData.Add(new StringContent(item.ToString()), "rowVersion");
-        }
         var res = await _testBase.HttpClient.PostAsync($"api/booking/{sqlResult.Id}/attachment", formData);
         Assert.Equal(System.Net.HttpStatusCode.UnprocessableEntity, res.StatusCode);
         var content = await res.Content.ReadFromJsonAsync<ProblemDetails>();
@@ -87,9 +110,8 @@ public sealed class AttachmentApiTests(TestBase testBase) : IClassFixture<TestBa
         };
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default, default, default, attachments);
 
-        var rowVersion = "rowVersion=" + string.Join("&rowVersion=", sqlResult.RowVersion!);
         var res = await _testBase.HttpClient.DeleteAsync(
-            $"api/booking/{sqlResult.Id}/attachment?{rowVersion}&fileName=Test1.txt"
+            $"api/booking/{sqlResult.Id}/attachment?fileName=Test1.txt"
         );
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 

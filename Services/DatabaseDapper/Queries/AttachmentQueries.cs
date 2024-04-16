@@ -2,9 +2,9 @@ namespace Services.DatabaseDapper.Queries;
 
 public static class AttachmentQueries
 {
-    public const string SelectByBookingId = """
+    public const string SelectByBookingIdAndName = """
         SELECT * FROM dbo.Attachments
-        WHERE BookingId = @BookingId
+        WHERE BookingId = @BookingId AND Name = @Name
     """;
 
     public const string Insert = """

@@ -1,18 +1,16 @@
 namespace AppLogic.Requests;
 
-public class UpdateBookingCommentCommand : IRequest<OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
+public class UpdateBookingCommentCommand : IRequest<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
 {
     public int? BookingId { get; set; }
     public DateTime? Created { get; set; }
     public CrudAction? Action { get; set; }
     public string? Value { get; set; }
-    public byte[]? RowVersion { get; set; }
 
     public class UpdateBookingCommentValidator : AbstractValidator<UpdateBookingCommentCommand>
     {
         public UpdateBookingCommentValidator()
         {
-            RuleFor(_ => _.RowVersion).NotEmpty();
             RuleFor(_ => _.Created).NotEmpty();
             RuleFor(_ => _.Action).NotEmpty();
             RuleFor(_ => _.BookingId).NotEmpty().GreaterThan(0);
@@ -26,9 +24,9 @@ public class UpdateBookingCommentCommand : IRequest<OneOf<Result<SqlResult>, Val
         ITransactionScopeManager transactionManager,
         ILogger<UpdateBookingCommentHandler> logger
     )
-    : IRequestHandler<UpdateBookingCommentCommand, OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
+    : IRequestHandler<UpdateBookingCommentCommand, OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>>
     {
-        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, ConflictResult, Error<string>, NotFound, ForbiddenResult, Unknown>> Handle(
+        public async Task<OneOf<Result<SqlResult>, ValidationErrorResult, Error<string>, NotFound, ForbiddenResult, Unknown>> Handle(
             UpdateBookingCommentCommand request,
             CancellationToken cancellationToken)
         {
@@ -48,11 +46,6 @@ public class UpdateBookingCommentCommand : IRequest<OneOf<Result<SqlResult>, Val
                 if (res == default)
                 {
                     return new NotFound();
-                }
-
-                if (!res.Value.RowVersion.SequenceEqual(request.RowVersion!))
-                {
-                    return new ConflictResult();
                 }
 
                 UpdateCommentByAction(request.Action, res.Value.Booking, request.Created!.Value, request.Value);
