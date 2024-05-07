@@ -10,7 +10,7 @@ public static class RecipientMessageEndpoints
         var command = new UpdateRecipientMessageCommand
         {
             Action = Domain.Wini.Events.CrudAction.Added,
-            Value = input.Value,
+            Value = input.Message,
             BookingId = id,
             Recipient = input.Recipient
         };
@@ -35,7 +35,7 @@ public static class RecipientMessageEndpoints
         var command = new UpdateRecipientMessageCommand
         {
             Action = Domain.Wini.Events.CrudAction.Edited,
-            Value = input.Value,
+            Value = input.Message,
             BookingId = id,
             Recipient = input.Recipient
         };

@@ -1,6 +1,13 @@
-<section class="flex flex-col w-96">
-  <label for="comment">Comment:</label>
-  <textarea rows="3" [formControl]="form" name="comment" id="comment" class="border border-slate-300 p-2 mb-2"></textarea>
+<section>
+  <div class="mb-2">
+    <label for="comment">Comment:</label>
+    <textarea rows="3" [formControl]="form" name="comment" id="comment" class="w-full border border-slate-300 p-2"></textarea>
+    @if(form.hasError('required')) {
+    <div class="text-red-500 text-end"><small>Comment is required</small></div>
+    } @else if(form.hasError('maxlength')) {
+    <div class="text-red-500 text-end"><small>Maximum length is 300 chars</small></div>
+    }
+  </div>
 
   <div class="text-end">
     <button

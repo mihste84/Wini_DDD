@@ -37,6 +37,7 @@ import { getFormattedDateTimeString } from '../../shared/utils/date.utils';
 import { E1AttachmentsComponent } from '../e1-attachments/e1-attachments.component';
 import { E1AttachmentService } from '../services/e1-attachment.service';
 import { E1RecipientsComponent } from '../e1-recipients/e1-recipients.component';
+import { E1RecipientMessageService } from '../services/e1-recipient-message.service';
 
 interface E1BookingForm {
   header: E1BookingHeader;
@@ -102,6 +103,7 @@ export class E1BookingPageComponent implements OnInit {
     private commentsService: E1CommentService,
     private notifications: NotificationService,
     private attachmentsService: E1AttachmentService,
+    private recipientService: E1RecipientMessageService,
     private authService: AuthService,
     loadingService: LoadingService
   ) {
@@ -168,6 +170,8 @@ export class E1BookingPageComponent implements OnInit {
   }
 
   public async commentCreateCallback(comment: E1Comment) {
+    if (this.loading) return;
+
     const req = this.commentsService.insertNewComment(this.bookingId, comment);
     const result = await firstValueFrom(req);
     this.rowVersion = result.rowVersion;
@@ -177,6 +181,8 @@ export class E1BookingPageComponent implements OnInit {
   }
 
   public async commentDeleteCallback(comment: E1Comment) {
+    if (this.loading || !this.comments.length) return;
+
     const req = this.commentsService.deleteComment(this.bookingId, comment);
     const result = await firstValueFrom(req);
     this.rowVersion = result.rowVersion;
@@ -185,6 +191,8 @@ export class E1BookingPageComponent implements OnInit {
   }
 
   public async commentEditCallback(comment: { original: E1Comment; newValue: string }) {
+    if (this.loading || !this.comments.length) return;
+
     const editedComment = { created: comment.original.created, value: comment.newValue };
     const req = this.commentsService.editComment(this.bookingId, editedComment);
     const result = await firstValueFrom(req);
@@ -208,6 +216,8 @@ export class E1BookingPageComponent implements OnInit {
   }
 
   public async uploadAttachmentCallback(files: FileList) {
+    if (this.loading) return;
+
     const req = this.attachmentsService.uploadAttachment(this.bookingId, files);
     const result = await firstValueFrom(req);
     this.rowVersion = result.rowVersion;
@@ -218,6 +228,8 @@ export class E1BookingPageComponent implements OnInit {
   }
 
   public async deleteAttachmentCallback(attachment: E1Attachment) {
+    if (this.loading || !this.attachments.length) return;
+
     const req = this.attachmentsService.deleteComment(this.bookingId, attachment.name);
     const result = await firstValueFrom(req);
     this.rowVersion = result.rowVersion;
@@ -228,6 +240,45 @@ export class E1BookingPageComponent implements OnInit {
       NotificationType.Info
     );
     this.attachments = this.attachments.filter((_) => _ !== attachment);
+  }
+
+  public async recipientMessageEditCallback(evt: { original: E1RecipientMessage; newValue: E1RecipientMessage }) {
+    if (this.loading || !this.recipientMessages.length) return;
+
+    const newRecipient = {
+      recipient: evt.original.recipient,
+      message: evt.newValue.message,
+    };
+    const req = this.recipientService.editRecipientMessage(this.bookingId, newRecipient);
+    const result = await firstValueFrom(req);
+    this.rowVersion = result.rowVersion;
+
+    this.recipientMessages = this.recipientMessages.map((_) => (_ === evt.original ? newRecipient : _));
+  }
+
+  public async recipientMessageDeletedCallback(evt: E1RecipientMessage) {
+    if (this.loading || !this.recipientMessages.length) return;
+
+    const req = this.recipientService.deleteRecipientMessage(this.bookingId, evt);
+    const result = await firstValueFrom(req);
+    this.rowVersion = result.rowVersion;
+
+    this.recipientMessages = this.recipientMessages.filter((_) => _ !== evt);
+  }
+
+  public async recipientMessageCreatedCallback(evt: E1RecipientMessage) {
+    if (this.loading) return;
+    if (this.recipientMessages.length == 5) {
+      this.notifications.addNotification('Maximum number of messages reached.', 'Maximum messages reached', NotificationType.Warning);
+      return;
+    }
+
+    const req = this.recipientService.insertNewRecipientMessage(this.bookingId, evt);
+    const result = await firstValueFrom(req);
+    this.rowVersion = result.rowVersion;
+
+    this.recipientMessages.push(evt);
+    this.recipientMessages = [...this.recipientMessages];
   }
 
   public async viewFileCallback(attachment: E1Attachment) {

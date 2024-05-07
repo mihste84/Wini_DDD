@@ -58,7 +58,12 @@
       </section>
       } @if (toggleStates.recipients.value) {
       <section class="mt-4">
-        <app-e1-recipients [recipients]="recipientMessages" [loading]="loading" />
+        <app-e1-recipients
+          [recipients]="recipientMessages"
+          [loading]="loading"
+          (onRecipientMessageCreated)="recipientMessageCreatedCallback($event)"
+          (onRecipientMessageDeleted)="recipientMessageDeletedCallback($event)"
+          (onRecipientMessageEdit)="recipientMessageEditCallback($event)" />
       </section>
       }
     </div>

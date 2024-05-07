@@ -22,7 +22,7 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
             "SELECT * FROM dbo.RecipientMessages WHERE BookingId = @BookingId", new { BookingId = sqlResult.Id }
         );
         Assert.Single(RecipientMessages);
-        Assert.Equal(command.Value, RecipientMessages.FirstOrDefault()?.Value);
+        Assert.Equal(command.Message, RecipientMessages.FirstOrDefault()?.Value);
         Assert.Equal(command.Recipient, RecipientMessages.FirstOrDefault()?.Recipient);
     }
 

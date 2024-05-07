@@ -18,7 +18,7 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
   templateUrl: './modal.component.html',
   styleUrls: ['./modal.component.css'],
   standalone: true,
-  imports: [FontAwesomeModule]
+  imports: [FontAwesomeModule],
 })
 export class ModalComponent implements OnDestroy {
   @Input() public title: string = '';
@@ -32,11 +32,7 @@ export class ModalComponent implements OnDestroy {
     this.dialog?.nativeElement.showModal();
   }
 
-  public showModalWithComponent(
-    component: Type<any>,
-    input?: { name: string; value: any }[],
-    title?: string
-  ): ComponentRef<any> {
+  public showModalWithComponent(component: Type<any>, input?: { name: string; value: any }[], title?: string): ComponentRef<any> {
     this.title = title ?? this.title;
     this.createdCompoenetRef = this.ref?.createComponent(component);
     input?.forEach((i) => this.createdCompoenetRef?.setInput(i.name, i.value));

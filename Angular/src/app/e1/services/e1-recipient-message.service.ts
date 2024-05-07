@@ -8,15 +8,15 @@ import { E1RecipientMessage, SqlResult } from '../models/types';
 export class E1RecipientMessageService {
   constructor(private http: HttpClient) {}
 
-  public insertNewComment(bookingId: number, body: E1RecipientMessage) {
+  public insertNewRecipientMessage(bookingId: number, body: E1RecipientMessage) {
     return this.http.post<SqlResult>(`booking/${bookingId}/recipient`, body);
   }
 
-  public editComment(bookingId: number, body: E1RecipientMessage) {
+  public editRecipientMessage(bookingId: number, body: E1RecipientMessage) {
     return this.http.patch<SqlResult>(`booking/${bookingId}/recipient`, body);
   }
 
-  public deleteComment(bookingId: number, body: E1RecipientMessage) {
+  public deleteRecipientMessage(bookingId: number, body: E1RecipientMessage) {
     return this.http.delete<SqlResult>(`booking/${bookingId}/recipient?recipient=${body.recipient}`);
   }
 }

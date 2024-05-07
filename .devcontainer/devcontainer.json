@@ -49,7 +49,7 @@
             ]
         }
     },
-    "forwardPorts": [1433, 3000, 5299, 7206, 5173],
+    "forwardPorts": [1433, 3000, 5299, 7206, 5173, 4200],
     "portsAttributes": {
         "7206": {
             "protocol": "https"
