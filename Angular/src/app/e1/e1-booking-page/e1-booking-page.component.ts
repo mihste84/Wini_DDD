@@ -27,7 +27,7 @@ import { WiniStatus } from '../models/wini-status';
 import { E1BookingService } from '../services/e1-booking.service';
 import { firstValueFrom } from 'rxjs';
 import { E1BookingRowTableComponent } from '../e1-booking-row-table/e1-booking-row-table.component';
-import { AuthService } from '../../security/auth.service';
+import { AuthenticationService } from '../../security/authentication.service';
 import { E1StatusHistoryComponent } from '../e1-status-history/e1-status-history.component';
 import { ConfirmComponent } from '../../shared/components/confirm/confirm.component';
 import { E1CommentsComponent } from '../e1-comments/e1-comments.component';
@@ -38,6 +38,7 @@ import { E1AttachmentsComponent } from '../e1-attachments/e1-attachments.compone
 import { E1AttachmentService } from '../services/e1-attachment.service';
 import { E1RecipientsComponent } from '../e1-recipients/e1-recipients.component';
 import { E1RecipientMessageService } from '../services/e1-recipient-message.service';
+import { AuthorizationService } from '../../security/authorization.service';
 
 interface E1BookingForm {
   header: E1BookingHeader;
@@ -104,34 +105,12 @@ export class E1BookingPageComponent implements OnInit {
     private notifications: NotificationService,
     private attachmentsService: E1AttachmentService,
     private recipientService: E1RecipientMessageService,
-    private authService: AuthService,
+    private authenticationService: AuthenticationService,
+    private authorizationService: AuthorizationService,
     loadingService: LoadingService
   ) {
     effect(() => {
       this.loading = loadingService.isLoading();
-    });
-  }
-
-  public async reloadClick() {
-    if (this.loading) return;
-
-    if (!this.sharedModal) throw new Error('Shared modal is not initialized.');
-    const ref = this.sharedModal.showModalWithComponent(
-      ConfirmComponent,
-      [{ name: 'message', value: `Are you sure you want to reload booking? Unsaved changes will be lost.` }],
-      'Reload booking #' + this.bookingId
-    );
-
-    ref.instance.onConfirm.subscribe(async () => {
-      const req = this.bookingService.getBookingById(this.bookingId);
-      this.booking = await firstValueFrom(req);
-      this.init();
-
-      this.sharedModal!.hideModal();
-    });
-
-    ref.instance.onCancel.subscribe(() => {
-      this.sharedModal!.hideModal();
     });
   }
 
@@ -286,10 +265,26 @@ export class E1BookingPageComponent implements OnInit {
     this.attachmentsService.downloadFile(this.bookingId, attachment.name);
   }
 
+  public async saveAndSendClick() {
+    if (this.form.invalid || this.loading) return;
+
+    await this.validateBookingClick();
+
+    if (!this.validationResult?.isValid) return;
+
+    const statusToChange = this.authorizationService.isBookingAuthorizationNeeded ? WiniStatus.ToBeAuthorized : WiniStatus.ToBeSent;
+    const req = this.bookingService.updateBookingStatus(this.bookingId, this.rowVersion, statusToChange);
+    await firstValueFrom(req);
+
+    const message = `Booking with ID #${this.bookingId} updated and status set to ${WiniStatus[statusToChange]}.`;
+    this.notifications.addNotification(message, 'Booking status updated', NotificationType.Info);
+    this.router.navigate(['e1/search']);
+  }
+
   private updateStatuses() {
     this.statusHistory.push({ status: WiniStatus.Saved, updated: this.updatedDate, updatedBy: this.updatedBy });
     this.updatedDate = new Date().toUTCString();
-    this.updatedBy = this.authService.getAppUser().userName;
+    this.updatedBy = this.authenticationService.getAppUser().userName;
   }
 
   private updateFormAfterSave() {
@@ -354,6 +349,15 @@ export class E1BookingPageComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.booking) {
+      this.router.navigate(['e1/search']);
+    }
+
+    if (this.booking.status != WiniStatus.Saved) {
+      this.notifications.addNotification(
+        'Booking can only be edited when status is "Saved".',
+        'Booking not in valid state',
+        NotificationType.Warning
+      );
       this.router.navigate(['e1/search']);
     }
 

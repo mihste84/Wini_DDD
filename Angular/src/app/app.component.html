@@ -1,7 +1,7 @@
 <section class="fixed top-0 right-0 left-0 h-14 bg-blue-500 z-50">
   <app-header [user]="user"></app-header>
-  @if(user?.isAuthenticated && isSmallScreen && urlType) {
-  <header class="border-b-2 ">
+  @if(user?.isAuthenticated && isSmallScreen && urlType && authorizationService.isRead) {
+  <header class="border-b-2">
     <app-side-nav
       [urlType]="urlType"
       [showSideNav]="showSideNav"
@@ -13,7 +13,7 @@
 <section class="h-screen flex flex-row flex-nowrap" [ngClass]="{ 'pt-24': isSmallScreen, 'pt-14': !isSmallScreen }">
   <div class="absolute right-2 bottom-2"></div>
 
-  @if (user?.isAuthenticated && !isSmallScreen && urlType) {
+  @if (user?.isAuthenticated && !isSmallScreen && urlType && authorizationService.isRead) {
   <aside [ngClass]="{ 'w-64': showSideNav, 'w-min': !showSideNav }" class="border-x-2 flex-none">
     <app-side-nav
       [urlType]="urlType"

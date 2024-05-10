@@ -132,11 +132,11 @@
       Save and close
     </button>
     <button
-      [disabled]="loading"
+      [disabled]="form.invalid || loading"
       type="button"
-      (click)="reloadClick()"
-      class="h-8 text-sm leading-4 border me-2 p-2 bg-gray-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70">
-      Reload booking
+      (click)="saveAndSendClick()"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-70">
+      {{ form.dirty ? "Save & " : "" }} Send
     </button>
     <button
       type="button"

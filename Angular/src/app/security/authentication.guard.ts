@@ -1,5 +1,4 @@
 import { inject } from '@angular/core';
-import { AuthService } from './auth.service';
+import { AuthenticationService } from './authentication.service';
 
-export const isAutheticatedGuard = (auth = inject(AuthService)) => auth.isSignedIn();
-
+export const isAutheticatedGuard = (auth = inject(AuthenticationService)) => auth.isSignedIn();

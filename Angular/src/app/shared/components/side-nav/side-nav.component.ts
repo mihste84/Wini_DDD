@@ -1,15 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import {
-  faAnglesLeft,
-  faAnglesRight,
-  faMagnifyingGlass,
-  faPlus,
-  faFileImport,
-} from '@fortawesome/free-solid-svg-icons';
+import { faAnglesLeft, faAnglesRight, faMagnifyingGlass, faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons';
 import { NavLinkComponent } from '../nav-link/nav-link.component';
 import { RouterModule } from '@angular/router';
+import { AuthorizationService } from '../../../security/authorization.service';
 
 @Component({
   selector: 'app-side-nav',
@@ -24,7 +19,7 @@ export class SideNavComponent {
   @Input({ required: true }) public urlType?: string;
 
   @Output() public onToggleSideNav = new EventEmitter<void>();
-
+  constructor(public authorizationService: AuthorizationService) {}
   public faAnglesRight = faAnglesRight;
   public faAnglesLeft = faAnglesLeft;
   public faMagnifyingGlass = faMagnifyingGlass;

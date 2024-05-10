@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BookingValidationResult, E1Booking, E1BookingInput, SqlResult } from '../models/types';
+import { WiniStatus } from '../models/wini-status';
 
 @Injectable({
   providedIn: 'root',
@@ -26,5 +27,9 @@ export class E1BookingService {
 
   public getBookingById(id: number) {
     return this.http.get<E1Booking>('booking/' + id);
+  }
+
+  public updateBookingStatus(bookingId: number, rowVersion: string, status: WiniStatus) {
+    return this.http.patch<SqlResult>('booking/' + bookingId + '/status/' + status, {}, { headers: { rowVersion: rowVersion } });
   }
 }

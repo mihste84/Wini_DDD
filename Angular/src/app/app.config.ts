@@ -1,6 +1,6 @@
 import { APP_INITIALIZER, ApplicationConfig, inject } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import {
   IPublicClientApplication,
   PublicClientApplication,
@@ -22,7 +22,7 @@ import {
 } from '@azure/msal-angular';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
-import { AuthService } from './security/auth.service';
+import { AuthenticationService } from './security/authentication.service';
 import { ErrorInterceptor } from './shared/interceptors/error.interceptor';
 import { ApiInterceptor } from './shared/interceptors/api.interceptor';
 import { LoggerService, Severity } from './shared/services/logger.service';
@@ -88,9 +88,9 @@ function MSALGuardConfigFactory(): MsalGuardConfiguration {
   };
 }
 
-export function appInitFactory(appService: AuthService) {
+export function initAuthentication(authService: AuthenticationService) {
   return async () => {
-    await appService.init();
+    await authService.init();
   };
 }
 
@@ -99,11 +99,11 @@ export const appConfig: ApplicationConfig = {
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ApiInterceptor, multi: true },
     LoggerService,
-    AuthService,
+    AuthenticationService,
     {
       provide: APP_INITIALIZER,
-      useFactory: appInitFactory,
-      deps: [AuthService],
+      useFactory: initAuthentication,
+      deps: [AuthenticationService],
       multi: true,
     },
     {

@@ -11,3 +11,19 @@ export interface SqlResult {
   id: number;
   rowVersion: string;
 }
+
+export interface AppUserRights {
+  isAdmin: boolean;
+  isRead: boolean;
+  isWrite: boolean;
+  isAccountingUser: boolean;
+  isControlActuary: boolean;
+  isSpecificActuary: boolean;
+  isBookingAuthorizationNeeded: boolean;
+}
+
+export interface AppUser {
+  isAuthenticated: boolean;
+  userName: string;
+  name: string;
+}

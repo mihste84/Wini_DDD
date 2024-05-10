@@ -1,6 +1,6 @@
 import { Component, OnDestroy, effect } from '@angular/core';
 import { EventType, NavigationEnd, Router, RouterOutlet } from '@angular/router';
-import { AppUser, AuthService } from './security/auth.service';
+import { AuthenticationService } from './security/authentication.service';
 import { CommonModule } from '@angular/common';
 import { BreakpointObserver, Breakpoints, LayoutModule } from '@angular/cdk/layout';
 import { environment } from '../environments/environment';
@@ -8,13 +8,15 @@ import { LoadingService } from './shared/services/loading.service';
 import { SideNavComponent } from './shared/components/side-nav/side-nav.component';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { Subscription, filter, map } from 'rxjs';
+import { AppUser } from './shared/models/types';
+import { AuthorizationService } from './security/authorization.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, CommonModule, LayoutModule, SideNavComponent, HeaderComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
 })
 export class AppComponent implements OnDestroy {
   public title = environment.title;
@@ -25,12 +27,12 @@ export class AppComponent implements OnDestroy {
   public urlType?: string;
   private sub: Subscription;
 
-
   constructor(
-    authService: AuthService,
+    authService: AuthenticationService,
     loadingService: LoadingService,
     responsive: BreakpointObserver,
-    route:Router
+    route: Router,
+    public authorizationService: AuthorizationService
   ) {
     this.user = authService.getAppUser();
     effect(() => {
@@ -43,11 +45,11 @@ export class AppComponent implements OnDestroy {
 
     this.sub = route.events
       .pipe(
-        filter(_ => _.type == EventType.NavigationEnd),
+        filter((_) => _.type == EventType.NavigationEnd),
         map((_) => _ as NavigationEnd),
-        map(_ => _.urlAfterRedirects)
+        map((_) => _.urlAfterRedirects)
       )
-      .subscribe(_ => {
+      .subscribe((_) => {
         this.urlType = this.getUrlType(_);
       });
   }
@@ -57,12 +59,11 @@ export class AppComponent implements OnDestroy {
   }
 
   private getUrlType(url: string) {
-    if(!url) return;
+    if (!url) return;
 
-    if (url.indexOf('e1') > -1) 
-      return 'e1';
-    
-    return (url.indexOf('lh') > -1) ? 'lh' : undefined;
+    if (url.indexOf('e1') > -1) return 'e1';
+
+    return url.indexOf('lh') > -1 ? 'lh' : undefined;
   }
 
   ngOnDestroy(): void {

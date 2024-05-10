@@ -81,11 +81,14 @@ app.MapDelete("api/booking/{id}/recipient", RecipientMessageEndpoints.DeleteAsyn
 app.MapPost("api/booking/{id}/attachment", AttachmentEndpoints.PostAsync).DisableAntiforgery().RequireAuthorization(); // Cant get antiforgery token to work...
 app.MapDelete("api/booking/{id}/attachment", AttachmentEndpoints.DeleteAsync).RequireAuthorization();
 app.MapGet("api/booking/{id}/attachment", AttachmentEndpoints.GetAsync).RequireAuthorization();
-app.MapPatch("api/booking/{id}/status", BookingStatusEndpoints.PatchAsync).RequireAuthorization();
+app.MapPatch("api/booking/{id}/status/{status}", BookingStatusEndpoints.PatchAsync).RequireAuthorization();
 app.MapGet("api/booking/{id}/validate", ValidationEndpoints.ValidateByIdAsync).RequireAuthorization();
 app.MapPost("api/booking/validate", ValidationEndpoints.ValidateNewAsync).RequireAuthorization();
 
 app.MapGet("api/masterdata", MasterDataEndpoints.GetAllCompaniesAsync).RequireAuthorization();
+
+app.MapGet("api/appuser", AppUserEndpoints.GetAppUser).RequireAuthorization();
+
 
 app.Run();
 public partial class Program;

@@ -281,14 +281,10 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         await _testBase.ResetDbAsync();
         var insertRows = GetBookingRows();
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, insertRows);
-        var command = new UpdateBookingStatusCommand
-        {
-            BookingId = sqlResult.Id,
-            RowVersion = sqlResult.RowVersion,
-            Status = WiniStatus.Cancelled
-        };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.Cancelled}");
+        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -314,14 +310,9 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         var insertRows = GetBookingRows("Test", true);
         var bookingToInsert = GetBooking(WiniStatus.ToBeSent);
         var sqlResult = await _testBase.SeedBaseBookingAsync(bookingToInsert, insertRows);
-        var command = new UpdateBookingStatusCommand
-        {
-            BookingId = sqlResult.Id,
-            RowVersion = sqlResult.RowVersion,
-            Status = WiniStatus.SendError
-        };
-
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.SendError}");
+        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -348,14 +339,10 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         var insertRows = GetBookingRows("Test", true);
         var bookingToInsert = GetBooking(WiniStatus.ToBeSent);
         var sqlResult = await _testBase.SeedBaseBookingAsync(bookingToInsert, insertRows);
-        var command = new UpdateBookingStatusCommand
-        {
-            BookingId = sqlResult.Id,
-            RowVersion = sqlResult.RowVersion,
-            Status = WiniStatus.Saved
-        };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.Saved}");
+        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -382,14 +369,11 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         var insertRows = GetBookingRows(TestAuthenticationService.UserId, false);
         var bookingToInsert = GetBooking(WiniStatus.ToBeAuthorized, "COMM");
         var sqlResult = await _testBase.SeedBaseBookingAsync(bookingToInsert, insertRows);
-        var command = new UpdateBookingStatusCommand
-        {
-            BookingId = sqlResult.Id,
-            RowVersion = sqlResult.RowVersion,
-            Status = WiniStatus.ToBeSent
-        };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.ToBeSent}");
+        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
+
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -417,14 +401,10 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         var insertRows = GetBookingRows();
         var bookingToInsert = GetBooking(WiniStatus.Saved);
         var sqlResult = await _testBase.SeedBaseBookingAsync(bookingToInsert, insertRows);
-        var command = new UpdateBookingStatusCommand
-        {
-            BookingId = sqlResult.Id,
-            RowVersion = sqlResult.RowVersion,
-            Status = WiniStatus.ToBeAuthorized
-        };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.ToBeAuthorized}");
+        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -456,14 +436,10 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             "UPDATE dbo.Bookings SET Updated = @Updated WHERE Id = @Id; SELECT RowVersion FROM dbo.Bookings",
             new { Updated = threeDaysAgo, sqlResult.Id }
         );
-        var command = new UpdateBookingStatusCommand
-        {
-            BookingId = sqlResult.Id,
-            RowVersion = rowVersion,
-            Status = WiniStatus.NotAuthorizedOnTime
-        };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.NotAuthorizedOnTime}");
+        request.Headers.Add("RowVersion", Convert.ToBase64String(rowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -491,14 +467,10 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         var insertRows = GetBookingRows("Test", true);
         var bookingToInsert = GetBooking(WiniStatus.ToBeSent);
         var sqlResult = await _testBase.SeedBaseBookingAsync(bookingToInsert, insertRows);
-        var command = new UpdateBookingStatusCommand
-        {
-            BookingId = sqlResult.Id,
-            RowVersion = sqlResult.RowVersion,
-            Status = WiniStatus.Sent
-        };
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/status", command);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.Sent}");
+        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        var res = await _testBase.HttpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();

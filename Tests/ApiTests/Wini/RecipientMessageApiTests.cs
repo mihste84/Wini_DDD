@@ -60,10 +60,8 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
             new { BookingId = sqlResult.Id }
         );
         Assert.Equal(2, dbRecipientMessages.Count());
-        Assert.Equal("TEST", dbRecipientMessages.FirstOrDefault()?.Value);
-        Assert.Equal("XMIHST", dbRecipientMessages.FirstOrDefault()?.Recipient);
-        Assert.Equal("XYZ", dbRecipientMessages.LastOrDefault()?.Value);
-        Assert.Equal("RECP2", dbRecipientMessages.LastOrDefault()?.Recipient);
+        Assert.Contains(dbRecipientMessages, _ => _.Recipient == "XMIHST" && _.Value == "TEST");
+        Assert.Contains(dbRecipientMessages, _ => _.Recipient == "RECP2" && _.Value == "XYZ");
     }
 
     [Fact]
