@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { MsalService } from '@azure/msal-angular';
 import { firstValueFrom } from 'rxjs';
-import { AppUser, AppUserRights } from '../shared/models/types';
+import { AppUserRights } from '../shared/models/types';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable({

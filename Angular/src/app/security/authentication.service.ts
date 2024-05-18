@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MsalService } from '@azure/msal-angular';
 import { firstValueFrom } from 'rxjs';
-import { AppUser, AppUserRights } from '../shared/models/types';
-import { HttpClient } from '@angular/common/http';
+import { AppUser } from '../shared/models/types';
 import { AuthorizationService } from './authorization.service';
 
 @Injectable({
@@ -13,6 +12,11 @@ export class AuthenticationService {
 
   public isSignedIn() {
     return this.authService.instance.getActiveAccount() != null;
+  }
+
+  public async signOut() {
+    const req = this.authService.logoutRedirect();
+    await firstValueFrom(req);
   }
 
   public getAppUser(): AppUser {

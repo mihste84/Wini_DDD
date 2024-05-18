@@ -44,10 +44,11 @@ export enum SearchOperators {
   templateUrl: './dynamic-search.component.html',
   styleUrls: ['./dynamic-search.component.css'],
   standalone: true,
-  imports: [FormsModule, CommonModule, FontAwesomeModule]
+  imports: [FormsModule, CommonModule, FontAwesomeModule],
 })
 export class DynamicSearchComponent {
   @Input({ required: true }) public searchItems: SearchItem[] = [];
+  @Input() public disabled: boolean = false;
   @Output() public onItemSelected = new EventEmitter<SearchItem>();
   @Output() public onItemRemoved = new EventEmitter<SearchItem>();
 
@@ -121,10 +122,7 @@ export class DynamicSearchComponent {
   }
 
   public isNullOperatorSelected() {
-    return (
-      this.selectedSearchItem?.operator === SearchOperators.IsNull ||
-      this.selectedSearchItem?.operator === SearchOperators.IsNotNull
-    );
+    return this.selectedSearchItem?.operator === SearchOperators.IsNull || this.selectedSearchItem?.operator === SearchOperators.IsNotNull;
   }
 
   public isSelectable() {
@@ -141,12 +139,7 @@ export class DynamicSearchComponent {
   }
 
   public getValue(searchItem: SearchItem) {
-    if (
-      !searchItem ||
-      searchItem.operator === SearchOperators.IsNull ||
-      searchItem.operator === SearchOperators.IsNotNull
-    )
-      return;
+    if (!searchItem || searchItem.operator === SearchOperators.IsNull || searchItem.operator === SearchOperators.IsNotNull) return;
 
     if (searchItem.type !== SearchTypes.MultiSelect)
       return searchItem.isValueSelectable

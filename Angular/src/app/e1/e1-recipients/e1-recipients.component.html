@@ -1,17 +1,20 @@
 <app-modal #sharedModal></app-modal>
 
-<section class="mb-2 text-sm">
+<div class="mb-2 text-sm">
   <div class="mb-2 flex items-center flex-wrap">
     <label class="me-2">Recipients: </label>
     @for (item of recipients; track $index) {
-    <span class="cursor-pointer h-8 text-sm leading-4 border p-2 me-2 bg-gray-600 text-white rounded-md disabled:opacity-70">
+    <article class="cursor-pointer h-8 text-sm leading-4 border p-2 me-2 bg-gray-600 text-white rounded-md disabled:opacity-70">
       <span class="hover:text-gray-200" (click)="onAddOrEditRecipientClick(item)">{{ item.recipient }}</span>
+      @if(!readonly) {
       <fa-icon class="hover:text-gray-200 ms-2" (click)="deleteRecipientClick(item)" [icon]="faTimes" />
-    </span>
+      }
+    </article>
     } @empty {
     <p>No recipients added</p>
     }
   </div>
+  @if (!readonly) {
   <button
     [disabled]="loading || recipients.length >= 5"
     type="button"
@@ -19,4 +22,5 @@
     class="h-8 text-sm leading-4 border p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70">
     Add new recipient
   </button>
-</section>
+  }
+</div>

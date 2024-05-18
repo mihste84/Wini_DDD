@@ -22,7 +22,7 @@ export class HeaderComponent {
   @Input() public user?: AppUser;
   public popperBottom = NgxPopperjsPlacements.BOTTOMSTART;
   public title = environment.title;
-
+  public isLocalhost = environment.env === 'local';
   public faRightToBracket = faRightToBracket;
   public faLightbulbSolid = faLightbulbSolid;
   public faLightbulbRegular = faLightbulbRegular;
@@ -30,4 +30,9 @@ export class HeaderComponent {
   public faUser = faUser;
 
   constructor(public auth: AuthenticationService, public notifications: NotificationService) {}
+
+  public async signOut() {
+    if (!this.isLocalhost) return;
+    await this.auth.signOut();
+  }
 }

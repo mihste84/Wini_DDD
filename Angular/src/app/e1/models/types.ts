@@ -125,3 +125,13 @@ export interface E1Comment {
   value: string;
   created: string;
 }
+
+export interface BookingSearchResult {
+  bookingId: number;
+  bookingDate: string;
+  status: WiniStatus;
+  commissioner: string;
+  numberOfAttachments: number;
+  comments?: string;
+  created: string;
+}

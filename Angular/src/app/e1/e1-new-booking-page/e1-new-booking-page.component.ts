@@ -1,4 +1,4 @@
-import { Component, effect } from '@angular/core';
+import { Component, OnInit, effect } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
@@ -6,7 +6,15 @@ import { CommonModule } from '@angular/common';
 import { E1BookingHeaderComponent } from '../e1-booking-header/e1-booking-header.component';
 import { firstValueFrom } from 'rxjs';
 import { Ledger } from '../models/ledger';
-import { BookingRowImport, BookingValidationResult, E1BookingInput, E1BookingRow, SqlResult, E1BookingHeader } from '../models/types';
+import {
+  BookingRowImport,
+  BookingValidationResult,
+  E1BookingInput,
+  E1BookingRow,
+  SqlResult,
+  E1BookingHeader,
+  E1Booking,
+} from '../models/types';
 import { BannerType, MsgBannerComponent } from '../../shared/components/msg-banner/msg-banner.component';
 import { E1ImportRowsComponent } from '../e1-import-rows/e1-import-rows.component';
 import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons';
@@ -57,17 +65,46 @@ export class E1NewBookingPageComponent {
     private notifications: NotificationService,
     loadingService: LoadingService
   ) {
+    const state = this.router.getCurrentNavigation()?.extras.state as { booking: E1Booking };
+    const startDate = state?.booking ? new Date(state.booking.bookingDate) : new Date();
     this.header = fb.group({
-      bookingDate: [getFormattedDateString(new Date()), [Validators.required]],
-      textToE1: ['', [Validators.maxLength(30)]],
-      isReversed: [false],
-      ledgerType: [Ledger.AA],
+      bookingDate: [getFormattedDateString(startDate), [Validators.required]],
+      textToE1: [state?.booking.textToE1 ?? '', [Validators.maxLength(30)]],
+      isReversed: [state?.booking.reversed ?? false],
+      ledgerType: [state?.booking.ledgerType ?? Ledger.AA],
     });
 
-    this.initForm([
-      E1BookingRowTableComponent.getFormRow({ rowNumber: 1, isNew: true }),
-      E1BookingRowTableComponent.getFormRow({ rowNumber: 2, isNew: true }),
-    ]);
+    const rows = state?.booking?.rows
+      ? state.booking.rows.map((_, i) =>
+          E1BookingRowTableComponent.getFormRow({
+            rowNumber: i + 1,
+            account: _.account,
+            amount: _.amount,
+            authorizer: _.authorizer,
+            businessUnit: _.businessUnit,
+            costObject1: _.costObject1,
+            costObject2: _.costObject2,
+            costObject3: _.costObject3,
+            costObject4: _.costObject4,
+            costObjectType1: _.costObjectType1,
+            costObjectType2: _.costObjectType2,
+            costObjectType3: _.costObjectType3,
+            costObjectType4: _.costObjectType4,
+            currencyCode: _.currencyCode,
+            exchangeRate: _.exchangeRate,
+            remark: _.remark,
+            subledger: _.subledger,
+            subledgerType: _.subledgerType,
+            subsidiary: _.subsidiary,
+            isNew: true,
+          })
+        )
+      : [
+          E1BookingRowTableComponent.getFormRow({ rowNumber: 1, isNew: true }),
+          E1BookingRowTableComponent.getFormRow({ rowNumber: 2, isNew: true }),
+        ];
+
+    this.initForm(rows);
 
     effect(() => {
       this.loading = loadingService.isLoading();
@@ -105,7 +142,7 @@ export class E1NewBookingPageComponent {
 
   public async saveBookingClick() {
     const result = await this.saveBooking();
-    this.router.navigate(['e1/booking/' + result?.id]);
+    this.router.navigate(['e1/edit/' + result?.id]);
   }
 
   public async saveAndCloseBookingClick() {

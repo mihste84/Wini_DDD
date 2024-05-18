@@ -8,15 +8,9 @@ export class DynamicSearchQuery {
   public itemsPerPage: number = 25;
   public page: number = 0;
 
-  constructor(input: {
-    itemsPerPage?: number;
-    page?: number;
-    orderBy?: string;
-    orderByDirection?: string;
-    searchItems?: SearchItem[];
-  }) {
+  constructor(input: { itemsPerPage?: number; page?: number; orderBy?: string; orderDirection?: string; searchItems?: SearchItem[] }) {
     this.orderBy = input.orderBy ?? this.orderBy;
-    this.orderDirection = input.orderByDirection ?? this.orderDirection;
+    this.orderDirection = input.orderDirection ?? this.orderDirection;
     this.searchItems = input.searchItems ?? this.searchItems;
     this.itemsPerPage = input.itemsPerPage ?? this.itemsPerPage;
     this.page = input.page ?? this.page;
@@ -40,10 +34,7 @@ export class DynamicSearchQuery {
         params = params.append(`searchItems[${index}].name`, item.name);
         params = params.append(`searchItems[${index}].value`, item.value?.toString() ?? '');
         params = params.append(`searchItems[${index}].operator`, item.operator ?? '');
-        params = params.append(
-          `searchItems[${index}].handleAutomatically`,
-          item.handleAutomatically?.toString() ?? 'true'
-        );
+        params = params.append(`searchItems[${index}].handleAutomatically`, item.handleAutomatically?.toString() ?? 'true');
       });
     return params;
   }

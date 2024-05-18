@@ -16,10 +16,11 @@
   </app-msg-banner>
   }
 
-  <section class="flex flex-col items-startflex-wrap border rounded-sm p-2 mb-2">
+  <header class="flex flex-col items-startflex-wrap border rounded-sm p-2 mb-2">
     <h5 class="mb-2">New E1 Booking</h5>
     <app-e1-booking-header [form]="header" />
-  </section>
+  </header>
+
   <section class="mb-2 flex-auto border relative rounded-sm">
     <app-e1-booking-row-table
       class="h-full"
@@ -30,14 +31,14 @@
   </section>
 
   <section class="mb-2 p-2 border rounded-sm">
-    <section class="flex text-sm">
+    <h6 class="flex text-sm">
       <span (click)="toggeShowImportClick()" class="text-blue-600 cursor-pointer">
         <fa-icon [icon]="importIcon" class="me-1" />
         Import rows
       </span>
       <div class="flex-auto"></div>
       <a class="text-blue-600" target="_blank" href="http://coa.radix1.ifint.biz/web/coaweb/">Accountplan - top Sweden</a>
-    </section>
+    </h6>
     @if(showImport) {
     <div class="mt-2">
       <app-e1-import-rows (onRowsImported)="onImportRowsCallback($event)" />

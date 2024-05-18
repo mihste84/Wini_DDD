@@ -1,4 +1,4 @@
-<form [formGroup]="form">
+<fieldset [formGroup]="form">
   <div class="mb-2">
     <label for="recipient">Recipient: </label>
     <input formControlName="recipient" id="recipient" class="w-full border rounded-md h-8 text-sm p-1" />
@@ -17,21 +17,21 @@
     <div class="text-red-500 text-end"><small>Maximum length is 300 chars</small></div>
     }
   </div>
+</fieldset>
 
-  <div class="text-end">
-    <button
-      type="button"
-      (click)="onCancel.emit()"
-      class="h-8 text-sm leading-4 border p-2 me-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-70">
-      Cancel
-    </button>
+<div class="text-end">
+  <button
+    type="button"
+    (click)="onCancel.emit()"
+    class="h-8 text-sm leading-4 border p-2 me-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-70">
+    Cancel
+  </button>
 
-    <button
-      [disabled]="form.invalid || form.pristine"
-      type="button"
-      (click)="onSubmitClick()"
-      class="h-8 text-sm leading-4 border p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70">
-      Submit
-    </button>
-  </div>
-</form>
+  <button
+    [disabled]="form.invalid || form.pristine"
+    type="button"
+    (click)="onSubmitClick()"
+    class="h-8 text-sm leading-4 border p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70">
+    Submit
+  </button>
+</div>

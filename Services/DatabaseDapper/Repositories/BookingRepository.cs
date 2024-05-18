@@ -2,6 +2,76 @@ namespace Services.DatabaseDapper.Repositories;
 
 public class BookingRepository(ConnectionFactory factory) : IBookingRepository
 {
+    public async Task<BookingSearchResult[]> SearchBookingsAsync(DynamicSearchQuery query)
+    {
+        using var conn = factory.CreateConnection();
+        conn.Open();
+
+        var sql = conn.QueryBuilder(
+            BookingQueries.GetSearchBookingsQuery(
+                query.StartRow,
+                query.EndRow,
+                query.OrderBy,
+                query.OrderByDirection
+            )
+        );
+
+        void trySetDateWhere(string propName, string columnName)
+        {
+            if (query.TryExtractSearchItemByName(propName, out var searchItem))
+            {
+                var newSearchItem = new SearchItem(columnName, searchItem!.Value, searchItem!.Operator);
+                var whereStatement = DynamicSearchQuery.GetWhereFromSearchItem(newSearchItem);
+                sql.Where(whereStatement);
+            }
+        }
+
+        void trySetWhereForRow(string name)
+        {
+            if (query.TryExtractSearchItemByName(name, out var searchItem))
+            {
+                var rowSql = DynamicSearchQuery.GetWhereFromSearchItem(searchItem!);
+                sql.Where($"EXISTS (SELECT 1 FROM dbo.BookingRows WHERE BookingId = x.Id AND IsDeleted = 0 AND {rowSql})");
+            }
+        }
+
+        foreach (var searchItem in query.SearchItems.Where(_ => _.HandleAutomatically))
+        {
+            sql.Where(DynamicSearchQuery.GetWhereFromSearchItem(searchItem));
+        }
+
+        foreach (var propName in new[] { "FromCreatedDate", "ToCreatedDate" })
+        {
+            trySetDateWhere(propName, "Created");
+        }
+
+        foreach (var propName in new[] { "FromBookingDate", "ToBookingDate" })
+        {
+            trySetDateWhere(propName, "BookingDate");
+        }
+
+        foreach (var columnName in new[] { "BusinessUnit", "Account", "Authorizer", "Amount" })
+        {
+            trySetWhereForRow(columnName);
+        }
+
+        var res = await sql.QueryAsync<Models.DbBookingSearchResult>();
+        if (res?.Any() == false)
+        {
+            return [];
+        }
+
+        return res!.Select(_ => new BookingSearchResult(
+            _.Id.GetValue(nameof(_.Id)),
+            DateOnly.FromDateTime(_.BookingDate.GetValue(nameof(_.BookingDate))),
+            (WiniStatus)_.Status.GetValue(nameof(_.Status)),
+            _.CreatedBy.GetValue(nameof(_.CreatedBy)),
+            _.AttachmentsCount.GetValueOrDefault(),
+            _.Comments,
+            _.Created.GetValue(nameof(_.Created))
+        )).ToArray();
+    }
+
     public async Task<Attachment?> GetAttachmentAsync(int bookingId, string name)
     {
         using var conn = factory.CreateConnection();

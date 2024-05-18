@@ -1,1 +1,33 @@
-<p>e1-search-page works!</p>
+<div class="p-2 flex flex-col h-full">
+  <search class="border rounded-sm p-2 mb-2">
+    <details class="flex-auto mb-2">
+      <summary class="cursor-pointer whitespace-nowrap">
+        Search filters (
+        <b>{{ searchService.searchModel.selectedSearchItemCount() }}</b>
+        )
+      </summary>
+      <app-dynamic-search [disabled]="loading" [searchItems]="searchService.searchModel.searchItems"></app-dynamic-search>
+    </details>
+    <button
+      [disabled]="loading"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70"
+      (click)="onSearchClick()">
+      Search
+    </button>
+  </search>
+
+  <section class="flex-auto border relative rounded-sm">
+    <app-e1-search-table
+      [hasMorePages]="searchService.hasMorePages"
+      [currentPage]="searchService.searchModel.page"
+      [loading]="loading"
+      [itemsPerPage]="searchService.searchModel.itemsPerPage"
+      [searchResults]="searchService.searchResults"
+      [orderDirection]="searchService.searchModel.orderDirection"
+      [orderBy]="searchService.searchModel.orderBy"
+      (onSort)="onSortCallback($event)"
+      (onExport)="onExportCallback()"
+      (onUploadAttachment)="uploadAttachmentCallback($event)"
+      (onSearch)="onPageChangeCallback($event)" />
+  </section>
+</div>

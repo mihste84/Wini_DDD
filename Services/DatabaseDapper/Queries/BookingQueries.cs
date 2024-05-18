@@ -68,4 +68,23 @@ public static class BookingQueries
         OUTPUT INSERTED.[Id], INSERTED.RowVersion
         WHERE Id = @Id
     """;
+
+    public static FormattableString GetSearchBookingsQuery(int startRow, int endRow, string orderBy, string orderByDirection) =>
+    $@"
+        SELECT * FROM (
+            SELECT 
+                [Id]
+                ,[Status]
+                ,[BookingDate]
+                ,[TextToE1]
+                ,(SELECT count(*) FROM dbo.Attachments WHERE BookingId = x.Id) as AttachmentsCount
+                ,(SELECT STRING_AGG([Value], CHAR(13) + CHAR(10)) FROM dbo.Comments WHERE BookingId = x.Id) as Comments
+                ,[Created]
+                ,CreatedBy
+            FROM [dbo].[Bookings] x
+            /**where**/
+        ) y
+        ORDER BY {orderBy:raw} {orderByDirection:raw}
+        OFFSET {startRow:raw} ROWS FETCH NEXT {endRow - startRow:raw} ROWS ONLY;
+    ";
 }

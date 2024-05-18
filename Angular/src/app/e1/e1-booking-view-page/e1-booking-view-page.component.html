@@ -1,0 +1,220 @@
+<app-modal #sharedModal></app-modal>
+
+<section class="p-2 flex flex-col h-full">
+  <header class="flex flex-col border rounded-sm p-2 mb-2" id="header">
+    <div class="flex items-center mb-2">
+      <h5 class="">Current booking: {{ booking.bookingId }} [{{ getStatusName() }}]</h5>
+      <div class="flex-auto"></div>
+      <span class="text-sm">
+        Last updated: {{ updatedDate | date : "yyyy-MM-dd HH:mm:ss" }}
+        <i class="block overflow-hidden overflow-ellipsis max-w-48">{{ updatedBy }}</i>
+      </span>
+    </div>
+    <div class="mb-4 flex justify-start items-start flex-wrap text-sm">
+      <article class="me-4">
+        <label class="me-1 font-bold">Booking date:</label>
+        <span>{{ booking.bookingDate | date : "yyyy-MM-dd" }}</span>
+      </article>
+
+      <article class="me-4">
+        <label class="me-1 font-bold">Text to E1:</label>
+        <span>{{ booking.textToE1 }}</span>
+      </article>
+
+      <article class="me-4">
+        <label class="me-1 font-bold">Reversed booking:</label>
+        <span>{{ booking.reversed ? "Yes" : "No" }}</span>
+      </article>
+
+      <article class="me-4">
+        <label class="me-1 font-bold">Ledger type:</label>
+        <span>{{ booking.ledgerType == 0 ? "AA" : "CA" }}</span>
+      </article>
+    </div>
+    <div class="mb-2 text-sm">
+      <span (click)="toggle('history')" class="text-blue-600 cursor-pointer me-4">
+        <fa-icon [icon]="toggleStates.history.icon" class="me-1" /> Status history
+      </span>
+      <span (click)="toggle('comments')" class="text-blue-600 cursor-pointer me-4">
+        <fa-icon [icon]="toggleStates.comments.icon" class="me-1" />
+        Comments
+      </span>
+      <span (click)="toggle('recipients')" class="text-blue-600 cursor-pointer me-4">
+        <fa-icon [icon]="toggleStates.recipients.icon" class="me-1" />
+        Recipients
+      </span>
+    </div>
+    <div class="flex items-start flex-wrap">
+      @if (toggleStates.history.value) {
+      <div class="h-48 overflow-y-auto mt-4 me-2">
+        <app-e1-status-history [statuses]="statusHistory" />
+      </div>
+      } @if (toggleStates.comments.value) {
+      <div class="mt-4 max-w-96 w-full me-2">
+        <app-e1-comments [comments]="comments" [loading]="true" [readonly]="true" />
+      </div>
+      } @if (toggleStates.recipients.value) {
+      <div class="mt-4">
+        <app-e1-recipients [recipients]="recipientMessages" [loading]="true" [readonly]="true" />
+      </div>
+      }
+    </div>
+  </header>
+
+  <section class="mb-2 flex-auto border relative rounded-sm" id="table">
+    <div class="h-full flex flex-col">
+      <header class="p-2">
+        <h6>Rows for accounting codes</h6>
+      </header>
+      <div class="w-full overflow-auto flex-1">
+        <table class="table-auto">
+          <thead class="border-t border-b bg-gray-200 text-sm">
+            <tr>
+              <th class="text-start px-2 border-r whitespace-nowrap">#</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Business unit</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Account</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Subsidiary</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Subledger</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Subledger type</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Cost object 1</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">CO 1 type</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Cost object 2</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">CO 2 type</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Cost object 3</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">CO 3 type</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Cost object 4</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">CO 4 type</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Amount</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Currency</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Authorizer</th>
+              <th class="text-start px-2 border-r whitespace-nowrap">Remark</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm" formArrayName="rows">
+            @for (row of booking.rows; let i = $index; track row.rowNumber) {
+            <tr class="align-middle">
+              <td class="text-center px-1 border-r text-nowrap">{{ i + 1 }}</td>
+
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.businessUnit }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.account }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.subsidiary }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.subledger }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.subledgerType }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.costObject1 }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.costObjectType1 }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.costObject2 }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.costObjectType2 }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.costObject3 }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.costObjectType3 }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.costObject4 }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.costObjectType4 }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.amount | number : "1.2" }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.currencyCode }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.authorizer }}
+              </td>
+              <td class="px-1 border-r py-0.5 align-middle">
+                {{ row.remark }}
+              </td>
+            </tr>
+            } @empty {
+            <tr>
+              <td class="p-2 border-r" colspan="99">No rows added</td>
+            </tr>
+            }
+            <tr class="border-t">
+              <td [attr.colspan]="14"></td>
+              <td class="text-end">
+                <output>{{ amountSum | number : "1.2" }}</output>
+              </td>
+              <td colspan="99"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="mb-2 p-2 border rounded-sm" id="attachments">
+    <h6 (click)="toggle('attachments')" class="text-blue-600 cursor-pointer text-sm">
+      <fa-icon [icon]="toggleStates.attachments.icon" class="me-1" />
+      Attachments ({{ attachments.length }})
+    </h6>
+    @if(toggleStates.attachments.value) {
+    <div class="mt-2">
+      <app-e1-attachments
+        [attachments]="attachments"
+        [loading]="loading"
+        [readonly]="true"
+        (onViewAttachment)="viewFileCallback($event)"
+        (onDeleteAttachment)="deleteAttachmentCallback($event)"
+        (onUploadAttachment)="uploadAttachmentCallback($event)" />
+    </div>
+    }
+  </section>
+
+  <section class="mb-2 py-2 flex flex-row items-start" id="buttons">
+    @if(canReturnBooking()) {
+    <button
+      type="button"
+      (click)="returnClick()"
+      [disabled]="loading"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700">
+      Return
+    </button>
+    } @if (authorizationService.isWrite) {
+    <button
+      type="button"
+      (click)="copyClick()"
+      [disabled]="loading"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+      Copy booking
+    </button>
+    } @if (canAuthorizeBooking()) {
+    <button
+      type="button"
+      (click)="authorizeClick()"
+      [disabled]="loading"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+      Authorize
+    </button>
+    }
+    <button
+      type="button"
+      (click)="closeClick()"
+      [disabled]="loading"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+      Close
+    </button>
+  </section>
+</section>

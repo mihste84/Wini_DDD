@@ -16,6 +16,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 export class E1RecipientsComponent {
   @Input({ required: true }) public recipients: E1RecipientMessage[] = [];
   @Input({ required: true }) public loading: boolean = false;
+  @Input() public readonly: boolean = false;
   @Output() public onRecipientMessageCreated = new EventEmitter<E1RecipientMessage>();
   @Output() public onRecipientMessageDeleted = new EventEmitter<E1RecipientMessage>();
   @Output() public onRecipientMessageEdit = new EventEmitter<{ original: E1RecipientMessage; newValue: E1RecipientMessage }>();
@@ -24,7 +25,7 @@ export class E1RecipientsComponent {
   public faTimes = faTimes;
 
   public onAddOrEditRecipientClick(recipient?: E1RecipientMessage) {
-    if (this.loading) return;
+    if (this.loading || this.readonly) return;
 
     if (!this.sharedModal) throw new Error('Shared modal is not initialized.');
     const ref = this.sharedModal.showModalWithComponent(

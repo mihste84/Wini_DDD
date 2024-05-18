@@ -1,4 +1,4 @@
-<section
+<article
   class="mb-2 flex items-start p-2 rounded-sm"
   [ngClass]="{
     'bg-red-400 text-white': type == types.error,
@@ -9,4 +9,4 @@
   <div>
     <fa-icon (click)="onDismiss.emit()" class="cursor-pointer hover:opacity-75 text-black" [icon]="faXmark" />
   </div>
-</section>
+</article>

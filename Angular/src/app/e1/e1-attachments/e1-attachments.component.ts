@@ -17,6 +17,7 @@ import { ConfirmComponent } from '../../shared/components/confirm/confirm.compon
 })
 export class E1AttachmentsComponent {
   @Input({ required: true }) public loading = false;
+  @Input() public readonly = false;
   @Input({ required: true }) public attachments: E1Attachment[] = [];
   @Output() public onUploadAttachment = new EventEmitter<FileList>();
   @Output() public onDeleteAttachment = new EventEmitter<E1Attachment>();
@@ -30,6 +31,7 @@ export class E1AttachmentsComponent {
   constructor(private notificationService: NotificationService) {}
 
   public onFileChange(event: Event) {
+    if (this.loading || this.readonly) return;
     const element = event.currentTarget as HTMLInputElement;
     const fileList: FileList | null = element?.files;
 
@@ -41,7 +43,7 @@ export class E1AttachmentsComponent {
   }
 
   public onDeleteAttachmentClick(attachment: E1Attachment) {
-    if (this.loading) return;
+    if (this.loading || this.readonly) return;
 
     if (!this.sharedModal) throw new Error('Shared modal is not initialized.');
     const ref = this.sharedModal.showModalWithComponent(

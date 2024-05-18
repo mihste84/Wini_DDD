@@ -69,6 +69,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapGet("api/booking/{id}", BookingEndpoints.GetAsync).RequireAuthorization();
+app.MapGet("api/booking", BookingEndpoints.SearchAsync).RequireAuthorization();
 app.MapPatch("api/booking/{id}", BookingEndpoints.PatchAsync).RequireAuthorization();
 app.MapDelete("api/booking/{id}", BookingEndpoints.DeleteAsync).RequireAuthorization();
 app.MapPost("api/booking", BookingEndpoints.PostAsync).RequireAuthorization();

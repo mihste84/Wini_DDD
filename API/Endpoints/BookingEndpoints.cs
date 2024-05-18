@@ -1,3 +1,5 @@
+using AppLogic.Models;
+
 namespace API.Endpoints;
 
 public static class BookingEndpoints
@@ -64,6 +66,28 @@ public static class BookingEndpoints
             _ => new BaseForbiddenResponse(),
             _ => new BaseNotFoundResponse(),
             _ => new BaseDatabaseErrorResponse()
+        );
+    }
+
+    public static async Task<IResult> SearchAsync(
+        BookingSearchInput input,
+        IMediator mediator
+        )
+    {
+        var model = new SearchBookingsQuery
+        {
+            EndRow = input.EndRow,
+            OrderBy = input.OrderBy,
+            OrderByDirection = input.OrderByDirection,
+            StartRow = input.StartRow,
+            SearchItems = input.SearchItems
+        };
+        var res = await mediator.Send(model);
+
+        return res.Match(
+            result => Results.Ok(result.Value),
+            _ => new BaseForbiddenResponse(),
+            validationError => new BaseErrorResponse(validationError.Value)
         );
     }
 }

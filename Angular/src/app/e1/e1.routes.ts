@@ -18,9 +18,15 @@ export const e1Routes: Routes = [
     canActivate: [isWriteGuard],
   },
   {
-    path: 'booking/:id',
+    path: 'edit/:id',
     loadComponent: () => import('./e1-booking-page/e1-booking-page.component').then((m) => m.E1BookingPageComponent),
     resolve: { booking: e1ExistingBookingResolver },
     canActivate: [isWriteGuard],
+  },
+  {
+    path: 'view/:id',
+    loadComponent: () => import('./e1-booking-view-page/e1-booking-view-page.component').then((m) => m.E1BookingViewPageComponent),
+    resolve: { booking: e1ExistingBookingResolver },
+    canActivate: [isReadGuard],
   },
 ];

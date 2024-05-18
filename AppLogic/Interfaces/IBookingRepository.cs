@@ -9,4 +9,5 @@ public interface IBookingRepository
     Task<SqlResult?> UpdateBookingStatusAsync(Booking booking, string user);
     Task<bool> IsSameRowVersionAsync(int id, byte[] rowVersion);
     Task DeleteBookingIdAsync(int? id);
+    Task<BookingSearchResult[]> SearchBookingsAsync(DynamicSearchQuery query);
 }

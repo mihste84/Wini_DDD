@@ -28,6 +28,7 @@ import { E1CommentEditComponent } from '../e1-comment-edit/e1-comment-edit.compo
 export class E1CommentsComponent {
   @Input({ required: true }) public comments: E1Comment[] = [];
   @Input() public loading: boolean = false;
+  @Input() public readonly: boolean = false;
   @Output() public onCommentCreated = new EventEmitter<E1Comment>();
   @Output() public onCommentDeleted = new EventEmitter<E1Comment>();
   @Output() public onCommentEdit = new EventEmitter<{ original: E1Comment; newValue: string }>();

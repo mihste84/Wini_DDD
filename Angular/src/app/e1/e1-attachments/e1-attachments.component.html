@@ -1,7 +1,7 @@
 <app-modal #sharedModal></app-modal>
 
-<section class="flex flex-col text-sm">
-  <section class="mb-2 overflow-y-auto w-full">
+<div class="flex flex-col text-sm">
+  <div class="mb-2 overflow-y-auto w-full">
     @for (attachment of attachments; track attachment.name) {
     <article class="py-1 flex align-middle justify-start">
       <span
@@ -11,18 +11,21 @@
         {{ attachment.name }}
       </span>
       <span class="me-3 whitespace-nowrap">{{ getMbSize(attachment.size) }} MB</span>
+      @if (!readonly) {
       <div>
         <fa-icon
           (click)="onDeleteAttachmentClick(attachment)"
           class="cursor-pointer text-red-600 hover:text-red-400 ms-3"
           [icon]="faTrash" />
       </div>
+      }
     </article>
     } @empty {
     <p>No attachments uploaded</p>
     }
-  </section>
-  <section class="py-2">
+  </div>
+  @if(!readonly) {
+  <div class="py-2">
     <input
       type="file"
       multiple
@@ -31,5 +34,6 @@
       (change)="onFileChange($event)"
       name="attachments"
       id="attachments" />
-  </section>
-</section>
+  </div>
+  }
+</div>

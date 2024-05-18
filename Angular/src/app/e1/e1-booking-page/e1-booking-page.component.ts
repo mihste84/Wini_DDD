@@ -278,6 +278,10 @@ export class E1BookingPageComponent implements OnInit {
 
     const message = `Booking with ID #${this.bookingId} updated and status set to ${WiniStatus[statusToChange]}.`;
     this.notifications.addNotification(message, 'Booking status updated', NotificationType.Info);
+    this.closeClick();
+  }
+
+  public closeClick() {
     this.router.navigate(['e1/search']);
   }
 
@@ -349,7 +353,7 @@ export class E1BookingPageComponent implements OnInit {
 
   ngOnInit(): void {
     if (!this.booking) {
-      this.router.navigate(['e1/search']);
+      this.closeClick();
     }
 
     if (this.booking.status != WiniStatus.Saved) {
@@ -358,7 +362,7 @@ export class E1BookingPageComponent implements OnInit {
         'Booking not in valid state',
         NotificationType.Warning
       );
-      this.router.navigate(['e1/search']);
+      this.closeClick();
     }
 
     this.init();

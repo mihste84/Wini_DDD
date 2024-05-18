@@ -1,3 +1,5 @@
+using Services.DatabaseDapper.Models;
+
 namespace Tests.ApiTests.Wini;
 
 [Order(2)]
@@ -502,6 +504,47 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         var rows = await _testBase.QueryAsync<Services.DatabaseDapper.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { sqlResult.Id });
         Assert.Empty(logs);
         Assert.Empty(rows);
+    }
+
+    [Fact]
+    public async Task Search_All_Bookings_Async()
+    {
+        await _testBase.ResetDbAsync();
+        await _testBase.SeedBaseBookingAsync(default, default);
+        await _testBase.SeedBaseBookingAsync(default, default);
+
+        var queryParams = $"OrderBy=Id&OrderByDirection=DESC&StartRow=0&EndRow=1";
+        var res = await _testBase.HttpClient.GetAsync("/api/booking?" + queryParams);
+        Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
+
+        var content = await res.Content.ReadFromJsonAsync<SearchResultWrapper<BookingSearchResult>>();
+        Assert.NotNull(content);
+        Assert.Single(content.Items);
+        Assert.True(content.HasMorePages);
+        Assert.Equal(2, content.NextEndRow);
+        Assert.Equal(1, content.NextStartRow);
+    }
+
+    [Fact]
+    public async Task Search_Bookings_With_Criteria_Async()
+    {
+        await _testBase.ResetDbAsync();
+        var booking = await _testBase.SeedBaseBookingAsync(default, default);
+        await _testBase.SeedBaseBookingAsync(default, default);
+        await _testBase.SeedBaseBookingAsync(default, default);
+
+        var queryParams = $"OrderBy=Id&OrderByDirection=DESC&StartRow=0&EndRow=10";
+        var searchItems = $"&SearchItems[0].Name=Id&SearchItems[0].Value={booking.Id}&SearchItems[0].Operator={SearchOperators.Equal}";
+        var res = await _testBase.HttpClient.GetAsync("/api/booking?" + queryParams + searchItems);
+        Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
+
+        var content = await res.Content.ReadFromJsonAsync<SearchResultWrapper<BookingSearchResult>>();
+        Assert.NotNull(content);
+        Assert.Single(content.Items);
+        Assert.False(content.HasMorePages);
+        Assert.Equal(10, content.NextEndRow);
+        Assert.Equal(0, content.NextStartRow);
+        Assert.Contains(content.Items, _ => _.BookingId == booking.Id);
     }
 
     private static Services.DatabaseDapper.Models.Booking GetBooking(WiniStatus status, string createdBy = TestAuthenticationService.UserId)

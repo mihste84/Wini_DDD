@@ -1,9 +1,9 @@
-<article class="flex flex-row flex-wrap">
+<fieldset class="flex flex-row flex-wrap">
   <select
     [(ngModel)]="selectedSearchItem"
+    [disabled]="disabled"
     (ngModelChange)="selectItemModelChange()"
-    class="rounded-md mb-1 me-1 h-8 text-sm py-1 max-w-xs"
-  >
+    class="border rounded-md h-8 text-sm p-1 mb-2 me-2 bg-white">
     <option value=""></option>
     @for(option of getNotSelectedSearchItem(); track option.name) {
     <option [ngValue]="option">{{ option.distplayName }}</option>
@@ -12,57 +12,46 @@
 
   @if(selectedSearchItem) {
   <ng-container>
-    <section>
-      @if(!selectedSearchItem.isValueSelectable) {
-      <select
-        class="rounded-md mb-1 me-1 h-8 text-sm py-1 max-w-xs"
-        [(ngModel)]="selectedSearchItem.operator"
-        (ngModelChange)="operatorChange()"
-      >
-        @for (option of getOperatorsByType(selectedSearchItem); track
-        option.value) {
-        <option [ngValue]="option.value">
-          {{ option.name }}
-        </option>
-        }
-      </select>
-      } @if (selectedSearchItem.operator && !isNullOperatorSelected() &&
-      !selectedSearchItem.isValueSelectable) {
-      <input
-        class="rounded-md mb-1 me-1 h-8 text-sm py-1 max-w-xs"
-        [type]="selectedSearchItem.type"
-        [(ngModel)]="selectedSearchItem.value"
-      />
-      } @if (selectedSearchItem.operator && !isNullOperatorSelected() &&
-      selectedSearchItem.isValueSelectable) {
-      <select
-        class="rounded-md mb-1 me-1 h-8 text-sm py-1 max-w-xs"
-        [(ngModel)]="selectedSearchItem.value"
-      >
-        @for (option of selectedSearchItem.listValues; track option.value) {
-        <option [ngValue]="option.value">
-          {{ option.displayName }}
-        </option>
-        }
-      </select>
+    @if(!selectedSearchItem.isValueSelectable) {
+    <select
+      class="border rounded-md h-8 text-sm p-1 mb-2 me-2 bg-white"
+      [disabled]="disabled"
+      [(ngModel)]="selectedSearchItem.operator"
+      (ngModelChange)="operatorChange()">
+      @for (option of getOperatorsByType(selectedSearchItem); track option.value) {
+      <option [ngValue]="option.value">
+        {{ option.name }}
+      </option>
       }
-    </section>
+    </select>
+    } @if (selectedSearchItem.operator && !isNullOperatorSelected() && !selectedSearchItem.isValueSelectable) {
+    <input
+      class="border rounded-md h-8 text-sm p-1 mb-2 me-2 bg-white"
+      [disabled]="disabled"
+      [type]="selectedSearchItem.type"
+      [(ngModel)]="selectedSearchItem.value" />
+    } @if (selectedSearchItem.operator && !isNullOperatorSelected() && selectedSearchItem.isValueSelectable) {
+    <select class="border rounded-md h-8 text-sm p-1 mb-2 me-2 bg-white" [(ngModel)]="selectedSearchItem.value">
+      @for (option of selectedSearchItem.listValues; track option.value) {
+      <option [ngValue]="option.value">
+        {{ option.displayName }}
+      </option>
+      }
+    </select>
+    }
   </ng-container>
 
   }
   <button
-    [disabled]="!isSelectable()"
+    [disabled]="!isSelectable() || disabled"
     (click)="selectItem()"
-    class="h-8 rounded-md px-2 text-sm py-1 bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap mb-1"
-  >
+    class="h-8 text-sm leading-4 border me-2 p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed whitespace-nowrap">
     Add filter <fa-icon [icon]="faPlus" />
   </button>
-</article>
-<article class="flex flex-row flex-wrap">
+</fieldset>
+<div class="flex flex-row flex-wrap">
   @for (item of getSelectedSearchItem(); track item.name) {
-  <output
-    class="rounded-lg bg-gray-500 text-white p-1 px-2 me-2 whitespace-nowrap mb-1"
-  >
+  <article class="rounded-lg bg-gray-500 text-white p-1 px-2 me-2 whitespace-nowrap mb-1">
     <span class="text-xs">
       <b>{{ item.distplayName }}</b> {{ getOperatorDisplayName(item) }}
       <b>{{ getValue(item) }}</b>
@@ -70,6 +59,6 @@
     <button type="button" class="ml-2" (click)="removeSearchItem(item)">
       <fa-icon [icon]="faXmark" />
     </button>
-  </output>
+  </article>
   }
-</article>
+</div>

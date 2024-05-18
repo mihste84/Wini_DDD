@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
-import { Observable, finalize } from 'rxjs';
+import { Observable, delay, finalize } from 'rxjs';
 import { LoadingService } from '../services/loading.service';
 import { environment } from '../../../environments/environment';
 
@@ -13,6 +13,9 @@ export class ApiInterceptor implements HttpInterceptor {
       url: environment.apiConfig.uri + request.url,
     });
     this.loadingService.startLoading();
-    return next.handle(apiReq).pipe(finalize(() => this.loadingService.stopLoading()));
+    return next.handle(apiReq).pipe(
+      delay(500),
+      finalize(() => this.loadingService.stopLoading())
+    );
   }
 }

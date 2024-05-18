@@ -1,8 +1,8 @@
 <app-modal #sharedModal></app-modal>
 
-<section [formGroup]="form" class="h-full flex flex-col">
-  <section class="text-end p-2 flex items-center">
-    <b>Rows for accounting codes</b>
+<div [formGroup]="form" class="h-full flex flex-col">
+  <header class="text-end p-2 flex items-center">
+    <h6>Rows for accounting codes</h6>
     <div class="flex-auto"></div>
     <div>
       <button
@@ -21,9 +21,9 @@
         Add new row
       </button>
     </div>
-  </section>
+  </header>
 
-  <section class="w-full overflow-auto flex-1">
+  <div class="w-full overflow-auto flex-1">
     <table class="table-auto">
       <thead class="border-t border-b bg-gray-200 text-sm">
         <tr>
@@ -233,10 +233,12 @@
         }
         <tr class="border-t">
           <td [attr.colspan]="showAllCostObjects ? 15 : 9"></td>
-          <td class="text-end">{{ amountSum | number : "1.2" }}</td>
+          <td class="text-end">
+            <output>{{ amountSum | number : "1.2" }}</output>
+          </td>
           <td colspan="99"></td>
         </tr>
       </tbody>
     </table>
-  </section>
-</section>
+  </div>
+</div>

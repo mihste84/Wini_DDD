@@ -1,0 +1,98 @@
+<div class="h-full flex flex-col">
+  <header class="text-end p-2 flex items-center text-sm border-b">
+    <h6>Wini bookings batch run to E1: 6:00-20:30 every 10 minutes + 23:30 (Swedish time)</h6>
+    <div class="flex-auto"></div>
+    <div>
+      <button
+        [disabled]="loading || searchResults.length === 0"
+        class="h-8 text-sm leading-4 border me-2 p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-70"
+        (click)="onExport.emit()">
+        Export
+      </button>
+    </div>
+  </header>
+
+  <div class="w-full overflow-auto flex-1">
+    <table class="table-auto w-full text-sm border-b-2">
+      <thead class="border-t border-b bg-gray-200 text-sm">
+        <tr>
+          <th style="width: 1%"></th>
+          <th *ngFor="let item of tableHeaders" class="border-slate-300 border-b text-left">
+            <app-table-header
+              (onSort)="onSort.emit($event)"
+              [currentSortColumnName]="orderBy"
+              [currentSortDirection]="orderDirection"
+              [name]="item.name"
+              [isSortable]="item.isSortable">
+              <span title>{{ item.title }}</span>
+            </app-table-header>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of searchResults; let i = $index; track item.bookingId) {
+        <tr class="align-top border-b">
+          <td class="px-1 border-r py-0.5 whitespace-nowrap">
+            <a [routerLink]="getLink(item)">
+              <fa-icon class="cursor-pointer text-blue-600 hover:text-blue-700" [icon]="faEdit" />
+            </a>
+            @if(canUploadFile(item)) {
+            <label for="attachments">
+              <fa-icon class="ms-1 cursor-pointer text-gray-600 hover:text-gray-700" [icon]="faUpload" />
+
+              <input
+                type="file"
+                multiple
+                class="hidden"
+                [disabled]="loading || item.numberOfAttachments >= maxFileCount"
+                accept=".pdf,.xlsx,.xls,.ppt,.pptx,.txt,image/*,.doc,.docx"
+                (change)="onFileChange(item, $event)"
+                name="attachments"
+                id="attachments" />
+            </label>
+            }
+          </td>
+          <td class="px-2 border-r whitespace-nowrap">
+            {{ item.bookingId }} @if(item.numberOfAttachments > 0) {
+            <fa-icon class="ms-1 text-gray-600" [icon]="faPaperclip" />
+            }
+          </td>
+          <td class="px-2 border-r whitespace-nowrap">{{ item.bookingDate | date : "yyyy-MM-dd" }}</td>
+          <td class="px-2 border-r">{{ item.commissioner }}</td>
+          <td class="px-2 border-r whitespace-nowrap">{{ status[item.status] }}</td>
+          <td class="px-2 border-r" [innerHTML]="getComment(item.comments)"></td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <footer class="flex items-center p-2 border-t">
+    <nav>
+      @if(currentPage > 0) {
+      <button class="me-2" (click)="onSearch.emit(currentPage - 1)">
+        <fa-icon [icon]="faArrowLeft" />
+      </button>
+      }
+
+      <span class="me-2">Page: {{ currentPage + 1 }}</span>
+
+      @if (hasMorePages) {
+      <button (click)="onSearch.emit(currentPage + 1)">
+        <fa-icon [icon]="faArrowRight" />
+      </button>
+      }
+    </nav>
+    <div class="flex-auto"></div>
+    <select
+      [disabled]="loading"
+      input
+      class="border rounded-md bg-white h-8 text-sm p-1"
+      [(ngModel)]="itemsPerPage"
+      (ngModelChange)="onSearch.emit(0)">
+      <option [value]="25">25</option>
+      <option [value]="50">50</option>
+      <option [value]="75">75</option>
+      <option [value]="100">100</option>
+    </select>
+  </footer>
+</div>

@@ -1,13 +1,7 @@
-<article>
-  @for (item of notifications; track item.id) {
-    <div class="mb-2" >
-      <app-notification-card
-        [notification]="item"
-        (onRemove)="removeNotificationCallback($event)"
-      ></app-notification-card>
-    </div>
-  }
-  @empty {
-    <p>No notifications to display</p>
-  }
-</article>
+@for (item of notifications; track item.id) {
+<div class="mb-2">
+  <app-notification-card [notification]="item" (onRemove)="removeNotificationCallback($event)"></app-notification-card>
+</div>
+} @empty {
+<p>No notifications to display</p>
+}

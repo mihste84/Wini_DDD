@@ -27,3 +27,10 @@ export interface AppUser {
   userName: string;
   name: string;
 }
+
+export interface SearchResultWrapper<T> {
+  hasMorePages: boolean;
+  items: T[];
+  nextStartRow: number;
+  nextEndRow: number;
+}
