@@ -130,7 +130,7 @@ export class E1BookingViewPageComponent {
   }
 
   public canReturnBooking() {
-    return this.isCommissioner && this.booking.status !== WiniStatus.Sent;
+    return this.isCommissioner && this.booking.status !== WiniStatus.Sent && this.booking.status !== WiniStatus.Cancelled;
   }
 
   public canAuthorizeBooking() {

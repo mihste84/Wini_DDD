@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild, effect } from '@angular/core';
+import { Component, HostListener, Input, OnInit, ViewChild, effect } from '@angular/core';
 import {
   BookingRowImport,
   BookingValidationResult,
@@ -25,7 +25,7 @@ import { NotificationService, NotificationType } from '../../shared/services/not
 import { LoadingService } from '../../shared/services/loading.service';
 import { WiniStatus } from '../models/wini-status';
 import { E1BookingService } from '../services/e1-booking.service';
-import { firstValueFrom } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { E1BookingRowTableComponent } from '../e1-booking-row-table/e1-booking-row-table.component';
 import { AuthenticationService } from '../../security/authentication.service';
 import { E1StatusHistoryComponent } from '../e1-status-history/e1-status-history.component';
@@ -39,6 +39,7 @@ import { E1AttachmentService } from '../services/e1-attachment.service';
 import { E1RecipientsComponent } from '../e1-recipients/e1-recipients.component';
 import { E1RecipientMessageService } from '../services/e1-recipient-message.service';
 import { AuthorizationService } from '../../security/authorization.service';
+import { ComponentCanDeactivate } from '../../shared/guards/can-deactivate.guard';
 
 interface E1BookingForm {
   header: E1BookingHeader;
@@ -71,7 +72,7 @@ interface E1BookingForm {
   templateUrl: './e1-booking-page.component.html',
   styleUrl: './e1-booking-page.component.css',
 })
-export class E1BookingPageComponent implements OnInit {
+export class E1BookingPageComponent implements OnInit, ComponentCanDeactivate {
   @Input() public booking!: E1Booking;
   @ViewChild('sharedModal') private sharedModal?: ModalComponent;
 
@@ -112,6 +113,11 @@ export class E1BookingPageComponent implements OnInit {
     effect(() => {
       this.loading = loadingService.isLoading();
     });
+  }
+
+  @HostListener('window:beforeunload')
+  canDeactivate(): Observable<boolean> | boolean {
+    return this.form.dirty ? false : true; // If form is dirty, ask for confirmation. Return true if form is not dirty.
   }
 
   public async validateBookingClick() {
@@ -279,6 +285,37 @@ export class E1BookingPageComponent implements OnInit {
     const message = `Booking with ID #${this.bookingId} updated and status set to ${WiniStatus[statusToChange]}.`;
     this.notifications.addNotification(message, 'Booking status updated', NotificationType.Info);
     this.closeClick();
+  }
+
+  public async saveAndCloseBookingClick() {
+    await this.saveBooking();
+    this.form.markAsPristine();
+    this.closeClick();
+  }
+
+  public async cancelClick() {
+    if (this.loading) return;
+
+    if (!this.sharedModal) throw new Error('Shared modal is not initialized.');
+
+    const ref = this.sharedModal.showModalWithComponent(
+      ConfirmComponent,
+      [{ name: 'message', value: 'Are you sure you want to cancel booking?' }],
+      'Cancel booking'
+    );
+
+    ref.instance.onConfirm.subscribe(async () => {
+      const req = this.bookingService.updateBookingStatus(this.bookingId, this.rowVersion, WiniStatus.Cancelled);
+      await firstValueFrom(req);
+
+      this.notifications.addNotification(`Booking with ID #${this.bookingId} cancelled.`, 'Booking cancelled', NotificationType.Info);
+
+      this.closeClick();
+    });
+
+    ref.instance.onCancel.subscribe(() => {
+      this.sharedModal!.hideModal();
+    });
   }
 
   public closeClick() {

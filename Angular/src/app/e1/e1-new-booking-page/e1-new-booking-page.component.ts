@@ -1,10 +1,10 @@
-import { Component, OnInit, effect } from '@angular/core';
+import { Component, HostListener, OnInit, effect } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { CommonModule } from '@angular/common';
 import { E1BookingHeaderComponent } from '../e1-booking-header/e1-booking-header.component';
-import { firstValueFrom } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { Ledger } from '../models/ledger';
 import {
   BookingRowImport,
@@ -25,6 +25,7 @@ import { NotificationService, NotificationType } from '../../shared/services/not
 import { E1BookingService } from '../services/e1-booking.service';
 import { E1BookingRowTableComponent } from '../e1-booking-row-table/e1-booking-row-table.component';
 import { getFormattedDateString } from '../../shared/utils/date.utils';
+import { ComponentCanDeactivate } from '../../shared/guards/can-deactivate.guard';
 
 interface E1BookingInputForm {
   header: E1BookingHeader;
@@ -48,7 +49,7 @@ interface E1BookingInputForm {
   templateUrl: './e1-new-booking-page.component.html',
   styleUrl: './e1-new-booking-page.component.css',
 })
-export class E1NewBookingPageComponent {
+export class E1NewBookingPageComponent implements ComponentCanDeactivate {
   public form!: FormGroup;
   public header: FormGroup;
   public rows!: FormArray;
@@ -109,6 +110,11 @@ export class E1NewBookingPageComponent {
     effect(() => {
       this.loading = loadingService.isLoading();
     });
+  }
+
+  @HostListener('window:beforeunload')
+  canDeactivate(): Observable<boolean> | boolean {
+    return this.form.dirty ? false : true; // If form is dirty, ask for confirmation. Return true if form is not dirty.
   }
 
   public toggeShowImportClick() {

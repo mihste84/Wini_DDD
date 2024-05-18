@@ -10,7 +10,7 @@ import { SortResult } from '../../shared/components/table-header/table-header.co
 import { NotificationService, NotificationType } from '../../shared/services/notification.service';
 import { E1SearchBookingService } from '../services/e1-search-booking.service';
 import { E1AttachmentService } from '../services/e1-attachment.service';
-import { BookingSearchResult, E1Booking } from '../models/types';
+import { BookingSearchResult } from '../models/types';
 
 @Component({
   schemas: [NO_ERRORS_SCHEMA],
