@@ -10,7 +10,7 @@ public static class CommentEndpoints
     {
         var command = new UpdateBookingCommentCommand
         {
-            Action = Domain.Wini.Events.CrudAction.Added,
+            Action = Domain.Enums.CrudAction.Added,
             BookingId = id,
             Created = model.Created,
             Value = model.Value,
@@ -35,7 +35,7 @@ public static class CommentEndpoints
     {
         var command = new UpdateBookingCommentCommand
         {
-            Action = Domain.Wini.Events.CrudAction.Edited,
+            Action = Domain.Enums.CrudAction.Edited,
             BookingId = id,
             Created = model.Created,
             Value = model.Value,
@@ -61,7 +61,7 @@ public static class CommentEndpoints
     {
         var command = new UpdateBookingCommentCommand
         {
-            Action = Domain.Wini.Events.CrudAction.Deleted,
+            Action = Domain.Enums.CrudAction.Deleted,
             BookingId = id,
             Created = created,
         };

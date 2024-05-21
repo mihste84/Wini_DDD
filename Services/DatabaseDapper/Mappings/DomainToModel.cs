@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-
 namespace Services.DatabaseDapper.Mappings;
 
 public static class ModelToDomain

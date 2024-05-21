@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Arg = System.ArgumentNullException; // Just trying out some aliasing
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
 var corsOrigin = builder.Configuration["CorsOrigin"];
 var connectionString = builder.Configuration.GetConnectionString("WiniDb");
 
-ArgumentNullException.ThrowIfNullOrWhiteSpace(corsOrigin);
-ArgumentNullException.ThrowIfNullOrWhiteSpace(connectionString);
+Arg.ThrowIfNullOrWhiteSpace(corsOrigin);
+Arg.ThrowIfNullOrWhiteSpace(connectionString);
 
 builder.Services.Configure<KestrelServerOptions>(options =>
 {
@@ -31,7 +32,7 @@ builder.Services
 if (builder.Environment.IsEnvironment("IntegrationTests"))
 {
     builder.Services.AddScoped<IAuthenticationService, TestAuthenticationService>();
-    builder.Services.AddScoped<Domain.Wini.Interfaces.IAuthorizationService, TestAuthorizationService>();
+    builder.Services.AddScoped<Domain.Interfaces.IAuthorizationService, TestAuthorizationService>();
     builder.Services.AddSingleton<IAuthorizerValidationService, TestAuthorizerValidationService>();
     builder.Services.AddSingleton<IBookingPeriodValidationService, TestBookingPeriodValidationService>();
     builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();
@@ -41,7 +42,7 @@ if (builder.Environment.IsEnvironment("IntegrationTests"))
 else
 {
     builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-    builder.Services.AddScoped<Domain.Wini.Interfaces.IAuthorizationService, TestAuthorizationService>();
+    builder.Services.AddScoped<Domain.Interfaces.IAuthorizationService, TestAuthorizationService>();
     builder.Services.AddSingleton<IAuthorizerValidationService, TestAuthorizerValidationService>();
     builder.Services.AddSingleton<IBookingPeriodValidationService, TestBookingPeriodValidationService>();
     builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();

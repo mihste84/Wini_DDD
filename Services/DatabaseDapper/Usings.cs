@@ -15,3 +15,6 @@ global using AppLogic.Models;
 global using Domain.Wini.Aggregates;
 global using Domain.Wini.Events;
 global using Services.DatabaseDapper.Extensions;
+global using Domain.Values;
+global using Domain.Entities;
+global using Domain.Enums;

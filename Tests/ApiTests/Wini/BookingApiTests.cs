@@ -1,5 +1,3 @@
-using Services.DatabaseDapper.Models;
-
 namespace Tests.ApiTests.Wini;
 
 [Order(2)]
@@ -513,7 +511,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         await _testBase.SeedBaseBookingAsync(default, default);
         await _testBase.SeedBaseBookingAsync(default, default);
 
-        var queryParams = $"OrderBy=Id&OrderByDirection=DESC&StartRow=0&EndRow=1";
+        var queryParams = $"orderBy=Id&orderByDirection=DESC&startRow=0&endRow=1";
         var res = await _testBase.HttpClient.GetAsync("/api/booking?" + queryParams);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
@@ -533,7 +531,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         await _testBase.SeedBaseBookingAsync(default, default);
         await _testBase.SeedBaseBookingAsync(default, default);
 
-        var queryParams = $"OrderBy=Id&OrderByDirection=DESC&StartRow=0&EndRow=10";
+        var queryParams = $"orderBy=Id&orderByDirection=DESC&startRow=0&endRow=10";
         var searchItems = $"&SearchItems[0].Name=Id&SearchItems[0].Value={booking.Id}&SearchItems[0].Operator={SearchOperators.Equal}";
         var res = await _testBase.HttpClient.GetAsync("/api/booking?" + queryParams + searchItems);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);

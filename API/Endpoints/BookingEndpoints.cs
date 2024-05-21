@@ -1,5 +1,3 @@
-using AppLogic.Models;
-
 namespace API.Endpoints;
 
 public static class BookingEndpoints

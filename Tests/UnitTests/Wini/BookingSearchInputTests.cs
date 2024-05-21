@@ -10,10 +10,10 @@ public class BookingSearchInputTests
         // Arrange
         var query = new Dictionary<string, StringValues>
         {
-            { "StartRow", new StringValues("1") },
-            { "EndRow", new StringValues("2") },
-            { "OrderBy", new StringValues("Id") },
-            { "OrderByDirection", new StringValues("DESC") },
+            { "startRow", new StringValues("1") },
+            { "endRow", new StringValues("2") },
+            { "orderBy", new StringValues("Id") },
+            { "orderByDirection", new StringValues("DESC") },
             { "searchitems[0].name", new StringValues("Name1") },
             { "searchitems[0].value", new StringValues("Value1") },
             { "searchitems[0].operator", new StringValues("Equals") },

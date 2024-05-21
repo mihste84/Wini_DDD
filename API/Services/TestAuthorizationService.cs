@@ -1,6 +1,6 @@
 namespace API.Services;
 
-public class TestAuthorizationService : Domain.Wini.Interfaces.IAuthorizationService
+public class TestAuthorizationService : Domain.Interfaces.IAuthorizationService
 {
     public bool IsAdmin() => true;
     public bool IsRead() => true;
