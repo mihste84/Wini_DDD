@@ -10,7 +10,7 @@ public static class CommentEndpoints
     {
         var command = new UpdateBookingCommentCommand
         {
-            Action = Domain.Enums.CrudAction.Added,
+            Action = Domain.Common.Enums.CrudAction.Added,
             BookingId = id,
             Created = model.Created,
             Value = model.Value,
@@ -35,7 +35,7 @@ public static class CommentEndpoints
     {
         var command = new UpdateBookingCommentCommand
         {
-            Action = Domain.Enums.CrudAction.Edited,
+            Action = Domain.Common.Enums.CrudAction.Edited,
             BookingId = id,
             Created = model.Created,
             Value = model.Value,
@@ -61,7 +61,7 @@ public static class CommentEndpoints
     {
         var command = new UpdateBookingCommentCommand
         {
-            Action = Domain.Enums.CrudAction.Deleted,
+            Action = Domain.Common.Enums.CrudAction.Deleted,
             BookingId = id,
             Created = created,
         };

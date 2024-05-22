@@ -12,7 +12,8 @@
     <PackageReference Include="Microsoft.Identity.Web" Version="2.18.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AppLogic\AppLogic.csproj" />
+    <ProjectReference Include="..\AppLogic\WiniLogic\WiniLogic.csproj" />
+    <ProjectReference Include="..\AppLogic\LighthouseLogic\LighthouseLogic.csproj" />
     <ProjectReference Include="..\Services\DatabaseDapper\DatabaseDapper.csproj" />
   </ItemGroup>
 </Project>

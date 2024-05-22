@@ -12,6 +12,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\AppLogic\AppLogic.csproj" />
+    <ProjectReference Include="..\..\AppLogic\WiniLogic\WiniLogic.csproj" />
   </ItemGroup>  
 </Project>

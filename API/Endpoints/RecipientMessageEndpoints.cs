@@ -9,7 +9,7 @@ public static class RecipientMessageEndpoints
     {
         var command = new UpdateRecipientMessageCommand
         {
-            Action = Domain.Enums.CrudAction.Added,
+            Action = Domain.Common.Enums.CrudAction.Added,
             Value = input.Message,
             BookingId = id,
             Recipient = input.Recipient
@@ -34,7 +34,7 @@ public static class RecipientMessageEndpoints
     {
         var command = new UpdateRecipientMessageCommand
         {
-            Action = Domain.Enums.CrudAction.Edited,
+            Action = Domain.Common.Enums.CrudAction.Edited,
             Value = input.Message,
             BookingId = id,
             Recipient = input.Recipient
@@ -61,7 +61,7 @@ public static class RecipientMessageEndpoints
     {
         var command = new UpdateRecipientMessageCommand
         {
-            Action = Domain.Enums.CrudAction.Deleted,
+            Action = Domain.Common.Enums.CrudAction.Deleted,
             BookingId = id,
             Recipient = recipient
         };

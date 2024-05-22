@@ -32,7 +32,7 @@ builder.Services
 if (builder.Environment.IsEnvironment("IntegrationTests"))
 {
     builder.Services.AddScoped<IAuthenticationService, TestAuthenticationService>();
-    builder.Services.AddScoped<Domain.Interfaces.IAuthorizationService, TestAuthorizationService>();
+    builder.Services.AddScoped<Domain.Common.Interfaces.IAuthorizationService, TestAuthorizationService>();
     builder.Services.AddSingleton<IAuthorizerValidationService, TestAuthorizerValidationService>();
     builder.Services.AddSingleton<IBookingPeriodValidationService, TestBookingPeriodValidationService>();
     builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();
@@ -42,7 +42,7 @@ if (builder.Environment.IsEnvironment("IntegrationTests"))
 else
 {
     builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-    builder.Services.AddScoped<Domain.Interfaces.IAuthorizationService, TestAuthorizationService>();
+    builder.Services.AddScoped<Domain.Common.Interfaces.IAuthorizationService, TestAuthorizationService>();
     builder.Services.AddSingleton<IAuthorizerValidationService, TestAuthorizerValidationService>();
     builder.Services.AddSingleton<IBookingPeriodValidationService, TestBookingPeriodValidationService>();
     builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();

@@ -2,7 +2,7 @@ namespace API.Endpoints;
 
 public static class AppUserEndpoints
 {
-    public static IResult GetAppUser(Domain.Interfaces.IAuthorizationService authorizationService)
+    public static IResult GetAppUser(Domain.Common.Interfaces.IAuthorizationService authorizationService)
     {
         var rights = new AppUserRights(
             authorizationService.IsAdmin(),

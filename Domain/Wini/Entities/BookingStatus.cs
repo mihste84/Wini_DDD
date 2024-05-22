@@ -140,14 +140,7 @@ public class BookingStatus
     public BookingStatus Copy()
     => new(
         Status,
-        new DateTime(Updated.Year,
-                     Updated.Month,
-                     Updated.Day,
-                     Updated.Hour,
-                     Updated.Minute,
-                     Updated.Second,
-                     Updated.Millisecond,
-                     DateTimeKind.Utc),
+        Updated,
         UpdatedBy.UserId!
     );
 }
