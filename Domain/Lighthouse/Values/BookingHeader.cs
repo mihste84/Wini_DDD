@@ -11,20 +11,20 @@ public record BookingHeader
     {
         BookingDate = new BookingDate(DateTime.UtcNow);
         IsReversed = false;
-        // InsuranceType = new LedgerType(Ledgers.AA);
+        InsuranceType = new InsuranceType(Insurance.Claims);
     }
 
-    public BookingHeader(DateOnly bookingDate, bool isReversed, InsuranceType type)
+    public BookingHeader(DateOnly bookingDate, bool isReversed, Insurance insurance)
     {
         BookingDate = new BookingDate(bookingDate);
         IsReversed = isReversed;
-        // InsuranceType = new LedgerType(ledgerType);
+        InsuranceType = new InsuranceType(insurance);
     }
 
-    public BookingHeader(BookingDate bookingDate, bool isReversed, InsuranceType ledgerType)
+    public BookingHeader(BookingDate bookingDate, bool isReversed, InsuranceType insuranceType)
     {
         BookingDate = bookingDate;
         IsReversed = isReversed;
-        InsuranceType = ledgerType;
+        InsuranceType = insuranceType;
     }
 }

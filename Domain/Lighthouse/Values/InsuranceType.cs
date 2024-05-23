@@ -2,9 +2,9 @@ namespace Domain.Lighthouse.Values;
 
 public record InsuranceType
 {
-    public InsuranceTypes Type { get; }
+    public Insurance Type { get; }
 
-    public InsuranceType(InsuranceTypes type)
+    public InsuranceType(Insurance type)
     {
         Type = type;
     }

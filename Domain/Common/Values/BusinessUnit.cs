@@ -1,4 +1,4 @@
-namespace Domain.Wini.Values;
+namespace Domain.Common.Values;
 
 public record BusinessUnit
 {

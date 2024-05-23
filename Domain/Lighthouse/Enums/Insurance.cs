@@ -1,6 +1,6 @@
 namespace Domain.Lighthouse.Enums;
 
-public enum InsuranceTypes
+public enum Insurance
 {
     Policy, Claims
 }
