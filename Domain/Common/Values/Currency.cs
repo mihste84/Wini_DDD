@@ -1,9 +1,9 @@
 namespace Domain.Common.Values;
 
-public record Currency
+public readonly record struct Currency
 {
-    public CurrencyCode CurrencyCode { get; }
-    public decimal? ExchangeRate { get; }
+    public readonly CurrencyCode CurrencyCode;
+    public readonly decimal? ExchangeRate;
     public Currency()
     {
         CurrencyCode = new CurrencyCode();

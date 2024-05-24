@@ -1,9 +1,8 @@
 namespace Domain.Common.Values;
 
-public record Product
+public readonly record struct Product
 {
-    public string? Code { get; }
-
+    public readonly string? Code;
     public Product()
     {
     }

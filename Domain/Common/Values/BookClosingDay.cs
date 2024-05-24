@@ -2,7 +2,7 @@ using Nager.Date;
 
 namespace Domain.Common.Values;
 
-record BookClosingDay
+public readonly record struct BookClosingDay
 {
     public readonly PeriodType MonthType;
     public readonly bool IsTodayBookClosingDay;

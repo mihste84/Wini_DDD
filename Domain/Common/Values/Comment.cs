@@ -3,8 +3,8 @@ namespace Domain.Common.Values;
 public record Comment
 {
     public readonly IdValue<int> BookingId;
-    public string? Value { get; }
-    public DateTime Created { get; set; }
+    public readonly string? Value;
+    public readonly DateTime Created;
 
     public Comment(string? value, IdValue<int> bookingId, DateTime created)
     {

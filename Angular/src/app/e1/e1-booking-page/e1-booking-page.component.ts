@@ -12,7 +12,6 @@ import {
 } from '../models/types';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { FormControlComponent } from '../../shared/components/form-control/form-control.component';
@@ -51,6 +50,8 @@ interface E1BookingForm {
 @Component({
   selector: 'app-e1-booking-page',
   standalone: true,
+  templateUrl: './e1-booking-page.component.html',
+  styleUrl: './e1-booking-page.component.css',
   imports: [
     ReactiveFormsModule,
     FormControlComponent,
@@ -58,7 +59,6 @@ interface E1BookingForm {
     CommonModule,
     E1BookingHeaderComponent,
     E1BookingRowTableComponent,
-    HttpClientModule,
     MsgBannerComponent,
     E1ImportRowsComponent,
     FontAwesomeModule,
@@ -69,8 +69,6 @@ interface E1BookingForm {
     E1AttachmentsComponent,
     E1RecipientsComponent,
   ],
-  templateUrl: './e1-booking-page.component.html',
-  styleUrl: './e1-booking-page.component.css',
 })
 export class E1BookingPageComponent implements OnInit, ComponentCanDeactivate {
   @Input() public booking!: E1Booking;

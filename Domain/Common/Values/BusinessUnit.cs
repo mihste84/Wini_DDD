@@ -1,10 +1,10 @@
 namespace Domain.Common.Values;
 
-public record BusinessUnit
+public readonly record struct BusinessUnit
 {
-    public CompanyCode CompanyCode { get; }
-    public Costcenter Costcenter { get; }
-    public Product Product { get; }
+    public readonly CompanyCode CompanyCode;
+    public readonly Costcenter Costcenter;
+    public readonly Product Product;
 
     public BusinessUnit()
     {

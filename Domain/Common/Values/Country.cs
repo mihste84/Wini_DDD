@@ -1,6 +1,6 @@
 namespace Domain.Common.Values;
 
-public record Country
+public readonly record struct Country
 {
     private readonly Dictionary<string, string> _allowedCountries = new() {
         { "SE", "Sweden" },

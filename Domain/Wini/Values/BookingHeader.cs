@@ -1,6 +1,6 @@
 namespace Domain.Wini.Values;
 
-public record BookingHeader
+public readonly record struct BookingHeader
 {
     public BookingDate BookingDate { get; }
     public TextToE1 TextToE1 { get; }

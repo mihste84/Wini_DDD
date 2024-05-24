@@ -1,9 +1,9 @@
 namespace Domain.Wini.Values;
 
-public record CostObject
+public readonly record struct CostObject
 {
-    public string? Value { get; }
-    public string? Type { get; }
+    public readonly string? Value;
+    public readonly string? Type;
     public readonly int Number;
 
     public CostObject(int number)

@@ -1,6 +1,6 @@
 namespace Domain.Wini.Enums;
 
-public enum WiniStatus
+public enum WiniStatus : byte
 {
     New,
     Saved,
@@ -10,5 +10,5 @@ public enum WiniStatus
     ToBeSent,
     ToBeAuthorized,
     NotAuthorizedOnTime,
-    
+
 }

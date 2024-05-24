@@ -1,8 +1,8 @@
 namespace Domain.Common.Values;
 
-public record Costcenter
+public readonly record struct Costcenter
 {
-    public string? Code { get; }
+    public readonly string? Code;
 
     public Costcenter()
     {

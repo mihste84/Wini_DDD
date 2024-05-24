@@ -1,6 +1,6 @@
 namespace Domain.Common.Models;
 
-public class AppRoleSettings
+public record AppRoleSettings
 {
     public string? AdminRole { get; set; }
     public string? ReadRole { get; set; }

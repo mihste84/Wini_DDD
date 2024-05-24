@@ -1,6 +1,6 @@
 namespace Domain.Lighthouse.Enums;
 
-public enum LighthouseStatus
+public enum LighthouseStatus : byte
 {
     New,
     Saved,

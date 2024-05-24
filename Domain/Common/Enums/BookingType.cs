@@ -1,6 +1,6 @@
 namespace Domain.Common.Enums;
 
-public enum BookingType
+public enum BookingType : byte
 {
     Wini,
     Lighthouse

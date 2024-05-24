@@ -1,7 +1,7 @@
 
 namespace Domain.Lighthouse.Values;
 
-public record BookingHeader
+public readonly record struct BookingHeader
 {
     public BookingDate BookingDate { get; }
     public bool IsReversed { get; }

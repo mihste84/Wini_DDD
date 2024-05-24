@@ -1,8 +1,8 @@
 namespace Domain.Wini.Values;
 
-public record TextToE1
+public readonly record struct TextToE1
 {
-    public string? Text { get; }
+    public readonly string? Text;
     public TextToE1()
     {
     }

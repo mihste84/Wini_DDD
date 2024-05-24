@@ -1,6 +1,6 @@
 namespace Domain.Common.Values;
 
-public record CompanyName
+public readonly record struct CompanyName
 {
     public readonly string Name;
     public CompanyName(string? name)

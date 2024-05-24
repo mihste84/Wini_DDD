@@ -1,8 +1,8 @@
 namespace Domain.Common.Values;
 
-public record CompanyCode
+public readonly record struct CompanyCode
 {
-    public int? Code { get; }
+    public readonly int? Code;
 
     public CompanyCode()
     {

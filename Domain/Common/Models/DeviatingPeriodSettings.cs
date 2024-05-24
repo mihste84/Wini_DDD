@@ -1,6 +1,6 @@
 namespace Domain.Common.Models;
 
-public class DeviatingPeriodSettings
+public record DeviatingPeriodSettings
 {
     public List<int> DeviatingPeriods { get; init; } = [];
     public int NormalPeriodEnd { get; init; } = 4;

@@ -1,6 +1,6 @@
 namespace Domain.Common.Values;
 
-public record CurrencyCode
+public readonly record struct CurrencyCode
 {
     private readonly Dictionary<string, string> _currenciesByCountry = new() {
         { "SE", "SEK" },
@@ -12,7 +12,7 @@ public record CurrencyCode
         { "EE", "EUR" }
     };
 
-    public string? Code { get; }
+    public readonly string? Code;
 
     public CurrencyCode()
     {

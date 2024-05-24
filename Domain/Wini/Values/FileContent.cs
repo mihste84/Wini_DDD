@@ -1,6 +1,6 @@
 namespace Domain.Wini.Values;
 
-public record FileContent
+public readonly record struct FileContent
 {
     public const int MaxAttachmentSize = 5000000; //5 MB
     public readonly long Size;

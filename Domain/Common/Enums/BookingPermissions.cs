@@ -1,7 +1,7 @@
 namespace Domain.Common.Enums;
 
 [Flags]
-public enum BookingPermissions
+public enum BookingPermissions : byte
 {
     None = 0,
     BookingRead = 1,

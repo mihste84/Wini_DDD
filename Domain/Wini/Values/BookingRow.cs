@@ -3,16 +3,16 @@ namespace Domain.Wini.Values;
 public record BookingRow
 {
     public readonly int RowNumber;
-    public BusinessUnit BusinessUnit { get; }
-    public Account Account { get; }
-    public Subledger Subledger { get; }
-    public CostObject CostObject1 { get; }
-    public CostObject CostObject2 { get; }
-    public CostObject CostObject3 { get; }
-    public CostObject CostObject4 { get; }
-    public Remark Remark { get; }
-    public Authorizer Authorizer { get; }
-    public Money Money { get; }
+    public readonly BusinessUnit BusinessUnit;
+    public readonly Account Account;
+    public readonly Subledger Subledger;
+    public readonly CostObject CostObject1;
+    public readonly CostObject CostObject2;
+    public readonly CostObject CostObject3;
+    public readonly CostObject CostObject4;
+    public readonly Remark Remark;
+    public readonly Authorizer Authorizer;
+    public readonly Money Money;
 
     public BookingRow(
         int rowNumber,
@@ -58,27 +58,27 @@ public record BookingRow
     public BookingRow ChangeRowAuthorization(bool hasBeenAuthorized)
     => new(
         RowNumber,
-        BusinessUnit.Copy(),
-        Account.Copy(),
-        Subledger.Copy(),
-        CostObject1.Copy(),
-        CostObject2.Copy(),
-        CostObject3.Copy(),
-        CostObject4.Copy(),
-        Remark.Copy(),
+        BusinessUnit,
+        Account,
+        Subledger,
+        CostObject1,
+        CostObject2,
+        CostObject3,
+        CostObject4,
+        Remark,
         new Authorizer(Authorizer.UserId, hasBeenAuthorized),
-        Money.Copy()
+        Money
     );
 
     public bool IsCompanyCodeAllowed(IEnumerable<Company> companies)
-        => companies.Select(_ => _.CompanyCode).Contains(BusinessUnit.CompanyCode);
+    => companies.Select(_ => _.CompanyCode).Contains(BusinessUnit.CompanyCode);
 
     public bool IsBaseCurrencyUsed(IEnumerable<Company> companies)
-        => companies.Any(_ => _.CompanyCode == BusinessUnit.CompanyCode && _.Currency.Code == Money.Currency.CurrencyCode.Code);
+    => companies.Any(_ => _.CompanyCode == BusinessUnit.CompanyCode && _.Currency.Code == Money.Currency.CurrencyCode.Code);
 
     public bool CanRowBeAuthorized()
-        => Money.IsDebitRow() && !Authorizer.HasAuthorized && !string.IsNullOrWhiteSpace(Authorizer.UserId);
+    => Money.IsDebitRow() && !Authorizer.HasAuthorized && !string.IsNullOrWhiteSpace(Authorizer.UserId);
 
     public bool CanRowBeAuthorizedByUser(string userId)
-        => CanRowBeAuthorized() && Authorizer.UserId == userId;
+    => CanRowBeAuthorized() && Authorizer.UserId == userId;
 }

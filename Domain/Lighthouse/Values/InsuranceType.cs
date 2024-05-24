@@ -1,6 +1,6 @@
 namespace Domain.Lighthouse.Values;
 
-public record InsuranceType
+public readonly record struct InsuranceType
 {
     public Insurance Type { get; }
 

@@ -1,6 +1,6 @@
 namespace Domain.Common.Values;
 
-public record BookingDate
+public readonly record struct BookingDate
 {
     public readonly DateOnly Date;
 

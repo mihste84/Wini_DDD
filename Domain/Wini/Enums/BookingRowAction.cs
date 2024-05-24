@@ -1,6 +1,6 @@
 namespace Domain.Wini.Enums;
 
-public enum BookingRowAction
+public enum BookingRowAction : byte
 {
     Added,
     Updated,

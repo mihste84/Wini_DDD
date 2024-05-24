@@ -1,8 +1,8 @@
 namespace Domain.Wini.Values;
 
-public record Remark
+public readonly record struct Remark
 {
-    public string? Text { get; }
+    public readonly string? Text;
 
     public Remark()
     {

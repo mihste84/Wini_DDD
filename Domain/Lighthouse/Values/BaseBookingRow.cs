@@ -3,20 +3,23 @@ namespace Domain.Lighthouse.Values;
 public abstract record BaseBookingRow
 {
     public readonly int RowNumber;
-    public BusinessUnit BusinessUnit { get; }
+    public Costcenter Costcenter { get; }
+    public Product Product { get; }
     public Account Account { get; }
     public Subledger Subledger { get; }
     public Money Money { get; }
 
     public BaseBookingRow(
         int rowNumber,
-        BusinessUnit businessUnit,
+        Costcenter costcenter,
+        Product product,
         Account account,
         Subledger subledger,
         Money amount)
     {
         RowNumber = rowNumber;
-        BusinessUnit = businessUnit;
+        Costcenter = costcenter;
+        Product = product;
         Account = account;
         Subledger = subledger;
         Money = amount;
@@ -25,7 +28,8 @@ public abstract record BaseBookingRow
     public BaseBookingRow(int rowNumber)
     {
         RowNumber = rowNumber;
-        BusinessUnit = new BusinessUnit();
+        Costcenter = new Costcenter();
+        Product = new Product();
         Account = new Account();
         Subledger = new Subledger();
         Money = new Money();

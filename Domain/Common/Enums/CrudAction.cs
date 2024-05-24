@@ -1,6 +1,6 @@
 namespace Domain.Common.Enums;
 
-public enum CrudAction
+public enum CrudAction : byte
 {
     Added,
     Edited,

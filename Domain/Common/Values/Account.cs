@@ -1,9 +1,9 @@
 namespace Domain.Common.Values;
 
-public record Account
+public readonly record struct Account
 {
-    public string? Value { get; }
-    public string? Subsidiary { get; }
+    public readonly string? Value;
+    public readonly string? Subsidiary;
 
     public Account()
     {

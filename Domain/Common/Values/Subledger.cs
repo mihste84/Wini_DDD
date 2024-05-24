@@ -1,9 +1,9 @@
 namespace Domain.Common.Values;
 
-public record Subledger
+public readonly record struct Subledger
 {
-    public string? Value { get; }
-    public string? Type { get; }
+    public readonly string? Value;
+    public readonly string? Type;
 
     public Subledger()
     {

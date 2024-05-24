@@ -1,6 +1,6 @@
 namespace Domain.Wini.Values;
 
-public record BookingStatusLog
+public readonly record struct BookingStatusLog
 {
     public IdValue<int> BookingId { get; }
     public DateTime Created { get; }

@@ -1,6 +1,6 @@
 namespace Domain.Common.Enums;
 
-public enum PeriodType
+public enum PeriodType : byte
 {
     Monthly,
     Quarterly,
