@@ -1,4 +1,4 @@
-namespace Domain.Wini.Validators;
+namespace Domain.Common.Validators;
 public class RemarkValidator : AbstractValidator<Remark>
 {
     public RemarkValidator()

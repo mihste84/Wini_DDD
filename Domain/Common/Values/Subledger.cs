@@ -23,6 +23,4 @@ public readonly record struct Subledger
 
         throw new DomainValidationException(result.Errors);
     }
-
-    public Subledger Copy() => new(Value, Type);
 }

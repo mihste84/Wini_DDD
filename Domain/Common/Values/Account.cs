@@ -23,6 +23,4 @@ public readonly record struct Account
 
         throw new DomainValidationException(result.Errors);
     }
-
-    public Account Copy() => new(Value, Subsidiary);
 }

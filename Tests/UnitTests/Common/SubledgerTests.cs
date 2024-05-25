@@ -1,4 +1,4 @@
-namespace Tests.UnitTests.Wini;
+namespace Tests.UnitTests.Common;
 
 public class SubledgerTests
 {

@@ -1,4 +1,4 @@
-namespace Domain.Wini.Values;
+namespace Domain.Common.Values;
 
 public readonly record struct Remark
 {
@@ -20,6 +20,4 @@ public readonly record struct Remark
 
         throw new DomainValidationException(result.Errors);
     }
-
-    public Remark Copy() => new(Text);
 }

@@ -24,8 +24,6 @@ public readonly record struct Money
         Currency = currency;
     }
 
-    public Money Copy() => new(Amount, Currency.CurrencyCode.Code, Currency.ExchangeRate);
-
     public bool IsDebitRow() => Amount > 0;
     public bool IsCreditRow() => Amount < 0;
     public bool IsCurrencyAndExchangeRateSet() => !string.IsNullOrWhiteSpace(Currency.CurrencyCode.Code) && Currency.ExchangeRate > 0;

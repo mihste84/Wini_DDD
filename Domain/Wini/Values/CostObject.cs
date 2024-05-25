@@ -25,6 +25,4 @@ public readonly record struct CostObject
 
         throw new DomainValidationException(result.Errors);
     }
-
-    public CostObject Copy() => new(Number, Value, Type);
 }

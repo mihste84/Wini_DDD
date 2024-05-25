@@ -5,3 +5,6 @@ global using Domain.Common.Events;
 global using Domain.Lighthouse.Entities;
 global using Domain.Lighthouse.Enums;
 global using Domain.Lighthouse.Values;
+global using Domain.Lighthouse.Validators;
+global using FluentValidation;
+global using Domain.Common.Validators;
