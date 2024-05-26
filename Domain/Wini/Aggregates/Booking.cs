@@ -1,61 +1,152 @@
 namespace Domain.Wini.Aggregates;
 
-public class Booking
+public partial class Booking
 {
-    public readonly IdValue<int> Id;
-    public BookingStatus Status { get; }
-    public Commissioner Commissioner { get; }
-    public BookingDate BookingDate { get; }
-    public Description Description { get; }
-    public bool IsReversed { get; }
-    public LedgerType LedgerType { get; }
-    public BookingRow[] Rows { get; } = Array.Empty<BookingRow>();
-    public Comment[] Comments { get; } = Array.Empty<Comment>();
-    public RecipientMessage[] Messages { get; } = Array.Empty<RecipientMessage>();
-    public Attachment[] Attachments { get; } = Array.Empty<Attachment>();
+    public readonly IdValue<int>? BookingId;
+    public readonly Commissioner Commissioner;
+    public BookingStatus BookingStatus { get; }
+    public BookingHeader Header { get; private set; }
+    public List<BookingRow> Rows { get; } = [];
+    public List<Comment> Comments { get; } = [];
+    public List<RecipientMessage> Messages { get; } = [];
+    public List<Attachment> Attachments { get; } = [];
+    public List<BaseDomainEvent> DomainEvents { get; } = [];
     public readonly DateTime Created;
 
     public Booking(
-        IdValue<int> id,
+        IdValue<int>? id,
         Commissioner commissioner
     )
     {
-        Id = id;
-        Status = new BookingStatus(WiniStatus.Saved, DateTime.UtcNow);
+        BookingId = id;
         Commissioner = commissioner;
-        BookingDate = new BookingDate(DateTime.UtcNow);
-        Description = new Description("");
-        IsReversed = false;
-        LedgerType = new LedgerType(Ledgers.AA);
+        BookingStatus = new BookingStatus(WiniStatus.Saved, DateTime.UtcNow, commissioner.UserId!);
+        Header = new BookingHeader();
         Created = DateTime.UtcNow;
     }
 
     public Booking(
-        IdValue<int> id,
+        IdValue<int>? id,
         BookingStatus status,
         Commissioner commissioner,
         BookingDate bookingDate,
-        Description description,
+        TextToE1 textToE1,
+        bool isReversed,
+        LedgerType ledgerType
+    )
+    {
+        BookingId = id;
+        BookingStatus = status;
+        Commissioner = commissioner;
+        Header = new BookingHeader(bookingDate, textToE1, isReversed, ledgerType);
+        Created = DateTime.UtcNow;
+    }
+
+    public Booking(
+        IdValue<int>? id,
+        BookingStatus status,
+        Commissioner commissioner,
+        BookingDate bookingDate,
+        TextToE1 textToE1,
         bool isReversed,
         LedgerType ledgerType,
-        BookingRow[] rows,
-        Comment[] comments,
-        RecipientMessage[] messages,
-        Attachment[] attachments,
+        List<BookingRow> rows,
+        List<Comment> comments,
+        List<RecipientMessage> messages,
+        List<Attachment> attachments,
         DateTime created
     )
     {
-        Id = id;
-        Status = status;
+        BookingId = id;
+        BookingStatus = status;
         Commissioner = commissioner;
-        BookingDate = bookingDate;
-        Description = description;
-        IsReversed = isReversed;
-        LedgerType = ledgerType;
+        Header = new BookingHeader(bookingDate, textToE1, isReversed, ledgerType);
         Rows = rows;
         Comments = comments;
         Messages = messages;
         Attachments = attachments;
         Created = created;
+
+        if (Rows.Count == 0 || AreRowsInSequence())
+        {
+            return;
+        }
+
+        var errors = new[] {
+            new ValidationError { Message = "Row numbers are not in sequence.", PropertyName = "Row Numbers" }
+        };
+
+        throw new DomainValidationException($"Failed to validate booking {BookingId?.Value}.", errors);
+    }
+
+
+    public void EditBookingHeader(BookingHeaderModel model, IAuthenticationService authenticationService)
+    {
+        var user = authenticationService.GetUserId();
+        VerifyIfBookingIsEditable(user);
+
+        Header = new BookingHeader(
+            model.BookingDate,
+            model.TextToE1,
+            model.IsReversed,
+            model.LedgerType
+        );
+
+        var status = BookingStatus.TryChangeStatus(WiniStatus.Saved, user);
+        DomainEvents.Add(new WiniStatusEvent(status));
+    }
+
+    public (bool CanDelete, string? Reason) CanDeleteBooking(
+        IAuthenticationService authenticationService,
+        IAuthorizationService authorizationService)
+    {
+        if (BookingStatus.Status == WiniStatus.Sent)
+        {
+            return (false, "AlreadySent");
+        }
+
+        return (authenticationService.GetUserId() == Commissioner.UserId || authorizationService.IsAdmin())
+        ? (true, default)
+        : (false, "Forbidden");
+    }
+
+    public bool AreAllCompaniesSame()
+    {
+        var firstCompanyValue = Rows.FirstOrDefault()?.BusinessUnit.CompanyCode.Code;
+        return Rows.TrueForAll(_ => _.BusinessUnit.CompanyCode.Code == firstCompanyValue);
+    }
+
+    public bool TryValidateExchangeRateDifferencesByCurrency(out IEnumerable<(string? Currency, decimal?[] ExchangeRates)> differences)
+    {
+        var ratesByCurrency = Rows
+            .GroupBy(_ => _.Money.Currency.CurrencyCode.Code)
+            .Select(_ => new { Currency = _.Key, ExchangeRates = _.Select(x => x.Money.Currency.ExchangeRate).Distinct().ToArray() });
+
+        differences = ratesByCurrency
+            .Where(_ => !Array.TrueForAll(_.ExchangeRates, x => x == _.ExchangeRates[0]))
+            .Select(_ => (_.Currency, _.ExchangeRates));
+
+        return !differences.Any();
+    }
+
+    public bool TryValidateBalanceDifferencesByCurrency(out IEnumerable<(string? Currency, decimal? Balance)> differences)
+    {
+        var amountsPerCurrency = Rows
+            .GroupBy(_ => _.Money.Currency.CurrencyCode.Code)
+            .Select(_ => new { Currency = _.Key, Balance = _.Sum(x => x.Money.Amount) });
+
+        differences = amountsPerCurrency
+            .Where(_ => _.Balance != 0)
+            .Select(_ => (_.Currency, _.Balance));
+
+        return !differences.Any();
+    }
+
+    public (bool IsValid, IEnumerable<ValidationError>? Errors) ValidateValues(IEnumerable<Company> companies)
+    {
+        var validator = new BookingValidator(companies, BookingId == default);
+        var res = validator.Validate(this);
+
+        return (res.IsValid, res.Errors?.Select(_ => new ValidationError(_)));
     }
 }

@@ -1,0 +1,39 @@
+<app-modal #sharedModal></app-modal>
+
+<div class="flex flex-col text-sm">
+  <div class="mb-2 overflow-y-auto w-full">
+    @for (attachment of attachments; track attachment.name) {
+    <article class="py-1 flex align-middle justify-start">
+      <span
+        (click)="onViewAttachment.emit(attachment)"
+        [title]="attachment.name"
+        class="cursor-pointer max-w-96 overflow-hidden me-3 whitespace-nowrap text-ellipsis text-blue-500 hover:text-blue-600">
+        {{ attachment.name }}
+      </span>
+      <span class="me-3 whitespace-nowrap">{{ getMbSize(attachment.size) }} MB</span>
+      @if (!readonly) {
+      <div>
+        <fa-icon
+          (click)="onDeleteAttachmentClick(attachment)"
+          class="cursor-pointer text-red-600 hover:text-red-400 ms-3"
+          [icon]="faTrash" />
+      </div>
+      }
+    </article>
+    } @empty {
+    <p>No attachments uploaded</p>
+    }
+  </div>
+  @if(!readonly) {
+  <div class="py-2">
+    <input
+      type="file"
+      multiple
+      [disabled]="loading || attachments.length >= maxFileCount"
+      accept=".pdf,.xlsx,.xls,.ppt,.pptx,.txt,image/*,.doc,.docx"
+      (change)="onFileChange($event)"
+      name="attachments"
+      id="attachments" />
+  </div>
+  }
+</div>

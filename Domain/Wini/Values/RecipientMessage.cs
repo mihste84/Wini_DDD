@@ -8,28 +8,33 @@ public record RecipientMessage
 
     public RecipientMessage(string message, User recipient, IdValue<int> bookingId)
     {
-        if (string.IsNullOrWhiteSpace(message))
-        {
-            throw new DomainLogicException(
-                nameof(message),
-                ValidationErrorCodes.Required,
-                "Message cannot be empty when recipient is set"
-            );
-        }
-
-        if (message.Length > 100)
-        {
-            throw new TextValidationException(
-                nameof(message),
-                message,
-                ValidationErrorCodes.TextTooLong,
-                "Message cannot be longer than 100 characters"
-            )
-            { MaxLength = 100 };
-        }
-
         Message = message;
         Recipient = recipient;
         BookingId = bookingId;
+
+        var validator = new RecipientMessageValidator();
+        var result = validator.Validate(this);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
+    }
+
+    public RecipientMessage(string message, string recipient, IdValue<int> bookingId)
+    {
+        Message = message;
+        Recipient = new User(recipient);
+        BookingId = bookingId;
+
+        var validator = new RecipientMessageValidator();
+        var result = validator.Validate(this);
+        if (result.IsValid)
+        {
+            return;
+        }
+
+        throw new DomainValidationException(result.Errors);
     }
 }

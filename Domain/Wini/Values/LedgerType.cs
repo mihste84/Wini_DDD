@@ -1,17 +1,11 @@
 namespace Domain.Wini.Values;
 
-public record LedgerType
+public readonly record struct LedgerType
 {
-    public Ledgers Type { get; }
+    public readonly Ledgers Type;
 
     public LedgerType(Ledgers type)
     {
         Type = type;
-    }
-
-    public static LedgerType Create(Ledgers type)
-    {
-        // Validate
-        return new LedgerType(type);
     }
 }

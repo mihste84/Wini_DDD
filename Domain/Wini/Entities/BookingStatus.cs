@@ -4,55 +4,143 @@ public class BookingStatus
 {
     public WiniStatus Status { get; private set; }
     public DateTime Updated { get; private set; }
+    public User UpdatedBy { get; private set; }
+    public List<BookingStatus> StatusHistory { get; } = [];
 
-    public BookingStatus(WiniStatus status, DateTime updated)
+    public BookingStatus(WiniStatus status, DateTime updated, string userId)
     {
         Status = status;
         Updated = updated;
+        UpdatedBy = new User(userId);
     }
 
-    public void SetStatusSaved()
+    public BookingStatus(WiniStatus status, DateTime updated, string userId, List<BookingStatus> statusHistory)
     {
-        if (Status is WiniStatus.Sent or WiniStatus.Saved or WiniStatus.Cancelled)
-            throw new DomainLogicException(nameof(Status), StatusErrorCodes.Saved, "Status cannot be Sent, Saved or Cancelled");
-
-        Status = WiniStatus.Saved;
-        Updated = DateTime.UtcNow;
+        Status = status;
+        Updated = updated;
+        UpdatedBy = new User(userId);
+        StatusHistory = statusHistory;
     }
 
-    public void SetStatusCancelled()
+    public BookingStatus SaveStatusHistory()
     {
-        if (Status is WiniStatus.Sent or WiniStatus.Cancelled)
-            throw new DomainLogicException(nameof(Status), StatusErrorCodes.Cancelled, "Status cannot be Sent or Cancelled");
-
-        Status = WiniStatus.Cancelled;
-        Updated = DateTime.UtcNow;
+        var currentStatus = Copy();
+        StatusHistory.Add(currentStatus);
+        return currentStatus;
     }
 
-    public void SetStatusToBeSent()
+    public void CanChangeStatusToSaved()
     {
-        if (Status is not WiniStatus.Saved and not WiniStatus.ToBeAuthorized)
-            throw new DomainLogicException(nameof(Status), StatusErrorCodes.ToBeSent, "Status cannot be anything other than Saved or ToBeAuthorized");
+        if (!(Status is WiniStatus.Sent or WiniStatus.Cancelled))
+        {
+            return;
+        }
 
-        Status = WiniStatus.ToBeSent;
-        Updated = DateTime.UtcNow;
+        throw new DomainLogicException(nameof(Status), WiniStatus.Saved.ToString(), "Status cannot be Sent or Cancelled");
     }
 
-    public void SetStatusNotAuthorizedOnTime()
+    public void CanChangeStatusToSendError()
     {
-        if (Status is not WiniStatus.ToBeAuthorized)
-            throw new DomainLogicException(nameof(Status), StatusErrorCodes.NotAuthorizedOnTime, "Status cannot be anything other than ToBeAuthorized");
+        if (Status is WiniStatus.ToBeSent)
+        {
+            return;
+        }
 
-        Status = WiniStatus.NotAuthorizedOnTime;
-        Updated = DateTime.UtcNow;
+        throw new DomainLogicException(nameof(Status), WiniStatus.SendError.ToString(), "Status cannot be anything other than ToBeSent");
     }
 
-    public void SetStatusSent()
+    public void CanChangeStatusToCancelled()
     {
-        if (Status is not WiniStatus.ToBeSent)
-            throw new DomainLogicException(nameof(Status), StatusErrorCodes.Sent, "Status cannot be anything other than ToBeSent");
+        if (!(Status is WiniStatus.Sent or WiniStatus.Cancelled))
+        {
+            return;
+        }
 
-        Status = WiniStatus.Sent;
-        Updated = DateTime.UtcNow;
+        throw new DomainLogicException(nameof(Status), WiniStatus.Cancelled.ToString(), "Status cannot be Sent or Cancelled");
     }
+
+    public void CanChangeStatusToBeSent()
+    {
+        if (Status is WiniStatus.Saved or WiniStatus.ToBeAuthorized)
+        {
+            return;
+        }
+
+        throw new DomainLogicException(nameof(Status), WiniStatus.ToBeSent.ToString(), "Status cannot be anything other than Saved or ToBeAuthorized");
+    }
+
+    public void CanChangeStatusToNotAuthorizedOnTime()
+    {
+        if (Status is WiniStatus.ToBeAuthorized)
+        {
+            return;
+        }
+
+        throw new DomainLogicException(nameof(Status), WiniStatus.NotAuthorizedOnTime.ToString(), "Status cannot be anything other than ToBeAuthorized");
+    }
+
+    public void CanChangeStatusToBeAuthorized()
+    {
+        if (Status is WiniStatus.Saved)
+        {
+            return;
+        }
+
+        throw new DomainLogicException(nameof(Status), WiniStatus.ToBeAuthorized.ToString(), "Status cannot be anything other than Saved");
+    }
+
+    public void CanChangeStatusToSent()
+    {
+        if (Status is WiniStatus.ToBeSent)
+        {
+            return;
+        }
+
+        throw new DomainLogicException(nameof(Status), WiniStatus.Sent.ToString(), "Status cannot be anything other than ToBeSent");
+    }
+
+    public BookingStatus TryChangeStatus(WiniStatus status, string userId)
+    {
+        switch (status)
+        {
+            case WiniStatus.Saved:
+                CanChangeStatusToSaved();
+                break;
+            case WiniStatus.SendError:
+                CanChangeStatusToSendError();
+                break;
+            case WiniStatus.Cancelled:
+                CanChangeStatusToCancelled();
+                break;
+            case WiniStatus.ToBeSent:
+                CanChangeStatusToBeSent();
+                break;
+            case WiniStatus.NotAuthorizedOnTime:
+                CanChangeStatusToNotAuthorizedOnTime();
+                break;
+            case WiniStatus.ToBeAuthorized:
+                CanChangeStatusToBeAuthorized();
+                break;
+            case WiniStatus.Sent:
+                CanChangeStatusToSent();
+                break;
+            default:
+                throw new ArgumentException("Unknown Wini status", nameof(status));
+        }
+
+        var oldStatus = SaveStatusHistory();
+        var now = DateTime.UtcNow;
+        Status = status;
+        Updated = now;
+        UpdatedBy = new User(userId);
+
+        return oldStatus;
+    }
+
+    public BookingStatus Copy()
+    => new(
+        Status,
+        Updated,
+        UpdatedBy.UserId!
+    );
 }

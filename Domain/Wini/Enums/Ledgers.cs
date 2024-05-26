@@ -1,6 +1,7 @@
 namespace Domain.Wini.Enums;
 
-public enum Ledgers
+public enum Ledgers : byte
 {
-    AA, GP
+    AA,
+    GP
 }

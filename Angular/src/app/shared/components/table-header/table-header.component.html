@@ -1,0 +1,8 @@
+<div [ngClass]="{ 'cursor-pointer': isSortable }" class="whitespace-nowrap" (click)="sort()">
+  <ng-content></ng-content>
+  <fa-icon
+    class="ms-2"
+    *ngIf="currentSortColumnName === name"
+    [icon]="currentSortDirection === 'ASC' ? faArrowDownShortWide : faArrowDownWideShort"
+    size="lg"></fa-icon>
+</div>

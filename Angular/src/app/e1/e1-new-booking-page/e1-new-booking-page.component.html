@@ -1,0 +1,79 @@
+<form class="p-2 flex flex-col h-full" [formGroup]="form">
+  @if (validationResult) {
+  <app-msg-banner [type]="validationResult.isValid ? types.info : types.error" (onDismiss)="onBannerDissmissCallback()">
+    <div class="max-h-48 overflow-y-auto custom-scrollbar">
+      @if(validationResult.isValid) {
+      <p>Booking is valid</p>
+      } @else {
+      <p>{{ validationResult.message }}</p>
+      <ul>
+        @for (error of validationResult.errors; let i = $index; track i) { @if (!error.propertyName.startsWith("#")) {
+        <li>{{ error.message }}</li>
+        } }
+      </ul>
+      }
+    </div>
+  </app-msg-banner>
+  }
+
+  <header class="flex flex-col items-startflex-wrap border rounded-sm p-2 mb-2">
+    <h5 class="mb-2">New E1 Booking</h5>
+    <app-e1-booking-header [form]="header" />
+  </header>
+
+  <section class="mb-2 flex-auto border relative rounded-sm">
+    <app-e1-booking-row-table
+      class="h-full"
+      [loading]="loading"
+      [rows]="rows"
+      [form]="form"
+      [validationErrors]="validationResult?.errors" />
+  </section>
+
+  <section class="mb-2 p-2 border rounded-sm">
+    <h6 class="flex text-sm">
+      <span (click)="toggeShowImportClick()" class="text-blue-600 cursor-pointer">
+        <fa-icon [icon]="importIcon" class="me-1" />
+        Import rows
+      </span>
+      <div class="flex-auto"></div>
+      <a class="text-blue-600" target="_blank" href="http://coa.radix1.ifint.biz/web/coaweb/">Accountplan - top Sweden</a>
+    </h6>
+    @if(showImport) {
+    <div class="mt-2">
+      <app-e1-import-rows (onRowsImported)="onImportRowsCallback($event)" />
+    </div>
+    }
+  </section>
+
+  <section class="mb-2 py-2 flex flex-row items-start">
+    <button
+      [disabled]="form.invalid || loading"
+      (click)="validateBookingClick()"
+      type="button"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-70">
+      Validate
+    </button>
+    <button
+      [disabled]="form.invalid || loading"
+      type="button"
+      (click)="saveBookingClick()"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-70">
+      Save
+    </button>
+    <button
+      [disabled]="form.invalid || loading"
+      type="button"
+      (click)="saveAndCloseBookingClick()"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-70">
+      Save and close
+    </button>
+    <button
+      type="button"
+      [disabled]="loading"
+      (click)="closeClick()"
+      class="h-8 text-sm leading-4 border me-2 p-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+      Close
+    </button>
+  </section>
+</form>

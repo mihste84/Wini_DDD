@@ -1,0 +1,9 @@
+<p class="p-2">{{ message }}</p>
+<div class="text-right">
+  <button class="border rounded-md px-2 py-1 bg-red-500 text-white me-2" type="button" (click)="onCancel.emit()">
+    {{ cancelBtnText }}
+  </button>
+  <button class="border rounded-md px-2 py-1 bg-green-500 text-white hover:opacity-70" type="button" (click)="onConfirm.emit(returnObject)">
+    {{ confirmBtnText }}
+  </button>
+</div>

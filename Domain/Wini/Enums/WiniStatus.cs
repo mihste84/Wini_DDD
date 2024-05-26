@@ -1,13 +1,14 @@
 namespace Domain.Wini.Enums;
 
-[Flags]
-public enum WiniStatus
+public enum WiniStatus : byte
 {
+    New,
     Saved,
     Cancelled,
     Sent,
     SendError,
     ToBeSent,
     ToBeAuthorized,
-    NotAuthorizedOnTime
+    NotAuthorizedOnTime,
+
 }
