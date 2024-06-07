@@ -1,9 +1,18 @@
 namespace Tests.ApiTests.Wini;
 
 [Order(5)]
-public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<TestBase>
+public sealed class RecipientMessageApiTests : IClassFixture<BaseDbTestFixture>, IDisposable
 {
-    private readonly TestBase _testBase = testBase;
+    private readonly BaseDbTestFixture _testBase;
+    private readonly DatabaseWebApplicationFactory _factory;
+    private readonly HttpClient _httpClient;
+
+    public RecipientMessageApiTests(BaseDbTestFixture testBase)
+    {
+        _testBase = testBase;
+        _factory = new DatabaseWebApplicationFactory(testBase.GetConnectionString());
+        _httpClient = _factory.CreateClient();
+    }
 
     [Fact]
     public async Task Insert_New_RecipientMessage_Async()
@@ -12,7 +21,7 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
         var command = new RecipientMessageInput("XMIHST", "TEST");
 
-        var res = await _testBase.HttpClient.PostAsJsonAsync($"/api/booking/{sqlResult.Id}/recipient", command);
+        var res = await _httpClient.PostAsJsonAsync($"/api/booking/{sqlResult.Id}/recipient", command);
         Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -49,7 +58,7 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
 
         var command = new RecipientMessageInput("XMIHST", "TEST");
 
-        var res = await _testBase.HttpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/recipient", command);
+        var res = await _httpClient.PatchAsJsonAsync($"/api/booking/{sqlResult.Id}/recipient", command);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -85,7 +94,7 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
         };
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default, default, messages);
 
-        var res = await _testBase.HttpClient.DeleteAsync(
+        var res = await _httpClient.DeleteAsync(
             $"/api/booking/{sqlResult.Id}/recipient?recipient=XMIHST"
         );
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
@@ -101,5 +110,10 @@ public sealed class RecipientMessageApiTests(TestBase testBase) : IClassFixture<
         Assert.Single(dbRecipientMessages);
         Assert.Equal("XYZ", dbRecipientMessages.FirstOrDefault()?.Value);
         Assert.Equal("RECP2", dbRecipientMessages.FirstOrDefault()?.Recipient);
+    }
+
+    public void Dispose()
+    {
+        _factory.Dispose();
     }
 }

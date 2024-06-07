@@ -3,9 +3,18 @@ using System.Web;
 namespace Tests.ApiTests.Wini;
 
 [Order(3)]
-public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
+public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposable
 {
-    private readonly TestBase _testBase = testBase;
+    private readonly BaseDbTestFixture _testBase;
+    private readonly DatabaseWebApplicationFactory _factory;
+    private readonly HttpClient _httpClient;
+
+    public CommentApiTests(BaseDbTestFixture testBase)
+    {
+        _testBase = testBase;
+        _factory = new DatabaseWebApplicationFactory(testBase.GetConnectionString());
+        _httpClient = _factory.CreateClient();
+    }
 
     [Fact]
     public async Task Insert_New_Comment_Async()
@@ -14,10 +23,10 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
         var command = new CommentInput(DateTime.UtcNow, "TEST");
 
-        _testBase.HttpClient.DefaultRequestHeaders.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
+        _httpClient.DefaultRequestHeaders.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
         using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/booking/{sqlResult.Id}/comment");
         request.Content = JsonContent.Create(command);
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -54,7 +63,7 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
         using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/comment");
         request.Content = JsonContent.Create(command);
         request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
 
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
@@ -93,7 +102,7 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
             HttpMethod.Delete,
             $"/api/booking/{sqlResult.Id}/comment?created={HttpUtility.UrlEncode(createdDate.ToString("yyyy-MM-dd HH:mm:ss.fffffff"))}"
         );
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
 
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
@@ -106,5 +115,10 @@ public sealed class CommentApiTests(TestBase testBase) : IClassFixture<TestBase>
         );
         Assert.Single(dbComments);
         Assert.Equal("XYZ", dbComments.LastOrDefault()?.Value);
+    }
+
+    public void Dispose()
+    {
+        _factory.Dispose();
     }
 }

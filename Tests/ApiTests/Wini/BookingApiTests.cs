@@ -1,9 +1,18 @@
 namespace Tests.ApiTests.Wini;
 
 [Order(2)]
-public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
+public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposable
 {
-    private readonly TestBase _testBase = testBase;
+    private readonly BaseDbTestFixture _testBase;
+    private readonly DatabaseWebApplicationFactory _factory;
+    private readonly HttpClient _httpClient;
+
+    public BookingApiTests(BaseDbTestFixture testBase)
+    {
+        _testBase = testBase;
+        _factory = new DatabaseWebApplicationFactory(testBase.GetConnectionString());
+        _httpClient = _factory.CreateClient();
+    }
 
     [Fact]
     public async Task Insert_New_Empty_Booking_Async()
@@ -17,7 +26,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             ]
         };
 
-        var res = await _testBase.HttpClient.PostAsJsonAsync("/api/booking", command);
+        var res = await _httpClient.PostAsJsonAsync("/api/booking", command);
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         var booking = await _testBase.QuerySingleAsync<Services.DatabaseDapper.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         var numberOfRows = await _testBase.QuerySingleAsync<int>("SELECT count(*) FROM dbo.BookingRows");
@@ -69,7 +78,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             Rows = [rowToInsert]
         };
 
-        var res = await _testBase.HttpClient.PostAsJsonAsync("/api/booking", command);
+        var res = await _httpClient.PostAsJsonAsync("/api/booking", command);
         Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -115,7 +124,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
 
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
 
-        var booking = await _testBase.HttpClient.GetFromJsonAsync<BookingDto>("/api/booking/" + sqlResult!.Id);
+        var booking = await _httpClient.GetFromJsonAsync<BookingDto>("/api/booking/" + sqlResult!.Id);
         Assert.NotNull(booking);
     }
 
@@ -164,7 +173,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         using var request = new HttpRequestMessage(HttpMethod.Patch, "/api/booking/" + sqlResult.Id);
         request.Content = JsonContent.Create(command);
         request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -256,7 +265,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         using var request = new HttpRequestMessage(HttpMethod.Patch, "/api/booking/" + sqlResult.Id);
         request.Content = JsonContent.Create(command);
         request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
 
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
@@ -284,7 +293,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
 
         using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.Cancelled}");
         request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -312,7 +321,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         var sqlResult = await _testBase.SeedBaseBookingAsync(bookingToInsert, insertRows);
         using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.SendError}");
         request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -342,7 +351,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
 
         using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.Saved}");
         request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -372,7 +381,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
 
         using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.ToBeSent}");
         request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
 
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
@@ -404,7 +413,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
 
         using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.ToBeAuthorized}");
         request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -439,7 +448,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
 
         using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.NotAuthorizedOnTime}");
         request.Headers.Add("RowVersion", Convert.ToBase64String(rowVersion!));
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -470,7 +479,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
 
         using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/status/{WiniStatus.Sent}");
         request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
-        var res = await _testBase.HttpClient.SendAsync(request);
+        var res = await _httpClient.SendAsync(request);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
@@ -493,7 +502,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         await _testBase.ResetDbAsync();
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
 
-        var res = await _testBase.HttpClient.DeleteAsync("/api/booking/" + sqlResult.Id);
+        var res = await _httpClient.DeleteAsync("/api/booking/" + sqlResult.Id);
         Assert.Equal(System.Net.HttpStatusCode.NoContent, res.StatusCode);
 
         var booking = await _testBase.QuerySingleAsync<Services.DatabaseDapper.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
@@ -512,7 +521,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
         await _testBase.SeedBaseBookingAsync(default, default);
 
         var queryParams = $"orderBy=Id&orderByDirection=DESC&startRow=0&endRow=1";
-        var res = await _testBase.HttpClient.GetAsync("/api/booking?" + queryParams);
+        var res = await _httpClient.GetAsync("/api/booking?" + queryParams);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SearchResultWrapper<BookingSearchResult>>();
@@ -533,7 +542,7 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
 
         var queryParams = $"orderBy=Id&orderByDirection=DESC&startRow=0&endRow=10";
         var searchItems = $"&SearchItems[0].Name=Id&SearchItems[0].Value={booking.Id}&SearchItems[0].Operator={SearchOperators.Equal}";
-        var res = await _testBase.HttpClient.GetAsync("/api/booking?" + queryParams + searchItems);
+        var res = await _httpClient.GetAsync("/api/booking?" + queryParams + searchItems);
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
 
         var content = await res.Content.ReadFromJsonAsync<SearchResultWrapper<BookingSearchResult>>();
@@ -587,4 +596,9 @@ public sealed class BookingApiTests(TestBase testBase) : IClassFixture<TestBase>
             IsAuthorized = false
         }
     ];
+
+    public void Dispose()
+    {
+        _factory.Dispose();
+    }
 }

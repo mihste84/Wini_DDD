@@ -1,36 +1,25 @@
-using Microsoft.Extensions.Configuration;
 using Respawn;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Testcontainers.MsSql;
+using DotNet.Testcontainers.Builders;
 
 namespace Tests.Utils;
 
-public class TestBase
+public class BaseDbTestFixture : IAsyncLifetime
 {
-    public readonly HttpClient HttpClient;
-    private readonly string _connectionString;
+    public readonly MsSqlContainer Container;
 
-    public TestBase()
+    public BaseDbTestFixture()
     {
-        var webApplicationFactory = new WebApplicationFactory<Program>();
-        var configuration = webApplicationFactory.Services.GetService(typeof(IConfiguration)) as IConfiguration;
-        _connectionString = configuration!.GetConnectionString("WiniDb")!;
-        HttpClient = webApplicationFactory.CreateDefaultClient();
+        Container = new MsSqlBuilder()
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(1433))
+            .Build();
     }
-
-    private static Task<Respawner> GetRespawnAsync(string connectionString)
-    => Respawner.CreateAsync(
-        connectionString,
-        new RespawnerOptions
-        {
-            TablesToIgnore = [
-                "Companies"
-            ]
-        });
 
     public async Task<SqlResult?> InsertAsync<M>(string sql, M model)
     {
-        await using var conn = new SqlConnection(_connectionString);
+        await using var conn = new SqlConnection(GetConnectionString());
         await conn.OpenAsync();
 
         return await conn.QuerySingleAsync<SqlResult>(sql, model);
@@ -38,7 +27,7 @@ public class TestBase
 
     public async Task<int?> InsertMultipleAsync<M>(string sql, M model)
     {
-        await using var conn = new SqlConnection(_connectionString);
+        await using var conn = new SqlConnection(GetConnectionString());
         await conn.OpenAsync();
 
         return await conn.ExecuteAsync(sql, model);
@@ -46,7 +35,7 @@ public class TestBase
 
     public async Task<IEnumerable<M>> QueryAsync<M>(string sql, object? model = default)
     {
-        await using var conn = new SqlConnection(_connectionString);
+        await using var conn = new SqlConnection(GetConnectionString());
         await conn.OpenAsync();
 
         return await conn.QueryAsync<M>(sql, model);
@@ -54,7 +43,7 @@ public class TestBase
 
     public async Task<M?> QuerySingleAsync<M>(string sql, object? model = default)
     {
-        await using var conn = new SqlConnection(_connectionString);
+        await using var conn = new SqlConnection(GetConnectionString());
         await conn.OpenAsync();
 
         return await conn.QuerySingleOrDefaultAsync<M>(sql, model);
@@ -62,7 +51,7 @@ public class TestBase
 
     public async Task ExecuteAsync(string sql, object? model = default)
     {
-        await using var conn = new SqlConnection(_connectionString);
+        await using var conn = new SqlConnection(GetConnectionString());
         await conn.OpenAsync();
 
         await conn.ExecuteAsync(sql, model);
@@ -70,8 +59,8 @@ public class TestBase
 
     public async Task ResetDbAsync()
     {
-        var respawn = await GetRespawnAsync(_connectionString);
-        await respawn.ResetAsync(_connectionString);
+        var respawn = await GetRespawnAsync(GetConnectionString());
+        await respawn.ResetAsync(GetConnectionString());
     }
 
     public async Task<SqlResult> SeedBaseBookingAsync(
@@ -167,4 +156,62 @@ public class TestBase
 
         return sqlResult;
     }
+
+    public async Task InitializeAsync()
+    {
+        await Container.StartAsync();
+        using var conn = new SqlConnection(Container.GetConnectionString());
+        await conn.OpenAsync();
+        await conn.ExecuteAsync("CREATE DATABASE WiniDb");
+        conn.ChangeDatabase("WiniDb");
+
+        var baseFolder = Environment.CurrentDirectory;
+        var tablesPath = Path.Combine(baseFolder, "Tables");
+        var seedPath = Path.Combine(baseFolder, "PostDeployment");
+
+        string[] tablesFiles = [
+            Path.Combine(tablesPath, "Bookings.sql"),
+            Path.Combine(tablesPath, "BookingRows.sql"),
+            Path.Combine(tablesPath, "BookingLogs.sql"),
+            Path.Combine(tablesPath, "Companies.sql"),
+            Path.Combine(tablesPath, "Attachments.sql"),
+            Path.Combine(tablesPath, "Comments.sql"),
+            Path.Combine(tablesPath, "RecipientMessages.sql")
+        ];
+
+        foreach (var file in tablesFiles)
+        {
+            var sql = File.ReadAllText(file);
+
+            foreach (var item in sql.Split("GO").Where(_ => !string.IsNullOrWhiteSpace(_)))
+            {
+                await conn.ExecuteAsync(item);
+            }
+        }
+
+        var seedFiles = Directory.GetFiles(seedPath);
+        foreach (var file in seedFiles)
+        {
+            var sql = File.ReadAllText(file);
+            foreach (var item in sql.Split("GO"))
+            {
+                await conn.ExecuteAsync(item);
+            }
+        }
+    }
+
+    public Task DisposeAsync()
+    => Container.DisposeAsync().AsTask();
+
+    public string GetConnectionString() => Container.GetConnectionString().Replace("Database=master", "Database=WiniDb");
+
+    private static Task<Respawner> GetRespawnAsync(string connectionString)
+    => Respawner.CreateAsync(
+        connectionString,
+        new RespawnerOptions
+        {
+            TablesToIgnore = [
+                "Companies"
+            ]
+        });
 }

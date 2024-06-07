@@ -1,3 +1,5 @@
+using static System.Convert;
+
 namespace API.Utils;
 
 
@@ -8,7 +10,7 @@ public static class Converters
         try
         {
             ArgumentNullException.ThrowIfNullOrWhiteSpace(value, nameof(value));
-            return Convert.FromBase64String(value);
+            return FromBase64String(value);
         }
         catch
         {
@@ -24,7 +26,7 @@ public static class Converters
         try
         {
             ArgumentNullException.ThrowIfNullOrWhiteSpace(value, nameof(value));
-            bytes = Convert.FromBase64String(value);
+            bytes = FromBase64String(value);
             return true;
         }
         catch
