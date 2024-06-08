@@ -2,6 +2,7 @@ global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Authorization;
 global using MediatR;
 global using Services.DatabaseDapper;
+global using Services.DatabaseEf;
 global using Domain.Common.Interfaces;
 global using Domain.Wini.Interfaces;
 global using API.Services;

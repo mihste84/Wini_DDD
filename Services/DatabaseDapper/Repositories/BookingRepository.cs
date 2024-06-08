@@ -55,7 +55,7 @@ public class BookingRepository(ConnectionFactory factory) : IBookingRepository
             trySetWhereForRow(columnName);
         }
 
-        var res = await sql.QueryAsync<Models.DbBookingSearchResult>();
+        var res = await sql.QueryAsync<DbBookingSearchResult>();
         if (res?.Any() == false)
         {
             return [];

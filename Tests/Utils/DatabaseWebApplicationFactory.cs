@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Services.DatabaseDapper;
 
 namespace Tests.Utils;
 

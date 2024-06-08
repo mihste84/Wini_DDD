@@ -7,13 +7,17 @@
     <LangVersion>preview</LangVersion>
     <UserSecretsId>11f5f6bf-f89b-487a-b8f3-0c1a47954342</UserSecretsId>
   </PropertyGroup>
-    <ItemGroup>
+
+  <ItemGroup >
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.6" />
     <PackageReference Include="Microsoft.Identity.Web" Version="2.19.0" />
+    <ProjectReference Include="..\Services\DatabaseDapper\DatabaseDapper.csproj" />
+    <ProjectReference Include="..\Services\DatabaseEf\DatabaseEf.csproj" /> 
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\AppLogic\WiniLogic\WiniLogic.csproj" />
     <ProjectReference Include="..\AppLogic\LighthouseLogic\LighthouseLogic.csproj" />
-    <ProjectReference Include="..\Services\DatabaseDapper\DatabaseDapper.csproj" />
   </ItemGroup>
+  
 </Project>

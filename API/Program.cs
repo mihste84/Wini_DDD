@@ -54,7 +54,15 @@ builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressModelS
 builder.Services.AddProblemDetails();
 builder.Services.AddCors();
 
-builder.Services.AddDatabaseServices(connectionString);
+if (Environment.GetEnvironmentVariable("DB_TYPE") == "Dapper")
+{
+    builder.Services.AddDatabaseDapperServices(connectionString);
+}
+else
+{
+    builder.Services.AddDatabaseEfServices(connectionString);
+}
+
 builder.Services.AddAppLogicAndDomainServices();
 
 var app = builder.Build();

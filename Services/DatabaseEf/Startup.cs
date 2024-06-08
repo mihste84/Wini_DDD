@@ -1,19 +1,18 @@
 using Services.DatabaseCommon;
 
-namespace Services.DatabaseDapper;
+namespace Services.DatabaseEf;
 
 public static class Startup
 {
-    public static void AddDatabaseDapperServices(this IServiceCollection services, string? connectionString)
+    public static void AddDatabaseEfServices(this IServiceCollection services, string? connectionString)
     {
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             throw new ArgumentNullException(nameof(connectionString), "Connection string cannot be empty.");
         }
 
-        services.AddSingleton(_ => new ConnectionFactory(connectionString));
-        services.AddScoped<IMasterdataRepository, MasterdataRepository>();
-        services.AddScoped<IBookingRepository, BookingRepository>();
+        // services.AddScoped<IMasterdataRepository, MasterdataRepository>();
+        // services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<ITransactionScope, TransactionScopeWrapper>();
         services.AddScoped<ITransactionScopeManager, TransactionScopeManager>();
     }

@@ -1,6 +1,6 @@
 using System.Transactions;
 
-namespace Services.DatabaseDapper;
+namespace Services.DatabaseCommon;
 
 public class TransactionScopeWrapper : ITransactionScope
 {

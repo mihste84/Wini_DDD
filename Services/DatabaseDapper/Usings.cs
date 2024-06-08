@@ -18,3 +18,4 @@ global using Services.DatabaseDapper.Extensions;
 global using Domain.Common.Values;
 global using Domain.Common.Entities;
 global using Domain.Common.Enums;
+global using Services.DatabaseCommon.Models;

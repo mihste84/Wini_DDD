@@ -8,10 +8,9 @@
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.44" />
     <PackageReference Include="Dapper-QueryBuilder" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\AppLogic\WiniLogic\WiniLogic.csproj" />
+    <ProjectReference Include="..\DatabaseCommon\DatabaseCommon.csproj" />
   </ItemGroup>  
 </Project>

@@ -1,4 +1,4 @@
-namespace Services.DatabaseDapper.Models;
+namespace Services.DatabaseCommon.Models;
 
 public record DbBookingSearchResult
 {

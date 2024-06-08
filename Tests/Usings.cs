@@ -19,7 +19,6 @@ global using API.Models;
 global using AppLogic.WiniLogic.Models;
 global using AppLogic.WiniLogic.Requests;
 global using Microsoft.AspNetCore.Mvc;
-global using Services.DatabaseDapper.Queries;
 global using Domain.Common.Values;
 global using Domain.Common.Entities;
 global using Domain.Common.Enums;

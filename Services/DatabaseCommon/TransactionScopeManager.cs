@@ -1,4 +1,4 @@
-namespace Services.DatabaseDapper;
+namespace Services.DatabaseCommon;
 
 public class TransactionScopeManager : ITransactionScopeManager
 {
