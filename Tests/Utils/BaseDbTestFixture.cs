@@ -3,6 +3,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Testcontainers.MsSql;
 using DotNet.Testcontainers.Builders;
+using Services.DatabaseDapper.Queries;
 
 namespace Tests.Utils;
 
@@ -64,15 +65,15 @@ public class BaseDbTestFixture : IAsyncLifetime
     }
 
     public async Task<SqlResult> SeedBaseBookingAsync(
-        Services.DatabaseDapper.Models.Booking? booking,
-        Services.DatabaseDapper.Models.BookingRow[]? rows,
-        Services.DatabaseDapper.Models.Comment[]? comments = default,
-        Services.DatabaseDapper.Models.RecipientMessage[]? messages = default,
-        Services.DatabaseDapper.Models.Attachment[]? attachments = default
+        Services.DatabaseCommon.Models.Booking? booking,
+        Services.DatabaseCommon.Models.BookingRow[]? rows,
+        Services.DatabaseCommon.Models.Comment[]? comments = default,
+        Services.DatabaseCommon.Models.RecipientMessage[]? messages = default,
+        Services.DatabaseCommon.Models.Attachment[]? attachments = default
     )
     {
         var bookingModel = booking
-            ?? new Services.DatabaseDapper.Models.Booking
+            ?? new Services.DatabaseCommon.Models.Booking
             {
                 BookingDate = new DateOnly(2024, 1, 1).ToDateTime(default),
                 Created = DateTime.UtcNow,
@@ -93,7 +94,7 @@ public class BaseDbTestFixture : IAsyncLifetime
                 return _;
             })
             ?? [
-            new Services.DatabaseDapper.Models.BookingRow
+            new Services.DatabaseCommon.Models.BookingRow
             {
                 RowNumber = 1,
                 Account = "12345",

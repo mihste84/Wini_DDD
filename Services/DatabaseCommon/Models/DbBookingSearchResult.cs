@@ -1,6 +1,6 @@
 namespace Services.DatabaseCommon.Models;
 
-public record DbBookingSearchResult
+public class DbBookingSearchResult
 {
     public int? Id { get; init; }
     public int? Status { get; init; }

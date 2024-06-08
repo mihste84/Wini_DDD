@@ -32,7 +32,7 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var comments = await _testBase.QueryAsync<Services.DatabaseDapper.Models.Comment>(
+        var comments = await _testBase.QueryAsync<Services.DatabaseCommon.Models.Comment>(
             "SELECT * FROM dbo.Comments WHERE BookingId = @BookingId",
             new { BookingId = sqlResult.Id }
         );
@@ -46,12 +46,12 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         await _testBase.ResetDbAsync();
         var createdDate = DateTime.UtcNow;
         var comments = new[] {
-            new Services.DatabaseDapper.Models.Comment {
+            new Services.DatabaseCommon.Models.Comment {
                 Created = createdDate,
                 CreatedBy = "MIHSTE",
                 Value = "ASDFG"
             },
-            new Services.DatabaseDapper.Models.Comment {
+            new Services.DatabaseCommon.Models.Comment {
                 Created = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 CreatedBy = "MIHSTE",
                 Value = "XYZ"
@@ -70,7 +70,7 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var dbComments = await _testBase.QueryAsync<Services.DatabaseDapper.Models.Comment>(
+        var dbComments = await _testBase.QueryAsync<Services.DatabaseCommon.Models.Comment>(
             "SELECT * FROM dbo.Comments WHERE BookingId = @BookingId ORDER BY Created DESC",
             new { BookingId = sqlResult.Id }
         );
@@ -85,12 +85,12 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         await _testBase.ResetDbAsync();
         var createdDate = DateTime.UtcNow;
         var comments = new[] {
-            new Services.DatabaseDapper.Models.Comment {
+            new Services.DatabaseCommon.Models.Comment {
                 Created = createdDate,
                 CreatedBy = "MIHSTE",
                 Value = "ASDFG"
             },
-            new Services.DatabaseDapper.Models.Comment {
+            new Services.DatabaseCommon.Models.Comment {
                 Created = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Local),
                 CreatedBy = "MIHSTE",
                 Value = "XYZ"
@@ -109,7 +109,7 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var dbComments = await _testBase.QueryAsync<Services.DatabaseDapper.Models.Comment>(
+        var dbComments = await _testBase.QueryAsync<Services.DatabaseCommon.Models.Comment>(
             "SELECT * FROM dbo.Comments WHERE BookingId = @BookingId ORDER BY Created DESC",
             new { BookingId = sqlResult.Id }
         );

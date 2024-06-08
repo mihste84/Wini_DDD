@@ -1,28 +1,28 @@
-namespace Services.DatabaseDapper.Mappings;
+namespace Services.DatabaseCommon.Mappings;
 
 public static class DomainToModel
 {
-    public static Models.RecipientMessage MapToModel(RecipientMessage message, string user)
+    public static DatabaseCommon.Models.RecipientMessage MapToModel(RecipientMessage message, string user)
      => new()
      {
          BookingId = message.BookingId.Value,
          Value = message.Message,
-         Recipient = message.Recipient.UserId,
+         Recipient = message.Recipient.UserId ?? throw new NullReferenceException(nameof(message.Recipient.UserId)),
          CreatedBy = user
          //Id = id,
      };
 
-    public static Models.Comment MapToModel(Comment comment, string user)
+    public static DatabaseCommon.Models.Comment MapToModel(Comment comment, string user)
     => new()
     {
         BookingId = comment.BookingId.Value,
         CreatedBy = user,
-        Value = comment.Value,
+        Value = comment.Value ?? throw new NullReferenceException(nameof(comment.Value)),
         //Id = id,
         Created = comment.Created
     };
 
-    public static Models.BookingStatusLog MapToModel(BookingStatus status, int bookingId, string user)
+    public static DatabaseCommon.Models.BookingStatusLog MapToModel(BookingStatus status, int bookingId, string user)
     => new()
     {
         BookingId = bookingId,
@@ -31,7 +31,7 @@ public static class DomainToModel
         Status = (short)status.Status
     };
 
-    public static Models.Booking MapToModel(Booking booking, string user)
+    public static DatabaseCommon.Models.Booking MapToModel(Booking booking, string user)
     => new()
     {
         BookingDate = booking.Header.BookingDate.Date.ToDateTime(default),
@@ -39,13 +39,13 @@ public static class DomainToModel
         TextToE1 = booking.Header.TextToE1.Text,
         Reversed = booking.Header.IsReversed,
         Status = (short)booking.BookingStatus.Status,
-        CreatedBy = booking.Commissioner.UserId,
+        CreatedBy = booking.Commissioner.UserId ?? throw new NullReferenceException(nameof(booking.Commissioner.UserId)),
         UpdatedBy = user,
         Updated = booking.BookingStatus.Updated,
         Id = booking.BookingId?.Value
     };
 
-    public static Models.BookingRow MapToModel(BookingRow row, int bookingId)
+    public static DatabaseCommon.Models.BookingRow MapToModel(BookingRow row, int bookingId)
     => new()
     {
         RowNumber = row.RowNumber,

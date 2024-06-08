@@ -20,20 +20,24 @@ public class AttachmentTests
     }
 
     [Fact]
-    public void Fail_To_Add_New_Attachment_Duplicate()
+    public async Task Fail_To_Add_New_Attachment_Duplicate()
     {
         var authenticationService = GetAuthService().Object;
         var booking = CreateNewBookingAndAttachment(authenticationService);
 
-        var ex = Assert.Throws<DomainLogicException>(
-            () => booking.AddNewAttachment("Test.csv", "text/plain", "path/to/file", 1024, authenticationService)
+        var ex = await Assert.ThrowsAsync<DomainLogicException>(
+            () =>
+            {
+                booking.AddNewAttachment("Test.csv", "text/plain", "path/to/file", 1024, authenticationService);
+                return Task.CompletedTask;
+            }
         );
 
         Assert.Equal("Cannot add attachments with duplicate name.", ex.Message);
     }
 
     [Fact]
-    public void Fail_To_Add_New_Attachment_Too_Many()
+    public async Task Fail_To_Add_New_Attachment_Too_Many()
     {
         var authenticationService = GetAuthService().Object;
         var booking = CreateNewBookingAndAttachment(authenticationService);
@@ -42,8 +46,12 @@ public class AttachmentTests
         booking.AddNewAttachment("Test3.csv", "text/plain", "path/to/file", 1024, authenticationService);
         booking.AddNewAttachment("Test4.csv", "text/plain", "path/to/file", 1024, authenticationService);
 
-        var ex = Assert.Throws<DomainLogicException>(
-            () => booking.AddNewAttachment("Test5.csv", "text/plain", "path/to/file", 1024, authenticationService)
+        var ex = await Assert.ThrowsAsync<DomainLogicException>(
+            () =>
+            {
+                booking.AddNewAttachment("Test5.csv", "text/plain", "path/to/file", 1024, authenticationService);
+                return Task.CompletedTask;
+            }
         );
 
         Assert.Equal("Booking cannot contain more than 5 attachments.", ex.Message);
@@ -61,33 +69,41 @@ public class AttachmentTests
     }
 
     [Fact]
-    public void Fail_To_Delete_Attachment_Zero_Attachment()
+    public async Task Fail_To_Delete_Attachment_Zero_Attachment()
     {
         var authenticationService = GetAuthService().Object;
         var booking = CreateNewBookingAndAttachment(authenticationService);
         booking.DeleteAttachment("Test.csv", authenticationService);
 
-        var ex = Assert.Throws<DomainLogicException>(
-            () => booking.DeleteAttachment("Test.csv", authenticationService)
+        var ex = await Assert.ThrowsAsync<DomainLogicException>(
+            () =>
+            {
+                booking.DeleteAttachment("Test.csv", authenticationService);
+                return Task.CompletedTask;
+            }
         );
 
         Assert.Equal("Booking does not contain any attachments.", ex.Message);
     }
 
     [Fact]
-    public void Fail_To_Delete_Attachment_Wrong_Name()
+    public async Task Fail_To_Delete_Attachment_Wrong_Name()
     {
         var authenticationService = GetAuthService().Object;
         var booking = CreateNewBookingAndAttachment(authenticationService);
 
-        var ex = Assert.Throws<NotFoundException>(
-            () => booking.DeleteAttachment("Test1.csv", authenticationService)
+        var ex = await Assert.ThrowsAsync<NotFoundException>(
+            () =>
+            {
+                booking.DeleteAttachment("Test1.csv", authenticationService);
+                return Task.CompletedTask;
+            }
         );
 
         Assert.Equal("Cannot find attachment to delete.", ex.Message);
     }
 
-    private static Booking CreateNewBookingAndAttachment(
+    private static Domain.Wini.Aggregates.Booking CreateNewBookingAndAttachment(
         IAuthenticationService authenticationService,
         string commissioner = "MIHSTE",
         string filename = "Test.csv",
@@ -96,7 +112,7 @@ public class AttachmentTests
         int size = 1024
     )
     {
-        var booking = new Booking(new IdValue<int>(1), new Commissioner(commissioner));
+        var booking = new Domain.Wini.Aggregates.Booking(new IdValue<int>(1), new Commissioner(commissioner));
 
         booking.AddNewAttachment(filename, contentType, path, size, authenticationService);
 

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using DatabaseEf.Models;
 
 namespace DatabaseEf;
 

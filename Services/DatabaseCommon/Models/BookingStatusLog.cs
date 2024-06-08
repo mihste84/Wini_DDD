@@ -1,12 +1,12 @@
-﻿namespace DatabaseEf.Models;
+﻿namespace Services.DatabaseCommon.Models;
 
-public class Comment
+public class BookingStatusLog
 {
     public int Id { get; set; }
 
     public int BookingId { get; set; }
 
-    public string Value { get; set; } = null!;
+    public short Status { get; set; }
 
     public string CreatedBy { get; set; } = null!;
 

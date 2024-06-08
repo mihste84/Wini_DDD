@@ -27,7 +27,7 @@ public sealed class RecipientMessageApiTests : IClassFixture<BaseDbTestFixture>,
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var RecipientMessages = await _testBase.QueryAsync<Services.DatabaseDapper.Models.RecipientMessage>(
+        var RecipientMessages = await _testBase.QueryAsync<Services.DatabaseCommon.Models.RecipientMessage>(
             "SELECT * FROM dbo.RecipientMessages WHERE BookingId = @BookingId", new { BookingId = sqlResult.Id }
         );
         Assert.Single(RecipientMessages);
@@ -41,13 +41,13 @@ public sealed class RecipientMessageApiTests : IClassFixture<BaseDbTestFixture>,
         await _testBase.ResetDbAsync();
         var createdDate = DateTime.UtcNow;
         var messages = new[] {
-            new Services.DatabaseDapper.Models.RecipientMessage {
+            new Services.DatabaseCommon.Models.RecipientMessage {
                 Created = createdDate,
                 CreatedBy = "MIHSTE",
                 Recipient = "XMIHST",
                 Value = "ASDFG"
             },
-            new Services.DatabaseDapper.Models.RecipientMessage {
+            new Services.DatabaseCommon.Models.RecipientMessage {
                 Created = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Local),
                 CreatedBy = "MIHSTE",
                 Recipient = "RECP2",
@@ -64,7 +64,7 @@ public sealed class RecipientMessageApiTests : IClassFixture<BaseDbTestFixture>,
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var dbRecipientMessages = await _testBase.QueryAsync<Services.DatabaseDapper.Models.RecipientMessage>(
+        var dbRecipientMessages = await _testBase.QueryAsync<Services.DatabaseCommon.Models.RecipientMessage>(
             "SELECT * FROM dbo.RecipientMessages WHERE BookingId = @BookingId ORDER BY Created DESC",
             new { BookingId = sqlResult.Id }
         );
@@ -79,13 +79,13 @@ public sealed class RecipientMessageApiTests : IClassFixture<BaseDbTestFixture>,
         await _testBase.ResetDbAsync();
         var createdDate = DateTime.UtcNow;
         var messages = new[] {
-            new Services.DatabaseDapper.Models.RecipientMessage {
+            new Services.DatabaseCommon.Models.RecipientMessage {
                 Created = createdDate,
                 CreatedBy = "MIHSTE",
                 Recipient = "XMIHST",
                 Value = "ASDFG"
             },
-            new Services.DatabaseDapper.Models.RecipientMessage {
+            new Services.DatabaseCommon.Models.RecipientMessage {
                 Created = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Local),
                 CreatedBy = "MIHSTE",
                 Recipient = "RECP2",
@@ -102,7 +102,7 @@ public sealed class RecipientMessageApiTests : IClassFixture<BaseDbTestFixture>,
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var dbRecipientMessages = await _testBase.QueryAsync<Services.DatabaseDapper.Models.RecipientMessage>(
+        var dbRecipientMessages = await _testBase.QueryAsync<Services.DatabaseCommon.Models.RecipientMessage>(
             "SELECT * FROM dbo.RecipientMessages WHERE BookingId = @BookingId ORDER BY Created DESC",
             new { BookingId = sqlResult.Id }
         );

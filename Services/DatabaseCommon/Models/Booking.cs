@@ -1,8 +1,8 @@
-﻿namespace DatabaseEf.Models;
+﻿namespace Services.DatabaseCommon.Models;
 
 public class Booking
 {
-    public int Id { get; set; }
+    public int? Id { get; set; }
 
     public short Status { get; set; }
 

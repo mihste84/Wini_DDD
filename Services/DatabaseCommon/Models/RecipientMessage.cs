@@ -1,4 +1,4 @@
-﻿namespace DatabaseEf.Models;
+﻿namespace Services.DatabaseCommon.Models;
 
 public class RecipientMessage
 {

@@ -55,7 +55,7 @@ public class BookingRepository(ConnectionFactory factory) : IBookingRepository
             trySetWhereForRow(columnName);
         }
 
-        var res = await sql.QueryAsync<DbBookingSearchResult>();
+        var res = await sql.QueryAsync<DatabaseCommon.Models.DbBookingSearchResult>();
         if (res?.Any() == false)
         {
             return [];
@@ -77,7 +77,7 @@ public class BookingRepository(ConnectionFactory factory) : IBookingRepository
         using var conn = factory.CreateConnection();
         conn.Open();
 
-        var attachment = await conn.QueryFirstOrDefaultAsync<Models.Attachment>(
+        var attachment = await conn.QueryFirstOrDefaultAsync<DatabaseCommon.Models.Attachment>(
             AttachmentQueries.SelectByBookingIdAndName,
             new { BookingId = bookingId, Name = name });
         if (attachment == default)
@@ -95,17 +95,17 @@ public class BookingRepository(ConnectionFactory factory) : IBookingRepository
         var query = includeRows ? BookingQueries.SelectBookingAndRowsById : BookingQueries.SelectBookingById;
         var mapper = await conn.QueryMultipleAsync(query, new { BookingId = id });
 
-        var booking = await mapper.ReadFirstOrDefaultAsync<Models.Booking>();
+        var booking = await mapper.ReadFirstOrDefaultAsync<DatabaseCommon.Models.Booking>();
         if (booking == default)
         {
             return default;
         }
 
-        var comments = await mapper.ReadAsync<Models.Comment>();
-        var messages = await mapper.ReadAsync<Models.RecipientMessage>();
-        var logs = await mapper.ReadAsync<Models.BookingStatusLog>();
-        var attachments = await mapper.ReadAsync<Models.Attachment>();
-        var rows = includeRows ? await mapper.ReadAsync<Models.BookingRow>() : [];
+        var comments = await mapper.ReadAsync<DatabaseCommon.Models.Comment>();
+        var messages = await mapper.ReadAsync<DatabaseCommon.Models.RecipientMessage>();
+        var logs = await mapper.ReadAsync<DatabaseCommon.Models.BookingStatusLog>();
+        var attachments = await mapper.ReadAsync<DatabaseCommon.Models.Attachment>();
+        var rows = includeRows ? await mapper.ReadAsync<DatabaseCommon.Models.BookingRow>() : [];
         var deletedRows = includeRows ? await mapper.ReadAsync<int>() : [];
 
         return (

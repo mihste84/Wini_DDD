@@ -58,7 +58,7 @@ if (Environment.GetEnvironmentVariable("DB_TYPE") == "Dapper")
 {
     builder.Services.AddDatabaseDapperServices(connectionString);
 }
-else
+else if (Environment.GetEnvironmentVariable("DB_TYPE") == "Ef")
 {
     builder.Services.AddDatabaseEfServices(connectionString);
 }
@@ -98,7 +98,6 @@ app.MapPost("api/booking/validate", ValidationEndpoints.ValidateNewAsync).Requir
 app.MapGet("api/masterdata", MasterDataEndpoints.GetAllCompaniesAsync).RequireAuthorization();
 
 app.MapGet("api/appuser", AppUserEndpoints.GetAppUser).RequireAuthorization();
-
 
 app.Run();
 public partial class Program;
