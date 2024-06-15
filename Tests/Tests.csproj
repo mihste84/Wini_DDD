@@ -33,17 +33,7 @@
     <ProjectReference Include="..\Domain\Lighthouse\Lighthouse.csproj" />
     <ProjectReference Include="..\API\API.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="TestFiles/Test1.txt">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="TestFiles/Test2.txt">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="TestFiles/TooLargeFile.txt">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+
   <ItemGroup>
     <Content Include="..\Scripts\Databases\WiniDb\**\*.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

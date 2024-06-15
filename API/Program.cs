@@ -29,25 +29,12 @@ builder.Services
     .AddAuthorizationBuilder()
     .AddDefaultPolicy("default", _ => _.RequireAuthenticatedUser());
 
-if (builder.Environment.IsEnvironment("IntegrationTests"))
-{
-    builder.Services.AddScoped<IAuthenticationService, TestAuthenticationService>();
-    builder.Services.AddScoped<Domain.Common.Interfaces.IAuthorizationService, TestAuthorizationService>();
-    builder.Services.AddSingleton<IAuthorizerValidationService, TestAuthorizerValidationService>();
-    builder.Services.AddSingleton<IBookingPeriodValidationService, TestBookingPeriodValidationService>();
-    builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();
-    builder.Services.AddScoped<IAttachmentService, TestAttachmentService>();
-    builder.Services.AddSingleton<IPolicyEvaluator, DisableAuthenticationPolicyEvaluator>();
-}
-else
-{
-    builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
-    builder.Services.AddScoped<Domain.Common.Interfaces.IAuthorizationService, TestAuthorizationService>();
-    builder.Services.AddSingleton<IAuthorizerValidationService, TestAuthorizerValidationService>();
-    builder.Services.AddSingleton<IBookingPeriodValidationService, TestBookingPeriodValidationService>();
-    builder.Services.AddSingleton<IAccountingValidationService, TestAccountingValidationService>();
-    builder.Services.AddScoped<IAttachmentService, TestAttachmentService>();
-}
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<Domain.Common.Interfaces.IAuthorizationService, DummyAuthorizationService>();
+builder.Services.AddSingleton<IAuthorizerValidationService, DummyAuthorizerValidationService>();
+builder.Services.AddSingleton<IBookingPeriodValidationService, DummyBookingPeriodValidationService>();
+builder.Services.AddSingleton<IAccountingValidationService, DummyAccountingValidationService>();
+builder.Services.AddScoped<IAttachmentService, DummyAttachmentService>();
 
 builder.Services.Configure<ApiBehaviorOptions>(options => options.SuppressModelStateInvalidFilter = true);
 

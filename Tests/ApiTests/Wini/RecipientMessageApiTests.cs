@@ -4,13 +4,13 @@ namespace Tests.ApiTests.Wini;
 public sealed class RecipientMessageApiTests : IClassFixture<BaseDbTestFixture>, IDisposable
 {
     private readonly BaseDbTestFixture _testBase;
-    private readonly DatabaseWebApplicationFactory _factory;
+    private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _httpClient;
 
     public RecipientMessageApiTests(BaseDbTestFixture testBase)
     {
         _testBase = testBase;
-        _factory = new DatabaseWebApplicationFactory(testBase.GetConnectionString());
+        _factory = new CustomWebApplicationFactory(testBase.GetConnectionString());
         _httpClient = _factory.CreateClient();
     }
 

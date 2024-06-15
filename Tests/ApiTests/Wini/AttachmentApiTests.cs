@@ -4,13 +4,13 @@ namespace Tests.ApiTests.Wini;
 public sealed class AttachmentApiTests : IClassFixture<BaseDbTestFixture>, IDisposable
 {
     private readonly BaseDbTestFixture _testBase;
-    private readonly DatabaseWebApplicationFactory _factory;
+    private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _httpClient;
 
     public AttachmentApiTests(BaseDbTestFixture testBase)
     {
         _testBase = testBase;
-        _factory = new DatabaseWebApplicationFactory(testBase.GetConnectionString());
+        _factory = new CustomWebApplicationFactory(testBase.GetConnectionString());
         _httpClient = _factory.CreateClient();
     }
 
@@ -19,11 +19,10 @@ public sealed class AttachmentApiTests : IClassFixture<BaseDbTestFixture>, IDisp
     {
         await _testBase.ResetDbAsync();
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
-
         using var formData = new MultipartFormDataContent
         {
-            { GetStreamContent("TestFiles/Test1.txt", "text/plain"), "uploadedFiles", "Test1.txt" },
-            { GetStreamContent("TestFiles/Test2.txt", "text/plain"), "uploadedFiles", "Test2.txt" }
+            { GetStreamContent("text/plain", 2975), "uploadedFiles", "Test1.txt" },
+            { GetStreamContent("text/plain", 2975), "uploadedFiles", "Test2.txt" }
         };
 
         var res = await _httpClient.PostAsync($"api/booking/{sqlResult.Id}/attachment", formData);
@@ -80,9 +79,9 @@ public sealed class AttachmentApiTests : IClassFixture<BaseDbTestFixture>, IDisp
 
         using var formData = new MultipartFormDataContent
         {
-            { GetStreamContent("TestFiles/Test1.txt", "text/plain"), "uploadedFiles", "Test1.txt" },
-            { GetStreamContent("TestFiles/Test2.txt", "text/plain"), "uploadedFiles", "Test2.txt" },
-            { GetStreamContent("TestFiles/TooLargeFile.txt", "text/plain"), "uploadedFiles", "TooLargeFile.txt" }
+            { GetStreamContent("text/plain", 2546), "uploadedFiles", "Test1.txt" },
+            { GetStreamContent("text/plain", 2975), "uploadedFiles", "Test2.txt" },
+            { GetStreamContent("text/plain", 10_485_760 ), "uploadedFiles", "TooLargeFile.txt" }
         };
 
         var res = await _httpClient.PostAsync($"api/booking/{sqlResult.Id}/attachment", formData);
@@ -135,9 +134,12 @@ public sealed class AttachmentApiTests : IClassFixture<BaseDbTestFixture>, IDisp
         Assert.Equal("Test2.txt", dbAttachments.FirstOrDefault()?.Name);
     }
 
-    private static StreamContent GetStreamContent(string path, string mediaType)
+    private static StreamContent GetStreamContent(string mediaType, int size)
     {
-        var fileContent = new StreamContent(File.OpenRead(path));
+        string tempFileName = Path.GetTempFileName();
+        var fs = new FileStream(tempFileName, FileMode.OpenOrCreate);
+        fs.SetLength(size);
+        var fileContent = new StreamContent(fs);
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(mediaType);
         return fileContent;
     }

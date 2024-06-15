@@ -1,16 +1,18 @@
+using Tests.MockServices;
+
 namespace Tests.ApiTests.Wini;
 
 [Order(2)]
 public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposable
 {
     private readonly BaseDbTestFixture _testBase;
-    private readonly DatabaseWebApplicationFactory _factory;
+    private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _httpClient;
 
     public BookingApiTests(BaseDbTestFixture testBase)
     {
         _testBase = testBase;
-        _factory = new DatabaseWebApplicationFactory(testBase.GetConnectionString());
+        _factory = new CustomWebApplicationFactory(testBase.GetConnectionString());
         _httpClient = _factory.CreateClient();
     }
 
