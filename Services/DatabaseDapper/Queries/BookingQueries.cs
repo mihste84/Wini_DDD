@@ -1,4 +1,4 @@
-namespace Services.DatabaseDapper.Queries;
+namespace DatabaseDapper.Queries;
 
 public static class BookingQueries
 {

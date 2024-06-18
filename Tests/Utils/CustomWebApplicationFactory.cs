@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Services.DatabaseDapper;
+using DatabaseDapper;
 using Tests.MockServices;
 
 namespace Tests.Utils;

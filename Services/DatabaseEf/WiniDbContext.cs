@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Services.DatabaseCommon.Models;
+using DatabaseCommon.Models;
 
 namespace DatabaseEf;
 
@@ -55,7 +55,7 @@ public partial class WiniDbContext : DbContext
             entity.Property(e => e.CreatedBy).HasMaxLength(200);
             entity.Property(e => e.RowVersion)
                 .IsRowVersion()
-                .IsConcurrencyToken();
+                .IsConcurrencyToken(false);
             entity.Property(e => e.TextToE1).HasMaxLength(30);
             entity.Property(e => e.Updated).HasDefaultValueSql("(getutcdate())");
             entity.Property(e => e.UpdatedBy).HasMaxLength(200);

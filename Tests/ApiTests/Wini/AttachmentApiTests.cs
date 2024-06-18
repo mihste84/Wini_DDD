@@ -29,7 +29,7 @@ public sealed class AttachmentApiTests : IClassFixture<BaseDbTestFixture>, IDisp
         Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
-        var attachments = await _testBase.QueryAsync<Services.DatabaseCommon.Models.Attachment>(
+        var attachments = await _testBase.QueryAsync<DatabaseCommon.Models.Attachment>(
             "SELECT * FROM dbo.Attachments where BookingId = @Id",
             new { content.Id }
         );
@@ -46,7 +46,7 @@ public sealed class AttachmentApiTests : IClassFixture<BaseDbTestFixture>, IDisp
     {
         await _testBase.ResetDbAsync();
         var attachments = new[] {
-            new Services.DatabaseCommon.Models.Attachment {
+            new DatabaseCommon.Models.Attachment {
                 Created = DateTime.UtcNow,
                 CreatedBy = "MIHSTE",
                 Name = "Test1.txt",
@@ -54,7 +54,7 @@ public sealed class AttachmentApiTests : IClassFixture<BaseDbTestFixture>, IDisp
                 Path = "path/to/file",
                 Size = 1234
             },
-            new Services.DatabaseCommon.Models.Attachment {
+            new DatabaseCommon.Models.Attachment {
                 Created = DateTime.UtcNow,
                 CreatedBy = "MIHSTE",
                 Name = "Test2.txt",
@@ -98,7 +98,7 @@ public sealed class AttachmentApiTests : IClassFixture<BaseDbTestFixture>, IDisp
         await _testBase.ResetDbAsync();
         var createdDate = DateTime.UtcNow;
         var attachments = new[] {
-            new Services.DatabaseCommon.Models.Attachment {
+            new DatabaseCommon.Models.Attachment {
                 Created = createdDate,
                 CreatedBy = "MIHSTE",
                 Name = "Test1.txt",
@@ -106,7 +106,7 @@ public sealed class AttachmentApiTests : IClassFixture<BaseDbTestFixture>, IDisp
                 Path = "path/to/file",
                 Size = 1234
             },
-            new Services.DatabaseCommon.Models.Attachment {
+            new DatabaseCommon.Models.Attachment {
                 Created = createdDate,
                 CreatedBy = "MIHSTE",
                 Name = "Test2.txt",
@@ -125,7 +125,7 @@ public sealed class AttachmentApiTests : IClassFixture<BaseDbTestFixture>, IDisp
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var dbAttachments = await _testBase.QueryAsync<Services.DatabaseCommon.Models.Attachment>(
+        var dbAttachments = await _testBase.QueryAsync<DatabaseCommon.Models.Attachment>(
             "SELECT * FROM dbo.Attachments WHERE BookingId = @BookingId ORDER BY Created DESC",
             new { BookingId = sqlResult.Id }
         );

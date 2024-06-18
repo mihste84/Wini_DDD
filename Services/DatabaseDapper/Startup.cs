@@ -1,6 +1,6 @@
-using Services.DatabaseCommon;
+using DatabaseCommon;
 
-namespace Services.DatabaseDapper;
+namespace DatabaseDapper;
 
 public static class Startup
 {

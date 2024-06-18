@@ -1,4 +1,4 @@
-﻿namespace Services.DatabaseCommon;
+﻿namespace DatabaseCommon;
 
 public static class Startup
 {

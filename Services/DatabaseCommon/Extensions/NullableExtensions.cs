@@ -1,4 +1,4 @@
-namespace Services.DatabaseCommon.Extensions;
+namespace DatabaseCommon.Extensions;
 public static class NullableExtensions
 {
     public static M GetValue<M>(this M? value, string propName) where M : struct

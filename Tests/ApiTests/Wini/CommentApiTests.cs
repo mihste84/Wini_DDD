@@ -23,7 +23,6 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, default);
         var command = new CommentInput(DateTime.UtcNow, "TEST");
 
-        _httpClient.DefaultRequestHeaders.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
         using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/booking/{sqlResult.Id}/comment");
         request.Content = JsonContent.Create(command);
         var res = await _httpClient.SendAsync(request);
@@ -32,7 +31,7 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var comments = await _testBase.QueryAsync<Services.DatabaseCommon.Models.Comment>(
+        var comments = await _testBase.QueryAsync<DatabaseCommon.Models.Comment>(
             "SELECT * FROM dbo.Comments WHERE BookingId = @BookingId",
             new { BookingId = sqlResult.Id }
         );
@@ -46,12 +45,12 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         await _testBase.ResetDbAsync();
         var createdDate = DateTime.UtcNow;
         var comments = new[] {
-            new Services.DatabaseCommon.Models.Comment {
+            new DatabaseCommon.Models.Comment {
                 Created = createdDate,
                 CreatedBy = "MIHSTE",
                 Value = "ASDFG"
             },
-            new Services.DatabaseCommon.Models.Comment {
+            new DatabaseCommon.Models.Comment {
                 Created = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 CreatedBy = "MIHSTE",
                 Value = "XYZ"
@@ -62,7 +61,6 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
 
         using var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/booking/{sqlResult.Id}/comment");
         request.Content = JsonContent.Create(command);
-        request.Headers.Add("RowVersion", Convert.ToBase64String(sqlResult.RowVersion!));
         var res = await _httpClient.SendAsync(request);
 
         Assert.Equal(System.Net.HttpStatusCode.OK, res.StatusCode);
@@ -70,7 +68,7 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var dbComments = await _testBase.QueryAsync<Services.DatabaseCommon.Models.Comment>(
+        var dbComments = await _testBase.QueryAsync<DatabaseCommon.Models.Comment>(
             "SELECT * FROM dbo.Comments WHERE BookingId = @BookingId ORDER BY Created DESC",
             new { BookingId = sqlResult.Id }
         );
@@ -85,12 +83,12 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         await _testBase.ResetDbAsync();
         var createdDate = DateTime.UtcNow;
         var comments = new[] {
-            new Services.DatabaseCommon.Models.Comment {
+            new DatabaseCommon.Models.Comment {
                 Created = createdDate,
                 CreatedBy = "MIHSTE",
                 Value = "ASDFG"
             },
-            new Services.DatabaseCommon.Models.Comment {
+            new DatabaseCommon.Models.Comment {
                 Created = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Local),
                 CreatedBy = "MIHSTE",
                 Value = "XYZ"
@@ -109,7 +107,7 @@ public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var dbComments = await _testBase.QueryAsync<Services.DatabaseCommon.Models.Comment>(
+        var dbComments = await _testBase.QueryAsync<DatabaseCommon.Models.Comment>(
             "SELECT * FROM dbo.Comments WHERE BookingId = @BookingId ORDER BY Created DESC",
             new { BookingId = sqlResult.Id }
         );

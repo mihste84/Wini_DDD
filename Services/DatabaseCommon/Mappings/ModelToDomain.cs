@@ -1,8 +1,8 @@
-namespace Services.DatabaseCommon.Mappings;
+namespace DatabaseCommon.Mappings;
 
 public static class DomainToModel
 {
-    public static DatabaseCommon.Models.RecipientMessage MapToModel(RecipientMessage message, string user)
+    public static Models.RecipientMessage MapToModel(RecipientMessage message, string user)
      => new()
      {
          BookingId = message.BookingId.Value,
@@ -12,7 +12,7 @@ public static class DomainToModel
          //Id = id,
      };
 
-    public static DatabaseCommon.Models.Comment MapToModel(Comment comment, string user)
+    public static Models.Comment MapToModel(Comment comment, string user)
     => new()
     {
         BookingId = comment.BookingId.Value,
@@ -22,7 +22,7 @@ public static class DomainToModel
         Created = comment.Created
     };
 
-    public static DatabaseCommon.Models.BookingStatusLog MapToModel(BookingStatus status, int bookingId, string user)
+    public static Models.BookingStatusLog MapToModel(BookingStatus status, int bookingId, string user)
     => new()
     {
         BookingId = bookingId,
@@ -31,7 +31,7 @@ public static class DomainToModel
         Status = (short)status.Status
     };
 
-    public static DatabaseCommon.Models.Booking MapToModel(Booking booking, string user)
+    public static Models.Booking MapToModel(Booking booking, string user)
     => new()
     {
         BookingDate = booking.Header.BookingDate.Date.ToDateTime(default),
@@ -42,17 +42,17 @@ public static class DomainToModel
         CreatedBy = booking.Commissioner.UserId ?? throw new NullReferenceException(nameof(booking.Commissioner.UserId)),
         UpdatedBy = user,
         Updated = booking.BookingStatus.Updated,
-        Id = booking.BookingId?.Value
+        Id = booking.BookingId?.Value,
+        BookingRows = booking.Rows?.Select(row => MapToModel(row)).ToList() ?? []
     };
 
-    public static DatabaseCommon.Models.BookingRow MapToModel(BookingRow row, int bookingId)
+    public static Models.BookingRow MapToModel(BookingRow row)
     => new()
     {
         RowNumber = row.RowNumber,
         Account = row.Account.Value,
         Amount = row.Money.Amount,
         Authorizer = row.Authorizer.UserId,
-        BookingId = bookingId,
         BusinessUnit = row.BusinessUnit.ToString(),
         CostObject1 = row.CostObject1.Value,
         CostObject2 = row.CostObject2.Value,
@@ -70,4 +70,11 @@ public static class DomainToModel
         SubledgerType = row.Subledger.Type,
         Subsidiary = row.Account.Subsidiary
     };
+
+    public static Models.BookingRow MapToModel(BookingRow row, int bookingId)
+    {
+        var model = MapToModel(row);
+        model.BookingId = bookingId;
+        return model;
+    }
 }

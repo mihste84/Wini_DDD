@@ -1,13 +1,13 @@
-namespace Services.DatabaseCommon.Mappings;
+namespace DatabaseCommon.Mappings;
 public static class ModelToDomain
 {
     public static Booking MapToDomainModel(
-        DatabaseCommon.Models.Booking booking,
-        IEnumerable<DatabaseCommon.Models.BookingRow> rows,
-        IEnumerable<DatabaseCommon.Models.Comment> comments,
-        IEnumerable<DatabaseCommon.Models.RecipientMessage> messages,
-        IEnumerable<DatabaseCommon.Models.BookingStatusLog> logs,
-        IEnumerable<DatabaseCommon.Models.Attachment> attachments
+        Models.Booking booking,
+        IEnumerable<Models.BookingRow> rows,
+        IEnumerable<Models.Comment> comments,
+        IEnumerable<Models.RecipientMessage> messages,
+        IEnumerable<Models.BookingStatusLog> logs,
+        IEnumerable<Models.Attachment> attachments
     )
     => new(
         new IdValue<int>(booking.Id.GetValue<int>(nameof(booking.Id))),
@@ -29,14 +29,37 @@ public static class ModelToDomain
         booking.Created
     );
 
-    public static BookingStatus MapToDomainModel(DatabaseCommon.Models.BookingStatusLog log)
+    public static Booking MapToDomainModel(
+        Models.Booking booking
+    )
+    => new(
+        new IdValue<int>(booking.Id.GetValue<int>(nameof(booking.Id))),
+        new BookingStatus(
+            (WiniStatus)booking.Status,
+            booking.Updated,
+            booking.UpdatedBy.GetValue(nameof(booking.UpdatedBy)),
+            booking.BookingStatusLogs.Select(MapToDomainModel).ToList()
+        ),
+        new Commissioner(booking.CreatedBy.GetValue(nameof(booking.CreatedBy))),
+        new BookingDate(booking.BookingDate),
+        new TextToE1(booking.TextToE1),
+        booking.Reversed,
+        new LedgerType((Ledgers)booking.LedgerType),
+        booking.BookingRows.Where(_ => !_.IsDeleted).Select(MapToDomainModel).ToList(),
+        booking.Comments.Select(MapToDomainModel).ToList(),
+        booking.RecipientMessages.Select(MapToDomainModel).ToList(),
+        booking.Attachments.Select(MapToDomainModel).ToList(),
+        booking.Created
+    );
+
+    public static BookingStatus MapToDomainModel(Models.BookingStatusLog log)
     => new(
         (WiniStatus)log.Status,
         log.Created,
         log.CreatedBy.GetValue(nameof(log.CreatedBy))
     );
 
-    public static Attachment MapToDomainModel(DatabaseCommon.Models.Attachment attachment)
+    public static Attachment MapToDomainModel(Models.Attachment attachment)
     => new(
         BookingType.Wini,
         new IdValue<int>(attachment.BookingId),
@@ -48,21 +71,21 @@ public static class ModelToDomain
         )
     );
 
-    public static RecipientMessage MapToDomainModel(DatabaseCommon.Models.RecipientMessage msg)
+    public static RecipientMessage MapToDomainModel(Models.RecipientMessage msg)
     => new(
         msg.Value.GetValue(nameof(msg.Value)),
         msg.Recipient.GetValue(nameof(msg.Recipient)),
         new IdValue<int>(msg.BookingId)
     );
 
-    public static Comment MapToDomainModel(DatabaseCommon.Models.Comment comment)
+    public static Comment MapToDomainModel(Models.Comment comment)
     => new(
         comment.Value,
         new IdValue<int>(comment.BookingId),
         comment.Created
     );
 
-    public static BookingRow MapToDomainModel(DatabaseCommon.Models.BookingRow row)
+    public static BookingRow MapToDomainModel(Models.BookingRow row)
     => new(
         row.RowNumber,
         new BusinessUnit(row.BusinessUnit),

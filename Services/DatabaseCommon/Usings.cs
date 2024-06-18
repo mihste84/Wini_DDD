@@ -5,7 +5,7 @@ global using Domain.Wini.Values;
 global using Domain.Wini.Enums;
 global using AppLogic.WiniLogic.Exceptions;
 global using Domain.Wini.Aggregates;
-global using Services.DatabaseCommon.Extensions;
+global using DatabaseCommon.Extensions;
 global using Domain.Common.Values;
 global using Domain.Common.Entities;
 global using Domain.Common.Enums;

@@ -1,4 +1,4 @@
-namespace Services.DatabaseCommon.Models;
+namespace DatabaseCommon.Models;
 
 public class DbBookingSearchResult
 {

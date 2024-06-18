@@ -1,9 +1,9 @@
 using DatabaseEf;
-using Services.DatabaseCommon;
+using DatabaseCommon;
 using Microsoft.EntityFrameworkCore;
-using Services.DatabaseEf.Repositories;
+using DatabaseEf.Repositories;
 
-namespace Services.DatabaseEf;
+namespace DatabaseEf;
 
 public static class Startup
 {

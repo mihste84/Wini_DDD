@@ -1,4 +1,4 @@
-namespace Services.DatabaseDapper;
+namespace DatabaseDapper;
 
 public class ConnectionFactory(string connectionString)
 {

@@ -30,7 +30,7 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
 
         var res = await _httpClient.PostAsJsonAsync("/api/booking", command);
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         var numberOfRows = await _testBase.QuerySingleAsync<int>("SELECT count(*) FROM dbo.BookingRows");
         Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
         Assert.NotNull(content);
@@ -86,8 +86,8 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
-        var row = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.BookingRow>("SELECT TOP 1 * FROM dbo.BookingRows");
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var row = await _testBase.QuerySingleAsync<DatabaseCommon.Models.BookingRow>("SELECT TOP 1 * FROM dbo.BookingRows");
         Assert.NotNull(booking);
         Assert.NotNull(row);
         Assert.True(content.Id > 0);
@@ -181,9 +181,9 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
-        var rows = (await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows ORDER BY RowNumber")).ToArray();
-        var logs = (await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs")).ToArray();
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var rows = (await _testBase.QueryAsync<DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows ORDER BY RowNumber")).ToArray();
+        var logs = (await _testBase.QueryAsync<DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs")).ToArray();
         Assert.NotNull(booking);
         Assert.NotEmpty(rows);
         Assert.Single(logs);
@@ -241,10 +241,10 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
     {
         await _testBase.ResetDbAsync();
         var insertRows = new[] {
-            new Services.DatabaseCommon.Models.BookingRow { RowNumber = 1, Account = "1", IsAuthorized = false },
-            new Services.DatabaseCommon.Models.BookingRow { RowNumber = 2, Account = "2", IsAuthorized = false },
-            new Services.DatabaseCommon.Models.BookingRow { RowNumber = 3, Account = "3", IsAuthorized = false },
-            new Services.DatabaseCommon.Models.BookingRow { RowNumber = 4, Account = "4", IsAuthorized = false }
+            new DatabaseCommon.Models.BookingRow { RowNumber = 1, Account = "1", IsAuthorized = false },
+            new DatabaseCommon.Models.BookingRow { RowNumber = 2, Account = "2", IsAuthorized = false },
+            new DatabaseCommon.Models.BookingRow { RowNumber = 3, Account = "3", IsAuthorized = false },
+            new DatabaseCommon.Models.BookingRow { RowNumber = 4, Account = "4", IsAuthorized = false }
         };
         var sqlResult = await _testBase.SeedBaseBookingAsync(default, insertRows);
         var command = new UpdateBookingCommand
@@ -274,8 +274,8 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
-        var rows = (await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows")).ToArray();
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var rows = (await _testBase.QueryAsync<DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows")).ToArray();
         Assert.NotNull(booking);
         Assert.NotEmpty(rows);
         Assert.Equal(4, rows.Length);
@@ -301,10 +301,10 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
         var logs = (
-            await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingStatusLog>(
+            await _testBase.QueryAsync<DatabaseCommon.Models.BookingStatusLog>(
                 "SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id",
                 new { booking.Id })
             )
@@ -329,13 +329,13 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
         var logs = (
-                await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+                await _testBase.QueryAsync<DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
             )
             .ToArray();
-        var rows = (await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var rows = (await _testBase.QueryAsync<DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
         Assert.Equal(WiniStatus.SendError, (WiniStatus)booking.Status!);
@@ -359,13 +359,13 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
         var logs = (
-                await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+                await _testBase.QueryAsync<DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
             )
             .ToArray();
-        var rows = (await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var rows = (await _testBase.QueryAsync<DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
         Assert.Equal(WiniStatus.Saved, (WiniStatus)booking.Status!);
@@ -390,13 +390,13 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
         var logs = (
-                await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+                await _testBase.QueryAsync<DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
             )
             .ToArray();
-        var rows = (await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var rows = (await _testBase.QueryAsync<DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
         Assert.Equal(WiniStatus.ToBeSent, (WiniStatus)booking.Status!);
@@ -421,13 +421,13 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
         var logs = (
-            await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+            await _testBase.QueryAsync<DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
             )
             .ToArray();
-        var rows = (await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var rows = (await _testBase.QueryAsync<DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
         Assert.Equal(WiniStatus.ToBeAuthorized, (WiniStatus)booking.Status!);
@@ -456,13 +456,13 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
         var logs = (
-                await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+                await _testBase.QueryAsync<DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
             )
             .ToArray();
-        var rows = (await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
+        var rows = (await _testBase.QueryAsync<DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { booking.Id })).ToArray();
         Assert.NotEmpty(logs);
         Assert.NotEmpty(rows);
         Assert.Equal(WiniStatus.Saved, (WiniStatus)booking.Status!);
@@ -487,10 +487,10 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         Assert.NotNull(content);
 
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.NotNull(booking);
         var logs = (
-                await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
+                await _testBase.QueryAsync<DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { booking.Id })
             )
             .ToArray();
         Assert.NotEmpty(logs);
@@ -507,10 +507,10 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         var res = await _httpClient.DeleteAsync("/api/booking/" + sqlResult.Id);
         Assert.Equal(System.Net.HttpStatusCode.NoContent, res.StatusCode);
 
-        var booking = await _testBase.QuerySingleAsync<Services.DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
+        var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         Assert.Null(booking);
-        var logs = await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { sqlResult.Id });
-        var rows = await _testBase.QueryAsync<Services.DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { sqlResult.Id });
+        var logs = await _testBase.QueryAsync<DatabaseCommon.Models.BookingStatusLog>("SELECT * FROM dbo.BookingStatusLogs WHERE BookingId = @Id", new { sqlResult.Id });
+        var rows = await _testBase.QueryAsync<DatabaseCommon.Models.BookingRow>("SELECT * FROM dbo.BookingRows WHERE BookingId = @Id", new { sqlResult.Id });
         Assert.Empty(logs);
         Assert.Empty(rows);
     }
@@ -556,7 +556,7 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         Assert.Contains(content.Items, _ => _.BookingId == booking.Id);
     }
 
-    private static Services.DatabaseCommon.Models.Booking GetBooking(WiniStatus status, string createdBy = TestAuthenticationService.UserId)
+    private static DatabaseCommon.Models.Booking GetBooking(WiniStatus status, string createdBy = TestAuthenticationService.UserId)
     => new()
     {
         BookingDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
@@ -570,9 +570,9 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
         UpdatedBy = createdBy
     };
 
-    private static Services.DatabaseCommon.Models.BookingRow[] GetBookingRows(string authorizer = "AUTH", bool isAuthorized = false)
+    private static DatabaseCommon.Models.BookingRow[] GetBookingRows(string authorizer = "AUTH", bool isAuthorized = false)
     => [
-        new Services.DatabaseCommon.Models.BookingRow() {
+        new DatabaseCommon.Models.BookingRow() {
             Account = "12345",
             Amount = 100,
             Authorizer = authorizer,
@@ -588,7 +588,7 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
             SubledgerType = "A",
             Subsidiary = "1234"
         },
-        new Services.DatabaseCommon.Models.BookingRow() {
+        new DatabaseCommon.Models.BookingRow() {
             Account = "98765",
             Amount = -100,
             BusinessUnit = "100KKTOT",

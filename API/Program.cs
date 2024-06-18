@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Arg = System.ArgumentNullException; // Just trying out some aliasing
+using Arg = System.ArgumentException; // Just trying out some aliasing
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();

@@ -2,7 +2,7 @@ using Domain.Common.Entities;
 using Domain.Common.Values;
 using Microsoft.EntityFrameworkCore;
 
-namespace Services.DatabaseEf.Repositories;
+namespace DatabaseEf.Repositories;
 
 public class MasterdataRepository(WiniDbContext ctx) : IMasterdataRepository
 {

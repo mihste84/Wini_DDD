@@ -1,4 +1,4 @@
-namespace Services.DatabaseDapper.Repositories;
+namespace DatabaseDapper.Repositories;
 
 public class BookingRepository(ConnectionFactory factory) : IBookingRepository
 {
