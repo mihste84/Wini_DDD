@@ -2,7 +2,6 @@ using System.Web;
 
 namespace Tests.ApiTests.Wini;
 
-[Order(3)]
 public sealed class CommentApiTests : IClassFixture<BaseDbTestFixture>, IDisposable
 {
     private readonly BaseDbTestFixture _testBase;

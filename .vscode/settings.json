@@ -1,4 +1,5 @@
 {
     "dotnet-test-explorer.testProjectPath": "**/*Tests.csproj",
-    "dotnet-test-explorer.testArguments": "-e ASPNETCORE_ENVIRONMENT=IntegrationTests -e DB_TYPE=Ef"
+    "dotnet-test-explorer.testArguments": "-e ASPNETCORE_ENVIRONMENT=IntegrationTests -e DB_TYPE=Dapper",
+    "dotnet.unitTests.runSettingsPath": "./Tests/test.runsettings"
 }

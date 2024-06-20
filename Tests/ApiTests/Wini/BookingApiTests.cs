@@ -2,7 +2,6 @@ using Tests.MockServices;
 
 namespace Tests.ApiTests.Wini;
 
-[Order(2)]
 public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposable
 {
     private readonly BaseDbTestFixture _testBase;
@@ -19,6 +18,7 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
     [Fact]
     public async Task Insert_New_Empty_Booking_Async()
     {
+        // Arrange
         await _testBase.ResetDbAsync();
         var command = new InsertNewBookingCommand
         {
@@ -28,10 +28,13 @@ public sealed class BookingApiTests : IClassFixture<BaseDbTestFixture>, IDisposa
             ]
         };
 
+        // Act
         var res = await _httpClient.PostAsJsonAsync("/api/booking", command);
         var content = await res.Content.ReadFromJsonAsync<SqlResult>();
         var booking = await _testBase.QuerySingleAsync<DatabaseCommon.Models.Booking>("SELECT TOP 1 * FROM dbo.Bookings");
         var numberOfRows = await _testBase.QuerySingleAsync<int>("SELECT count(*) FROM dbo.BookingRows");
+
+        // Assert
         Assert.Equal(System.Net.HttpStatusCode.Created, res.StatusCode);
         Assert.NotNull(content);
         Assert.True(content.Id > 0);

@@ -11,7 +11,6 @@ global using Domain.Wini.Services;
 global using Domain.Common.Interfaces;
 global using Moq;
 global using Domain.Wini.Events;
-global using Xunit.Extensions.Ordering;
 global using Microsoft.AspNetCore.Mvc.Testing;
 global using System.Net.Http.Json;
 global using API.Services;

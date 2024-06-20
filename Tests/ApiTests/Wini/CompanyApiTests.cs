@@ -1,6 +1,5 @@
 namespace Tests.ApiTests.Wini;
 
-[Order(4)]
 public sealed class CompanyApiTests : IClassFixture<BaseDbTestFixture>, IDisposable
 {
     private readonly BaseDbTestFixture _testBase;

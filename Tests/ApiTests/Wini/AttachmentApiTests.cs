@@ -1,6 +1,5 @@
 namespace Tests.ApiTests.Wini;
 
-[Order(1)]
 public sealed class AttachmentApiTests : IClassFixture<BaseDbTestFixture>, IDisposable
 {
     private readonly BaseDbTestFixture _testBase;
